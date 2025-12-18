@@ -9,7 +9,7 @@ export default function PodporaPage() {
       
       {/* Header */}
       {/* Hero */}
-      <section className="relative w-full py-24 md:py-40 flex items-center justify-center overflow-hidden text-center px-5">
+      <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5">
         <div className="absolute inset-0 z-0">
             <img src="/images/backgrounds/support.jpg" alt="Support Background" className="w-full h-full object-cover brightness-[0.3]" />
         </div>

@@ -18,14 +18,14 @@ export function Footer() {
                 <h4 className="font-bold mb-4 text-foreground">Bankovní spojení</h4>
                 <p>Číslo účtu:</p>
                 <p className="font-mono">2002808176/2010</p>
-                <p className="mt-4"><a href="mailto:info@akhcr.cz" className="hover:underline text-primary">info@akhcr.cz</a></p>
+                <p className="mt-4"><a href="mailto:info@akhcr.cz" className="hover:text-primary hover:underline transition-colors">info@akhcr.cz</a></p>
             </div>
             <div>
                 <h4 className="font-bold mb-4 text-foreground">Odkazy</h4>
                 <ul className="space-y-2">
-                    <li><Link href="/ke-stazeni" className="hover:underline">Dokumenty ke stažení</Link></li>
-                    <li><Link href="/podpora" className="hover:underline">Podpořte nás</Link></li>
-                    <li><Link href="/uzitecne-odkazy" className="hover:underline">Užitečné odkazy</Link></li>
+                    <li><Link href="/ke-stazeni" className="hover:text-primary hover:underline transition-colors">Dokumenty ke stažení</Link></li>
+                    <li><Link href="/podpora" className="hover:text-primary hover:underline transition-colors">Podpořte nás</Link></li>
+                    <li><Link href="/uzitecne-odkazy" className="hover:text-primary hover:underline transition-colors">Užitečné odkazy</Link></li>
                 </ul>
             </div>
             <div>
@@ -81,6 +81,9 @@ export function Footer() {
                    >
                        Odebírat
                    </button>
+                   <p className="text-xs text-muted-foreground mt-2">
+                       Chcete se odhlásit? Napište nám na <a href="mailto:info@akhcr.cz" className="underline hover:text-foreground">info@akhcr.cz</a>.
+                   </p>
                </form>
 
             </div>

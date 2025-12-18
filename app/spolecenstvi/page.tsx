@@ -56,7 +56,7 @@ export default async function CommunitiesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {cities?.map((city) => (
                     <Link key={city.slug} href={`/spolecenstvi/${city.slug}`} className="group relative block h-full">
-                        <div className="h-full bg-card rounded-2xl p-8 border shadow-sm transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1 group-hover:border-primary/50 flex flex-col items-center justify-center gap-4">
+                        <div className="h-full bg-card rounded-2xl p-8 border transition-all duration-300 group-hover:border-primary/50 flex flex-col items-center justify-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors text-primary">
                                 <MapPin className="w-6 h-6" />
                             </div>

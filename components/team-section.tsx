@@ -64,9 +64,9 @@ export function TeamSection() {
           {councilMembers.map((member, index) => (
             <div key={index} className="flex flex-col items-center text-center group">
               <div className="relative mb-6">
-                  <Avatar className="h-28 w-28 border-4 border-background shadow-xl group-hover:scale-105 transition-transform duration-300">
-                    <AvatarImage src={member.image} alt={member.name} />
-                    <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+                  <Avatar className="h-28 w-28 border-4 border-background group-hover:scale-105 transition-transform duration-300 ring-1 ring-border">
+                    <AvatarImage src={member.image} alt={member.name} className="object-cover" />
+                    <AvatarFallback className="text-3xl font-bold bg-primary/5 text-primary flex items-center justify-center">
                         {member.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
@@ -92,9 +92,9 @@ export function TeamSection() {
              {chaplains.map((member, index) => (
                 <div key={index} className="flex flex-col items-center text-center max-w-md group">
                   <div className="relative mb-6">
-                    <Avatar className="h-28 w-28 border-4 border-background shadow-xl group-hover:scale-105 transition-transform duration-300">
-                        <AvatarImage src={member.image} alt={member.name} />
-                        <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+                    <Avatar className="h-28 w-28 border-4 border-background group-hover:scale-105 transition-transform duration-300 ring-1 ring-border">
+                        <AvatarImage src={member.image} alt={member.name} className="object-cover" />
+                        <AvatarFallback className="text-3xl font-bold bg-primary/5 text-primary flex items-center justify-center">
                             {member.name.split(' ').filter((_, i) => i > 0).map(n => n[0]).join('')}
                         </AvatarFallback>
                     </Avatar>

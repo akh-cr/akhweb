@@ -12,7 +12,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     redirect("/login")
   }
 
-  const { data: roleData } = await supabase
+  const { data: roleData, error } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)

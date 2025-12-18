@@ -47,7 +47,7 @@ export default function UsefulLinksPage() {
                   <div>
                       <h2 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">
                         {link.title} 
-                        {link.secondary && <span className="text-muted-foreground font-normal"> & {link.secondary.title}</span>}
+                        {link.secondary && <span> & {link.secondary.title}</span>}
                       </h2>
                       <div className="flex flex-col gap-1">
                           <a href={link.url} target="_blank" className="text-muted-foreground text-sm hover:underline hover:text-foreground transition-colors truncate block">{link.url}</a>

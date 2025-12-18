@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -38,6 +38,28 @@ export function Gallery() {
     if (lightboxIndex === null) return
     setLightboxIndex((prev) => (prev === null ? null : (prev - 1 + galleryImages.length) % galleryImages.length))
   }
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return
+      
+      switch (e.key) {
+        case "Escape":
+          closeLightbox()
+          break
+        case "ArrowLeft":
+          setLightboxIndex((prev) => (prev === null ? null : (prev - 1 + galleryImages.length) % galleryImages.length))
+          break
+        case "ArrowRight":
+          setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % galleryImages.length))
+          break
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [lightboxIndex])
 
   return (
     <section className="w-full py-16 bg-background">

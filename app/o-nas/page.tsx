@@ -13,7 +13,7 @@ export default async function AboutPage() {
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-secondary/30">
       <Navbar />
 
-      <section className="relative w-full py-32 md:py-48 flex items-center justify-center overflow-hidden text-center px-5 border-b">
+      <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
          <div className="absolute inset-0 z-0">
              <img src="/images/backgrounds/o-nas-v4.jpg" alt="About Background" className="w-full h-full object-cover brightness-[0.25]" />
              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />

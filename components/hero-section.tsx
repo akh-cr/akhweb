@@ -1,71 +1,78 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { RefreshCcw } from "lucide-react"
 
-const backgroundImages = [
-  "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
-  "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
-  "/images/gallery/MB_2025_08_15.18.44.48_00011.jpg",
-  "/images/gallery/MB_2025_08_16.18.58.47_00238.jpg",
-]
+import { HeroVariantDefault } from "./hero-variants/hero-variant-default"
+import { HeroVariantSplit } from "./hero-variants/hero-variant-split"
+import { HeroVariantMinimal } from "./hero-variants/hero-variant-minimal"
+import { HeroVariantCleanSlideshow } from "./hero-variants/hero-variant-clean-slideshow"
+
+type Variant = "default" | "split" | "minimal" | "clean"
 
 export function HeroSection() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [variant, setVariant] = useState<Variant>("clean")
+  const [isOpen, setIsOpen] = useState(false)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
+  const renderGenericVariant = () => {
+    switch (variant) {
+      case "split": return <HeroVariantSplit />
+      case "minimal": return <HeroVariantMinimal />
+      case "clean": return <HeroVariantCleanSlideshow />
+      default: return <HeroVariantDefault />
+    }
+  }
 
   return (
-    <section className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center bg-zinc-900 text-white overflow-hidden">
-      {/* Background Slideshow */}
-      <div className="absolute inset-0 z-0">
-        {backgroundImages.map((img, index) => (
-          <div
-            key={img}
-            className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
-            style={{
-              backgroundImage: `url('${img}')`,
-              opacity: index === currentImageIndex ? 0.4 : 0,
-            }}
-          />
-        ))}
-        {/* Overlay Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-purple-900/40 to-black/80 z-10" />
-      </div>
+    <>
+      {renderGenericVariant()}
 
-      <div className="relative z-20 max-w-5xl mx-auto px-5 text-center flex flex-col items-center gap-6 md:gap-8">
-        <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-white/90 text-sm font-medium tracking-wide uppercase backdrop-blur-sm border border-white/10 animate-fade-in">
-          Křesťani a absolventi
-        </span>
-        
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 drop-shadow-sm uppercase max-w-4xl">
-          Absolventské<br className="block" /> křesťanské hnutí
-        </h1>
-        
-        <p className="text-lg md:text-2xl text-white/80 max-w-2xl leading-relaxed font-light">
-          Spojujeme lidi, kteří chtějí růst ve víře i v životě. <br className="hidden md:block" />
-          Přidej se k síti absolventských společenství po celé ČR.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 mt-4">
-          <Link href="/spolecenstvi">
-            <Button size="lg" className="h-12 px-8 text-lg rounded-full bg-white text-black hover:bg-white/90 shadow-lg hover:shadow-xl transition-all">
-              Najít společenství
-            </Button>
-          </Link>
-          <Link href="/o-nas">
-            <Button size="lg" variant="outline" className="h-12 px-8 text-lg rounded-full border-white/30 bg-white/5 text-white hover:bg-white/10 backdrop-blur-sm">
-              Zjistit více
-            </Button>
-          </Link>
-        </div>
+      {/* Debug Switcher UI */}
+      <div className="fixed bottom-4 right-4 z-[100] flex flex-col items-end gap-2">
+        {isOpen && (
+            <div className="bg-background border rounded-lg shadow-xl p-3 flex flex-col gap-2 animate-in slide-in-from-bottom-5">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">Hero Variant</p>
+                <div className="flex gap-2 flex-wrap max-w-[200px] justify-end">
+                    <Button 
+                        size="sm" 
+                        variant={variant === "default" ? "default" : "outline"}
+                        onClick={() => setVariant("default")}
+                    >
+                        Default
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant={variant === "clean" ? "default" : "outline"}
+                        onClick={() => setVariant("clean")}
+                    >
+                        Clean
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant={variant === "split" ? "default" : "outline"}
+                        onClick={() => setVariant("split")}
+                    >
+                        Split
+                    </Button>
+                    <Button 
+                        size="sm" 
+                        variant={variant === "minimal" ? "default" : "outline"}
+                        onClick={() => setVariant("minimal")}
+                    >
+                        Minimal
+                    </Button>
+                </div>
+            </div>
+        )}
+        <Button 
+            className="rounded-full shadow-lg h-12 w-12" 
+            size="icon"
+            onClick={() => setIsOpen(!isOpen)}
+        >
+            <RefreshCcw className="h-5 w-5" />
+        </Button>
       </div>
-    </section>
+    </>
   )
 }

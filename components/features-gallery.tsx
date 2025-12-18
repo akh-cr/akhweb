@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { X, ChevronLeft, ChevronRight, ZoomIn, Heart, Calendar, Users, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -69,6 +69,28 @@ export function FeaturesGallery() {
     setLightboxIndex((prev) => (prev === null ? null : (prev - 1 + galleryImages.length) % galleryImages.length))
   }
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return
+      
+      switch (e.key) {
+        case "Escape":
+          closeLightbox()
+          break
+        case "ArrowLeft":
+          setLightboxIndex((prev) => (prev === null ? null : (prev - 1 + galleryImages.length) % galleryImages.length))
+          break
+        case "ArrowRight":
+          setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % galleryImages.length))
+          break
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [lightboxIndex])
+
   return (
     <section className="w-full py-16 bg-background">
       <div className="max-w-7xl mx-auto px-5">
@@ -88,7 +110,7 @@ export function FeaturesGallery() {
                 // Assign specific image to each feature (recycling first 4)
                 const imageIndex = index; 
                 return (
-                    <div key={index} className="flex flex-col group rounded-2xl border bg-card overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <div key={index} className="flex flex-col group rounded-2xl border bg-card overflow-hidden hover:border-primary/50 transition-all duration-300">
                         {/* Image Top */}
                         <div 
                             className="relative aspect-[4/3] overflow-hidden cursor-pointer"

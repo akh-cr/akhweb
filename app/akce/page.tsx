@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
 import { MapPin, ArrowRight } from "lucide-react";
+import { GoogleCalendar } from "@/components/google-calendar";
 
 export default async function EventsPage() {
   const supabase = await createClient();
@@ -56,7 +57,7 @@ export default async function EventsPage() {
                     <Link 
                         key={event.id} 
                         href={`/akce/${event.slug || '#'}`}
-                        className={`block bg-card p-6 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
+                        className={`block bg-card p-6 rounded-xl border transition-all duration-200 hover:border-primary/50 group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
                     >
                         <div className="flex flex-row gap-6 items-start">
                              {/* Date Badge */}
@@ -152,15 +153,8 @@ export default async function EventsPage() {
       {/* Google Calendar Section */}
       <section className="w-full py-16 bg-white dark:bg-zinc-900 border-t flex flex-col items-center px-5">
             <h2 className="text-3xl font-bold mb-8">Kalendář akcí</h2>
-            <div className="w-full max-w-4xl aspect-[4/3] md:aspect-[16/9] bg-gray-100 rounded-xl overflow-hidden shadow-sm border">
-                <iframe 
-                    src="https://calendar.google.com/calendar/embed?src=c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com&ctz=Europe%2FPrague" 
-                    style={{border: 0}} 
-                    width="100%" 
-                    height="100%" 
-                    frameBorder="0" 
-                    scrolling="no">
-                </iframe>
+            <div className="w-full max-w-4xl aspect-[4/3] md:aspect-[16/9] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-sm border border-border">
+                <GoogleCalendar />
             </div>
             <div className="mt-8 flex gap-4">
                  <a href="https://calendar.google.com/calendar/ical/c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com/public/basic.ics" target="_blank">

@@ -14,7 +14,7 @@ export default function KeStazeniPage() {
       <Navbar />
       
       {/* Header */}
-      <section className="w-full py-20 bg-zinc-900 text-white text-center px-5">
+      <section className="relative w-full py-24 md:py-32 bg-zinc-900 text-white text-center px-5 border-b border-white/10">
         <h1 className="text-4xl md:text-6xl font-black mb-6">Ke stažení</h1>
         <p className="text-xl text-zinc-300 max-w-2xl mx-auto leading-relaxed">
            Dokumenty a materiály spolku.
