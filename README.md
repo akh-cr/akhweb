@@ -1,109 +1,113 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# AKH Web Project
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+A modern web application built for the **Absolventské křesťanské hnutí (AKH)**.
+This project uses the **Next.js 15** App Router, **Supabase** for backend
+services, and **Tailwind CSS** for styling.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+![Screenshot](opengraph-image.png)
 
-## Features
+## 🛠 Technology Stack
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+### Core
 
-## Demo
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL)
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+### Frontend & UI
 
-## Deploy to Vercel
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI based)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Fonts**: Inter (via `next/font`)
 
-Vercel deployment will guide you through creating a Supabase account and project.
+### Key Libraries
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+- **Forms**: `react-hook-form` + `zod` typesafe validation.
+- **Rich Text Editor**: [Tiptap](https://tiptap.dev/) (Headless wrapper).
+- **Notifications**: `sonner`.
+- **Image Compression**: `browser-image-compression`.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+## 📂 Project Structure
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+```bash
+├── app/                  # Next.js App Router
+│   ├── (admin)/          # Protected Admin interface (layout group)
+│   ├── api/              # API Routes (minimal, mostly Server Actions used)
+│   └── ...               # Public pages (akce, spolecenstvi, etc.)
+├── components/           # React Components
+│   ├── ui/               # Reusable shadcn/ui primitives
+│   └── ...               # Feature-specific components
+├── lib/                  # Utilities
+│   └── supabase/         # Supabase Client/Server helpers
+├── scripts/              # Maintenance & Migration scripts
+└── supabase/             # Database migrations & schemas
+```
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+## 🚀 Getting Started
 
-## Clone and run locally
+### Prerequisites
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+- Node.js 20+
+- Supabase Project
 
-2. Create a Next.js app using the Supabase Starter template npx command
+### 1. Clone & Install
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+```bash
+git clone <repo_url>
+cd akhweb
+npm install
+```
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+### 2. Environment Setup
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+Create a `.env.local` file:
 
-3. Use `cd` to change into the app's directory
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+# Optional: Service role for admin scripts
+SUPABASE_SERVICE_ROLE_KEY=your_service_key
+```
 
-   ```bash
-   cd with-supabase-app
-   ```
+### 3. Run Locally
 
-4. Rename `.env.example` to `.env.local` and update the following:
+```bash
+npm run dev
+```
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+## 🔐 Admin & Security
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+- **Role-Based Access Control (RBAC)**: secure database policies (RLS).
+- **Middleware**: Protected routes (`/admin/*`) require authentication.
+- **Roles**: `admin` (full access), `editor` (content access), `user`
+  (read-only).
 
-5. You can now run the Next.js local development server:
+## 📦 Deployment
 
-   ```bash
-   npm run dev
-   ```
+### Option 1: Vercel (Recommended)
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+1. Import project to Vercel.
+2. Add Environment Variables (`NEXT_PUBLIC_SUPABASE_URL`, etc.).
+3. Deploy. Vercel automatically detects Next.js config.
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+### Option 2: Netlify
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+This project includes a `netlify.toml` for easy deployment.
 
-## Feedback and issues
+1. Import project to Netlify.
+2. Ensure Build Command is `npm run build` and Publish dir is `.next`.
+3. **Crucial**: Add Environment Variables in Netlify Site Settings.
+4. Netlify's Next.js Runtime will handle Middleware and SSR.
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+Note: Since this app uses **Middleware** and **SSR**, it cannot be a purely
+static site (`next export` is not supported). It requires a Node.js runtime
+(Vercel Functions or Netlify Functions).
 
-## More Supabase examples
+## 🗄 Database Management
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+Scripts are located in `scripts/`:
+
+- `setup_rbac.sql`: Initial Role-Based Access Control setup.
+- `apply_migration.js`: Apply local SQL migrations to remote DB.
+- `verify_security.js`: Audit RLS policies.

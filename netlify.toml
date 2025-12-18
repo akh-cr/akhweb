@@ -1,0 +1,15 @@
+# Netlify Configuration
+# modern Next.js 13.5+ sites on Netlify are often zero-config, 
+# but this file ensures specific settings are respected.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Environment variables can be set here or in the Netlify UI.
+# Prefer UI for secrets.
+[build.environment]
+  NODE_VERSION = "20"

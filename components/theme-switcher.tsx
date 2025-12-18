@@ -16,10 +16,15 @@ const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
+  // Toggle this to false to hide the theme switcher globally
+  const ENABLE_THEME_SWITCHER = true;
+
   // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (!ENABLE_THEME_SWITCHER) return null;
 
   if (!mounted) {
     return null;

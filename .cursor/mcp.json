@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "supabase-db": {
+      "command": "/Users/miakh/source/akhweb/scripts/start-mcp-db.sh",
+      "args": []
+    },
+    "supabase": {
+      "command": "/Users/miakh/source/akhweb/scripts/start-mcp-supabase.sh",
+      "args": []
+    }
+  }
+}
