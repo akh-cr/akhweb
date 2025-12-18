@@ -1,46 +1,61 @@
 # AKH Web Project
 
-A modern web application built for the **Absolventské křesťanské hnutí (AKH)**.
-This project uses the **Next.js 15** App Router, **Supabase** for backend
-services, and **Tailwind CSS** for styling.
+A modern, full-stack web application built for the **Absolventské křesťanské
+hnutí (AKH)**. This platform facilitates community connection, event management,
+and information sharing for Christian graduates in the Czech Republic.
 
-![Screenshot](opengraph-image.png)
+![Screenshot](app/opengraph-image.png)
+
+## 🌟 Features
+
+- **Communities (Společenství)**: interactive directory of local graduate groups
+  with map integration.
+- **Events (Akce)**: Upcoming events listing with detailed information and
+  registration links.
+- **Content Pages**: About Us, Contact, Support, and useful links.
+- **Admin Dashboard**: Secure, role-based administration interface for managing
+  content.
+- **Blog**: Integrated blogging platform (feature-flagged).
 
 ## 🛠 Technology Stack
 
+The project leverages a modern React architecture optimized for performance and
+type safety.
+
 ### Core
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions,
+  SSR/SSG).
+- **Language**: [TypeScript](https://www.typescriptlang.org/) for full-stack
+  type safety.
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL).
+- **Auth**: Supabase Auth with Role-Based Access Control (RBAC).
 
 ### Frontend & UI
 
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI based)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Fonts**: Inter (via `next/font`)
-
-### Key Libraries
-
-- **Forms**: `react-hook-form` + `zod` typesafe validation.
-- **Rich Text Editor**: [Tiptap](https://tiptap.dev/) (Headless wrapper).
-- **Notifications**: `sonner`.
-- **Image Compression**: `browser-image-compression`.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with `next-themes`
+  (Dark/Light mode).
+- **Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI primitives).
+- **Icons**: [Lucide React](https://lucide.dev/).
+- **Rich Text**: [Tiptap](https://tiptap.dev/) for content editing.
+- **Forms**: `react-hook-form` + `zod` validation.
 
 ## 📂 Project Structure
 
 ```bash
-├── app/                  # Next.js App Router
-│   ├── (admin)/          # Protected Admin interface (layout group)
-│   ├── api/              # API Routes (minimal, mostly Server Actions used)
-│   └── ...               # Public pages (akce, spolecenstvi, etc.)
+├── app/                  # Next.js App Router (pages & layouts)
+│   ├── (admin)/          # Protected Admin interface
+│   ├── api/              # API Routes
+│   ├── akce/             # Events feature
+│   ├── spolecenstvi/     # Communities feature
+│   └── ...               # Other public routes
 ├── components/           # React Components
 │   ├── ui/               # Reusable shadcn/ui primitives
 │   └── ...               # Feature-specific components
-├── lib/                  # Utilities
+├── lib/                  # Utilities, types, and constants
 │   └── supabase/         # Supabase Client/Server helpers
-├── scripts/              # Maintenance & Migration scripts
+├── public/               # Static assets (images, documents)
+├── scripts/              # Maintenance, migration & MCP scripts
 └── supabase/             # Database migrations & schemas
 ```
 
@@ -49,6 +64,7 @@ services, and **Tailwind CSS** for styling.
 ### Prerequisites
 
 - Node.js 20+
+- npm or pnpm
 - Supabase Project
 
 ### 1. Clone & Install
@@ -61,11 +77,12 @@ npm install
 
 ### 2. Environment Setup
 
-Create a `.env.local` file:
+Create a `.env.local` file in the root directory:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+DATABASE_URL=your_postgres_connection_string
 # Optional: Service role for admin scripts
 SUPABASE_SERVICE_ROLE_KEY=your_service_key
 ```
@@ -76,38 +93,48 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_key
 npm run dev
 ```
 
-## 🔐 Admin & Security
+## 🔐 Security & Administration
 
-- **Role-Based Access Control (RBAC)**: secure database policies (RLS).
-- **Middleware**: Protected routes (`/admin/*`) require authentication.
-- **Roles**: `admin` (full access), `editor` (content access), `user`
-  (read-only).
+- **RBAC**: Access follows a strict hierarchy (`admin` > `editor` > `user`).
+- **Middleware**: Protected routes (`/admin/*`) are guarded by Next.js
+  Middleware.
+- **RLS**: Row-Level Security policies in Postgres ensure data isolation and
+  safety.
+- **Admin Access**:
+  - Navigate to `/admin` to log in.
+  - Use the "View on web" action in admin tables to preview changes live.
 
 ## 📦 Deployment
 
-### Option 1: Vercel (Recommended)
+### Vercel (Recommended)
 
-1. Import project to Vercel.
+1. Import the project to Vercel.
 2. Add Environment Variables (`NEXT_PUBLIC_SUPABASE_URL`, etc.).
-3. Deploy. Vercel automatically detects Next.js config.
+3. Deploy. Vercel automatically detects the Next.js configuration.
 
-### Option 2: Netlify
+### Netlify
 
-This project includes a `netlify.toml` for easy deployment.
+Includes `netlify.toml` configuration.
 
-1. Import project to Netlify.
-2. Ensure Build Command is `npm run build` and Publish dir is `.next`.
-3. **Crucial**: Add Environment Variables in Netlify Site Settings.
-4. Netlify's Next.js Runtime will handle Middleware and SSR.
+1. Import project.
+2. Set Build Command: `npm run build`.
+3. Set Publish Directory: `.next`.
+4. Add Environment Variables in Site Settings.
 
-Note: Since this app uses **Middleware** and **SSR**, it cannot be a purely
-static site (`next export` is not supported). It requires a Node.js runtime
-(Vercel Functions or Netlify Functions).
+## 🗄 Database & Maintenance
 
-## 🗄 Database Management
+Scripts are located in the `scripts/` directory for database management and
+maintenance tasks.
 
-Scripts are located in `scripts/`:
+- `apply_migration.js`: Applies local SQL migrations to the remote database.
+- `verify_security.js`: Audits RLS policies and security settings.
+- `archive/`: Contains legacy scripts (e.g., initial setup tools).
 
-- `setup_rbac.sql`: Initial Role-Based Access Control setup.
-- `apply_migration.js`: Apply local SQL migrations to remote DB.
-- `verify_security.js`: Audit RLS policies.
+### AI Integration (MCP)
+
+This project is configured with
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers for
+AI-assisted development.
+
+- `scripts/start-mcp-db.sh`: Direct Postgres access.
+- `scripts/start-mcp-supabase.sh`: Supabase Management API access.
