@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,15 @@ export default async function ContactPage() {
       {/* Hero */}
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5">
         <div className="absolute inset-0 z-0">
-            <img src="/images/backgrounds/contact.jpg" alt="Contact Background" className="w-full h-full object-cover brightness-[0.3]" />
+             <Image 
+                src="/images/backgrounds/contact.jpg" 
+                alt="Contact Background" 
+                fill
+                priority
+                className="object-cover brightness-[0.3]" 
+                sizes="100vw"
+                quality={80}
+             />
         </div>
         <div className="relative z-10 w-full max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-black mb-6 text-white tracking-tight">{page?.title || "Kontakt"}</h1>
@@ -69,7 +78,13 @@ export default async function ContactPage() {
 
                 <div className="pt-6 border-t mt-auto flex items-center gap-4">
                      <div className="h-24 w-24 bg-white p-2 rounded-lg border flex items-center justify-center shrink-0">
-                        <img src="/images/qr-platba.png" alt="QR Platba" className="w-full h-full object-contain" />
+                        <Image 
+                            src="/images/qr-platba.png" 
+                            alt="QR Platba" 
+                            fill
+                            className="object-contain p-2" 
+                            sizes="100px"
+                        />
                     </div>
                     <p className="text-sm text-muted-foreground">
                         Přispět můžete jednoduše naskenováním QR kódu.

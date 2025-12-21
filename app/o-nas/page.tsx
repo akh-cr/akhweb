@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Footer } from "@/components/footer";
 import { TeamSection } from "@/components/team-section";
@@ -15,7 +16,15 @@ export default async function AboutPage() {
 
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
          <div className="absolute inset-0 z-0">
-             <img src="/images/backgrounds/o-nas-v4.jpg" alt="About Background" className="w-full h-full object-cover brightness-[0.25]" />
+             <Image 
+                 src="/images/backgrounds/o-nas-v4.jpg" 
+                 alt="About Background" 
+                 fill
+                 priority
+                 className="object-cover brightness-[0.25]" 
+                 sizes="100vw"
+                 quality={80}
+             />
              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
          </div>
 

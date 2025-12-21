@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -36,10 +37,14 @@ export default async function CommunitiesPage() {
 
              {/* Right Column: Image */}
              <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/10 rotate-2 hover:rotate-0 transition-all duration-700 group">
-                 <img 
+                 <Image 
                     src="/images/backgrounds/spolecenstvi-new.jpg" 
                     alt="Společenství" 
-                    className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700" 
+                    fill
+                    priority
+                    className="object-cover scale-105 group-hover:scale-100 transition-transform duration-700"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    quality={80} 
                  />
                  <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none" />
              </div>

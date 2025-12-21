@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/navbar";
+import Image from "next/image";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 
@@ -11,7 +12,15 @@ export default function PodporaPage() {
       {/* Hero */}
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5">
         <div className="absolute inset-0 z-0">
-            <img src="/images/backgrounds/support.jpg" alt="Support Background" className="w-full h-full object-cover brightness-[0.3]" />
+             <Image 
+                src="/images/backgrounds/support.jpg" 
+                alt="Support Background" 
+                fill
+                priority
+                className="object-cover brightness-[0.3]" 
+                sizes="100vw"
+                quality={80}
+             />
         </div>
         <div className="relative z-10 w-full max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-black mb-6 text-white tracking-tight">Podpořte nás</h1>
@@ -58,7 +67,13 @@ export default function PodporaPage() {
 
             <div className="flex items-center gap-4 mt-2">
                 <div className="h-32 w-32 bg-white p-2 rounded-lg border flex items-center justify-center relative overflow-hidden">
-                    <img src="/images/qr-platba.png" alt="QR Platba" className="w-full h-full object-contain" />
+                    <Image 
+                        src="/images/qr-platba.png" 
+                        alt="QR Platba" 
+                        fill
+                        className="object-contain p-2" 
+                        sizes="100px"
+                    />
                 </div>
                 <p className="text-sm text-muted-foreground flex-1">
                     Pro rychlou podporu můžete využít tento QR kód.

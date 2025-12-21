@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/navbar";
+import Image from "next/image";
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,15 @@ export default async function EventsPage() {
       {/* Hero */}
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
          <div className="absolute inset-0 z-0">
-             <img src="/images/backgrounds/akce-new-3.jpg" alt="Events Background" className="w-full h-full object-cover brightness-[0.3]" />
+             <Image 
+                 src="/images/backgrounds/akce-new-3.jpg" 
+                 alt="Events Background" 
+                 fill
+                 priority
+                 className="object-cover brightness-[0.3]"
+                 sizes="100vw"
+                 quality={80}
+             />
          </div>
          <div className="relative z-10 w-full max-w-4xl mx-auto">
              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-white">Akce</h1>
