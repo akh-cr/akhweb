@@ -34,8 +34,8 @@ export default function PodporaPage() {
                     Můžete se také zapojit jako dobrovolníci při organizaci akcí nebo ve vedení místních buněk AKH.
                 </p>
             </div>
-             <Button variant="outline" className="w-fit mt-2">
-                Napsat nám
+             <Button variant="outline" className="w-fit mt-2" asChild>
+                <a href="mailto:info@akhcr.cz">Napsat nám</a>
             </Button>
         </div>
 

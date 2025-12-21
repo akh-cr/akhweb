@@ -8,6 +8,18 @@ export async function middleware(request: NextRequest) {
     },
   })
 
+  // Add CSP header to allow Google APIs
+  const csp = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.google.com https://www.gstatic.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://*.googleusercontent.com https://*.google.com;
+    font-src 'self' https://fonts.gstatic.com;
+    frame-src 'self' https://calendar.google.com;
+    connect-src 'self' https://*.supabase.co https://*.google.com https://*.googleapis.com;
+  `
+  response.headers.set('Content-Security-Policy', csp.replace(/\s{2,}/g, ' ').trim())
+
   // Create client
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

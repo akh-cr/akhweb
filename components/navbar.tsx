@@ -55,6 +55,7 @@ export function Navbar() {
                         <SheetContent side="right" className="w-[300px] sm:w-[400px] pt-12 px-6">
                             <SheetTitle className="sr-only">Menu</SheetTitle>
                             <div className="flex flex-col gap-6 mt-6 text-lg font-medium">
+                                <Link href="/" className={mobileLinkClass("/")}>Domů</Link>
                                 <Link href="/o-nas" className={mobileLinkClass("/o-nas")}>O nás</Link>
                                 <Link href="/akce" className={mobileLinkClass("/akce")}>Akce</Link>
                                 <Link href="/spolecenstvi" className={mobileLinkClass("/spolecenstvi")}>Společenství</Link>

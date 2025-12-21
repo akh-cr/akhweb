@@ -98,13 +98,25 @@ export default async function ContactPage() {
                 </a>
             </div>
 
-                <div className="pt-6 border-t mt-auto">
-                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2">Předseda spolku</p>
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold text-secondary-foreground">VK</div>
-                        <div>
-                            <p className="font-bold">Vojtěch Kaska</p>
-                            <a href="tel:+420720339904" className="text-sm text-muted-foreground hover:text-primary transition">+420 720 339 904</a>
+                <div className="pt-6 border-t mt-auto space-y-4">
+                    <div>
+                        <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2">Předseda spolku</p>
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold text-secondary-foreground">VK</div>
+                            <div>
+                                <p className="font-bold">Vojtěch Kaska</p>
+                                <a href="tel:+420720339904" className="text-sm text-muted-foreground hover:text-primary transition">+420 720 339 904</a>
+                            </div>
+                        </div>
+                    </div>
+                     <div>
+                        <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2">Předsedkyně spolku</p>
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold text-secondary-foreground">JC</div>
+                            <div>
+                                <p className="font-bold">Jana Capurková</p>
+                                {/* <a href="tel:..." className="text-sm text-muted-foreground hover:text-primary transition">...</a> */}
+                            </div>
                         </div>
                     </div>
                 </div>

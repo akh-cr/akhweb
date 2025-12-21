@@ -91,6 +91,46 @@ export function FeaturesGallery() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [lightboxIndex])
 
+  // Prevent scrolling when lightbox is open
+  useEffect(() => {
+    if (lightboxIndex !== null) {
+      document.body.style.overflow = "hidden"
+      document.documentElement.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+      document.documentElement.style.overflow = "unset"
+    }
+    return () => {
+      document.body.style.overflow = "unset"
+      document.documentElement.style.overflow = "unset"
+    }
+  }, [lightboxIndex])
+
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+
+  const minSwipeDistance = 50
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return
+    
+    const endX = e.changedTouches[0].clientX
+    const distance = touchStart - endX
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) {
+      showNext()
+    }
+    if (isRightSwipe) {
+      showPrev()
+    }
+    setTouchStart(null)
+  }
+
   return (
     <section className="w-full py-16 bg-background">
       <div className="max-w-7xl mx-auto px-5">
@@ -147,19 +187,19 @@ export function FeaturesGallery() {
 
         {/* Remaining Gallery Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-             {galleryImages.slice(4).map((src, i) => {
+            {galleryImages.slice(4).map((src, i) => {
                     const realIndex = 4 + i
                     return (
                         <div 
                             key={realIndex} 
                             className={cn(
-                                "relative aspect-square rounded-xl overflow-hidden cursor-pointer group bg-muted hover:ring-2 hover:ring-primary/20 transition-all",
+                                "relative aspect-square overflow-hidden rounded-xl cursor-pointer group bg-muted hover:ring-2 hover:ring-primary/20 transition-all",
                                 // Only show the second row (indices 5-9 in this slice) on desktop
-                                i >= 5 && "hidden lg:block"
+                                i >= 6 && "hidden lg:block"
                             )}
                             onClick={() => openLightbox(realIndex)}
                         >
-                            <Image src={src} alt="Gallery" fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="20vw" />
+                            <Image src={src} alt="Gallery" fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw" quality={40} />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <ZoomIn className="text-white h-6 w-6 drop-shadow-md" />
                             </div>
@@ -172,13 +212,16 @@ export function FeaturesGallery() {
       {/* Lightbox */}
       {lightboxIndex !== null && (
         <div 
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center animate-in fade-in duration-300"
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center animate-in fade-in duration-300 touch-none"
           onClick={closeLightbox}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          style={{ touchAction: 'none' }}
         >
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute top-4 right-4 text-white hover:bg-white/10 h-12 w-12 rounded-full z-50" 
+            className="absolute top-4 right-4 text-white transition-colors duration-500 hover:bg-transparent md:hover:bg-white/10 active:bg-white/20 active:duration-0 focus-visible:ring-0 focus-visible:outline-none tap-transparent h-12 w-12 rounded-full z-50" 
             onClick={closeLightbox}
           >
             <X className="h-6 w-6" />
@@ -187,13 +230,16 @@ export function FeaturesGallery() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute left-4 text-white hover:bg-white/10 h-12 w-12 rounded-full z-50 hidden md:flex" 
-            onClick={showPrev}
+            className="absolute left-4 text-white transition-colors duration-500 hover:bg-transparent md:hover:bg-white/10 active:bg-white/20 active:duration-0 focus-visible:ring-0 focus-visible:outline-none tap-transparent h-12 w-12 rounded-full z-50 flex" 
+            onClick={(e) => {
+                e.stopPropagation();
+                showPrev();
+            }}
           >
             <ChevronLeft className="h-8 w-8" />
           </Button>
 
-          <div className="relative w-full h-full p-4 md:p-10 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full h-full p-4 md:p-10 flex items-center justify-center">
              <div className="relative w-full h-full max-h-[85vh] max-w-7xl">
                 <Image 
                     src={galleryImages[lightboxIndex]} 
@@ -209,8 +255,11 @@ export function FeaturesGallery() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute right-4 text-white hover:bg-white/10 h-12 w-12 rounded-full z-50 hidden md:flex" 
-            onClick={showNext}
+            className="absolute right-4 text-white transition-colors duration-500 hover:bg-transparent md:hover:bg-white/10 active:bg-white/20 active:duration-0 focus-visible:ring-0 focus-visible:outline-none tap-transparent h-12 w-12 rounded-full z-50 flex" 
+            onClick={(e) => {
+                e.stopPropagation();
+                showNext();
+            }}
           >
             <ChevronRight className="h-8 w-8" />
           </Button>

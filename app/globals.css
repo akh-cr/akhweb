@@ -130,4 +130,8 @@
   .prose p:empty, .rich-text p:empty {
     display: none;
   }
+  
+  .tap-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
 }

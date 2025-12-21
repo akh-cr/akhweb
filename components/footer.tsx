@@ -31,60 +31,13 @@ export function Footer() {
             <div>
                <h4 className="font-bold mb-4 text-foreground">Newsletter</h4>
                <p className="mb-4 leading-relaxed">Chceš vědět, co se děje? Přihlas se k odběru novinek.</p>
-               <form className="flex flex-col gap-2" onSubmit={async (e) => {
-                   e.preventDefault();
-                   const form = e.target as HTMLFormElement;
-                   const input = form.querySelector('input') as HTMLInputElement;
-                   const btn = form.querySelector('button');
-                   
-                   if (!input || !btn) return;
-                   
-                   const originalText = btn.innerText;
-                   btn.disabled = true;
-                   btn.innerText = "Odesílám...";
-
-                   try {
-                       const { createClient } = await import('@/lib/supabase/client');
-                       const supabase = createClient();
-                       
-                       const { error } = await supabase.from('newsletter_subscribers').insert({ email: input.value });
-                       
-                       if (error) {
-                           if (error.code === '23505') { // Unique violation
-                                alert('Tento email už odebíráte.');
-                           } else {
-                                throw error;
-                           }
-                       }
-
-                       btn.innerText = "Přihlášeno!";
-                       btn.classList.add("bg-green-600", "text-white");
-                       input.value = "";
-                   } catch (err) {
-                       console.error(err);
-                       btn.innerText = "Chyba";
-                       setTimeout(() => {
-                           btn.innerText = originalText;
-                           btn.disabled = false;
-                       }, 2000);
-                   }
-               }}>
-                   <input 
-                    type="email" 
-                    placeholder="tvuj@email.cz" 
-                    required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                   />
-                   <button 
-                    type="submit"
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                   >
-                       Odebírat
-                   </button>
-                   <p className="text-xs text-muted-foreground mt-2">
-                       Chcete se odhlásit? Napište nám na <a href="mailto:info@akhcr.cz" className="underline hover:text-foreground">info@akhcr.cz</a>.
-                   </p>
-               </form>
+               <a 
+                   href="https://forms.gle/nt5Kqv2jAHhmPUuu7" 
+                   target="_blank"
+                   className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+               >
+                   Přihlásit se k odběru
+               </a>
 
             </div>
          </div>
