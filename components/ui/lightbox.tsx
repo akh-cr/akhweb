@@ -17,10 +17,12 @@ interface LightboxProps {
 
 export function Lightbox({ images, index, onClose, onNext, onPrev }: LightboxProps) {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [scale, setScale] = useState(1)
   
   // Reset loaded state when index changes
   useEffect(() => {
     setIsLoaded(false)
+    setScale(1) // Verify reset logic
   }, [index])
 
   // Keyboard navigation
@@ -56,13 +58,15 @@ export function Lightbox({ images, index, onClose, onNext, onPrev }: LightboxPro
   const [touchStart, setTouchStart] = useState<number | null>(null)
   
   const onTouchStart = (e: React.TouchEvent) => {
-    // Only enable swipe if not zoomed (logic handled by user behavior usually, 
-    // but we capture start here)
+    // Only capture touch start if we are not zoomed in
+    if (scale > 1.1) return
     setTouchStart(e.targetTouches[0].clientX)
   }
 
   const onTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return
+    if (scale > 1.1) return // Don't swipe nav if zoomed
+
     const endX = e.changedTouches[0].clientX
     const distance = touchStart - endX
     const minSwipeDistance = 50
@@ -126,11 +130,14 @@ export function Lightbox({ images, index, onClose, onNext, onPrev }: LightboxPro
         onTouchEnd={onTouchEnd}
       >
         <TransformWrapper
+            key={index}
             initialScale={1}
             minScale={1}
             maxScale={4}
             centerOnInit
             wheel={{ disabled: true }} // Disable wheel zoom to prevent conflicts
+            onTransformed={(e) => setScale(e.state.scale)}
+            panning={{ disabled: scale < 1.1 }}
         >
             <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
                 <div className="relative w-full h-full max-h-[85vh] max-w-7xl flex items-center justify-center">
