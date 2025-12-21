@@ -77,7 +77,7 @@ export default async function ContactPage() {
                 </div>
 
                 <div className="pt-6 border-t mt-auto flex items-center gap-4">
-                     <div className="h-24 w-24 bg-white p-2 rounded-lg border flex items-center justify-center shrink-0">
+                     <div className="h-24 w-24 bg-white p-2 rounded-lg border flex items-center justify-center shrink-0 relative overflow-hidden">
                         <Image 
                             src="/images/qr-platba.png" 
                             alt="QR Platba" 
