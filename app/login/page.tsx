@@ -36,12 +36,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm p-8 bg-white rounded-xl border shadow-sm space-y-6">
+    <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-background">
+      <div className="w-full max-w-sm p-8 bg-white dark:bg-card rounded-xl border shadow-sm space-y-6">
         <div className="text-center">
             <h1 className="text-2xl font-bold">Přihlášení do administrace</h1>
             <p className="text-sm text-muted-foreground mt-2">Vstup pouze pro redaktory AKH.</p>
-            <div className="mt-4 p-4 bg-blue-50 text-blue-800 text-sm rounded-lg text-left">
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-sm rounded-lg text-left">
                 <strong>Registrace:</strong> Je určena pro členy společenství. O přístup požádejte předsedu na <a href="mailto:info@akhcr.cz" className="underline">info@akhcr.cz</a>.
             </div>
         </div>

@@ -38,8 +38,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm p-8 bg-white rounded-xl border shadow-sm space-y-6">
+    <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-background">
+      <div className="w-full max-w-sm p-8 bg-white dark:bg-card rounded-xl border shadow-sm space-y-6">
         <div className="text-center">
             <h1 className="text-2xl font-bold">Registrace</h1>
             <p className="text-sm text-muted-foreground mt-2">Vytvořte si účet pro správu obsahu.</p>
