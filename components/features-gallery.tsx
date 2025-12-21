@@ -161,6 +161,8 @@ export function FeaturesGallery() {
                                 alt={feature.title} 
                                 fill 
                                 className="object-cover transition-transform duration-700 group-hover:scale-105" 
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                priority={index < 4}
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <ZoomIn className="text-white h-8 w-8 drop-shadow-md" />
@@ -199,7 +201,14 @@ export function FeaturesGallery() {
                             )}
                             onClick={() => openLightbox(realIndex)}
                         >
-                            <Image src={src} alt="Gallery" fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw" quality={40} />
+                            <Image 
+                                src={src} 
+                                alt="Gallery" 
+                                fill 
+                                className="object-cover transition-transform duration-500 group-hover:scale-110" 
+                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw" 
+                                quality={40} 
+                            />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <ZoomIn className="text-white h-6 w-6 drop-shadow-md" />
                             </div>
@@ -248,6 +257,7 @@ export function FeaturesGallery() {
                     className="object-contain"
                     quality={100}
                     priority
+                    sizes="100vw"
                 />
              </div>
           </div>

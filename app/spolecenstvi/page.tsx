@@ -4,6 +4,7 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { MapPin, ArrowRight } from "lucide-react";
+import { CommunitiesGallery } from "@/components/communities-gallery";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -98,17 +99,8 @@ export default async function CommunitiesPage() {
                </span>
                <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-12 text-foreground">Život ve společenství</h2>
                
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                   {[1, 2, 3].map((i) => (
-                       <div key={i} className="aspect-[4/3] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group ring-1 ring-black/5">
-                           <img 
-                                src={`/images/communities/${i}.jpg`} 
-                                alt={`Společenství ${i}`} 
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                           />
-
-                       </div>
-                   ))}
+                <div className="mt-8">
+                   <CommunitiesGallery />
                </div>
            </div>
       </section>
