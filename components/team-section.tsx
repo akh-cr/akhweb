@@ -10,7 +10,7 @@ const councilMembers = [
     image: "", // Placeholder
   },
   {
-    name: "Jana Capurková",
+    name: "Jana Capůrková",
     role: "Předsedkyně",
     bio: "Zastupuje předsedu a koordinuje práci v regionech.",
     image: "",

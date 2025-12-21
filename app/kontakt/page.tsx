@@ -114,7 +114,7 @@ export default async function ContactPage() {
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold text-secondary-foreground">JC</div>
                             <div>
-                                <p className="font-bold">Jana Capurková</p>
+                                <p className="font-bold">Jana Capůrková</p>
                                 {/* <a href="tel:..." className="text-sm text-muted-foreground hover:text-primary transition">...</a> */}
                             </div>
                         </div>
