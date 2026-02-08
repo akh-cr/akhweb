@@ -24,8 +24,9 @@ export function Footer() {
                 <h4 className="font-bold mb-4 text-foreground">Odkazy</h4>
                 <ul className="space-y-2">
                     <li><Link href="/ke-stazeni" className="hover:text-primary hover:underline transition-colors">Dokumenty ke stažení</Link></li>
-                    <li><Link href="/podpora" className="hover:text-primary hover:underline transition-colors">Podpořte nás</Link></li>
+                    <li><Link href="/spoluprace" className="hover:text-primary hover:underline transition-colors">Podpořte nás</Link></li>
                     <li><Link href="/uzitecne-odkazy" className="hover:text-primary hover:underline transition-colors">Užitečné odkazy</Link></li>
+                    <li><Link href="/admin" className="hover:text-primary hover:underline transition-colors text-xs opacity-70">Vstup pro redaktory</Link></li>
                 </ul>
             </div>
             <div>

@@ -36,14 +36,14 @@ export function HeroVariantCleanSlideshow() {
           />
         ))}
         {/* Minimal Dark Overlay - Plain Black fade instead of color gradients */}
-        <div className="absolute inset-0 bg-black/40 z-10" />
+        <div className="absolute inset-0 bg-black/20 z-10" />
         {/* Subtle Gradient from bottom to ensure text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 z-10" />
       </div>
 
       <div className="relative z-20 container mx-auto px-5 text-center flex flex-col items-center gap-8">
         {/* Minimal Typography - No badges, just bold statement */}
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-white drop-shadow-lg leading-tight md:leading-snug">
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white drop-shadow-lg leading-tight md:leading-snug">
           ABSOLVENTSKÉ<br />
           <span className="text-white/90">KŘESŤANSKÉ HNUTÍ</span>
         </h1>

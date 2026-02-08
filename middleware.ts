@@ -13,9 +13,9 @@ export async function middleware(request: NextRequest) {
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.google.com https://www.gstatic.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://*.googleusercontent.com https://*.google.com;
+    img-src 'self' blob: data: https://*.googleusercontent.com https://*.google.com https://i.ytimg.com;
     font-src 'self' https://fonts.gstatic.com;
-    frame-src 'self' https://calendar.google.com;
+    frame-src 'self' https://calendar.google.com https://www.youtube.com;
     connect-src 'self' https://*.supabase.co https://*.google.com https://*.googleapis.com;
   `
   response.headers.set('Content-Security-Policy', csp.replace(/\s{2,}/g, ' ').trim())

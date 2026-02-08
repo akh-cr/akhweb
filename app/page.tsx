@@ -1,4 +1,4 @@
-"use client"
+
 
 import { Navbar } from "@/components/navbar";
 import Link from "next/link";
@@ -6,17 +6,71 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { HeroSection } from "@/components/hero-section";
-import { FeaturesGallery } from "@/components/features-gallery";
 import { Check, ArrowRight } from "lucide-react";
+import { FeedSection } from "@/components/feed-section";
+import { VideoPlayer } from "@/components/video-player";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+
+  // Fetch upcoming events (limit 3)
+  const { data: events } = await supabase
+    .from('events')
+    .select('*, cities(name)')
+    .gte('start_time', now)
+    .order('start_time', { ascending: true })
+    .limit(3);
+
+  // Fetch latest posts (limit 3)
+  const { data: posts } = await supabase
+    .from('posts')
+    .select('*')
+    .order('published_at', { ascending: false })
+    .limit(3);
+
+  const feedItems = [
+    ...(events || []).map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        date: e.start_time,
+        type: 'event' as const,
+        excerpt: e.description,
+        location: e.cities?.name || e.location
+    })),
+    ...(posts || []).map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        date: p.published_at,
+        type: 'post' as const,
+        excerpt: p.excerpt
+    }))
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)]">
       <Navbar />
       
       <HeroSection />
 
-      <FeaturesGallery />
+      {/* Feed Section - Replaces FeaturesGallery */}
+      <FeedSection items={feedItems} />
+
+      {/* Video Section */}
+      <section className="w-full py-24 bg-black text-white px-5">
+        <div className="max-w-4xl mx-auto text-center">
+             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-8">O nás</h2>
+             <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-900">
+                <VideoPlayer videoId="Oz9jz9g3b7U" />
+             </div>
+             <p className="mt-8 text-zinc-400 max-w-2xl mx-auto">
+                Podívejte se na krátké představení Absolventského křesťanského hnutí a zjistěte, kdo jsme a co děláme.
+             </p>
+        </div>
+      </section>
 
       {/* Quote Section */}
       <section className="w-full py-12 bg-primary/5 px-5">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { MapPin, ArrowRight } from "lucide-react";
 import { CommunitiesGallery } from "@/components/communities-gallery";
+import { CommunitiesMap } from "@/components/communities-map";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -57,7 +58,11 @@ export default async function CommunitiesPage() {
             <span className="text-primary font-bold tracking-[0.2em] uppercase mb-4 text-xs md:text-sm bg-primary/10 px-3 py-1.5 rounded-full inline-block">
                 Regiony
             </span>
-            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-16 text-foreground">Kde nás najdeš</h2>
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-8 text-foreground">Kde nás najdeš</h2>
+
+            {/* Interactive Map */}
+            {cities && <CommunitiesMap cities={cities} />}
+
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {cities?.map((city) => (
