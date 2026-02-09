@@ -55,9 +55,9 @@ export function HeroVariantCleanSlideshow() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-              <Link href="/o-nas">
+              <Link href="/spolecenstvi">
                 <Button size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm rounded-full px-8 text-lg h-14">
-                  Více o nás <ArrowRight className="ml-2 h-5 w-5" />
+                  Najít společenství <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
         </div>
