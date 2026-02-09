@@ -20,13 +20,30 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { ImageUpload } from "@/components/image-upload"
+import { GalleryUpload } from "@/components/gallery-upload"
 
 const formSchema = z.object({
-  name: z.string().min(2, "Název musí mít alespoň 2 znaky."),
-  slug: z.string().optional(),
+  name: z.string().min(2, {
+    message: "Název musí mít alespoň 2 znaky.",
+  }),
+  slug: z.string().min(2, {
+    message: "Slug musí mít alespoň 2 znaky.",
+  }),
+  region: z.string().optional(),
   description: z.string().optional(),
   content: z.string().optional(),
-  image_url: z.string().optional().or(z.literal("")),
+  image_url: z.string().refine((val) => {
+      if (val === "") return true;
+      if (val.startsWith("/")) return true; // Allow relative URLs
+      if (val.startsWith("blob:")) return true; // Explicitly allow blobs
+      try {
+          new URL(val);
+          return true;
+      } catch {
+          return false;
+      }
+  }, { message: "Neplatná URL" }).optional().or(z.literal("")),
+  gallery_images: z.array(z.string()).optional(),
 })
 
 interface CityFormProps {
@@ -40,9 +57,11 @@ export function CityForm({ initialData }: CityFormProps) {
     defaultValues: {
       name: initialData?.name || "",
       slug: initialData?.slug || "",
+      region: initialData?.region || "",
       description: initialData?.description || "",
       content: initialData?.content || "",
       image_url: initialData?.image_url || "",
+      gallery_images: initialData?.gallery_images || [],
     },
   })
 
@@ -61,9 +80,11 @@ export function CityForm({ initialData }: CityFormProps) {
     const dataToSave = {
         name: values.name,
         slug: slug,
+        region: values.region,
         description: values.description,
         content: values.content,
         image_url: values.image_url || null,
+        gallery_images: values.gallery_images || [],
     }
 
     let error;
@@ -76,16 +97,16 @@ export function CityForm({ initialData }: CityFormProps) {
         error = result.error
     } else {
         // Create
-        const { error: insertError } = await supabase
+        const result = await supabase
             .from('cities')
             .insert(dataToSave)
-        error = insertError
+        error = result.error
     }
 
     if (error) {
-        toast.error("Chyba při ukládání: " + error.message)
+        toast.error("Chyba při ukládání města: " + error.message)
     } else {
-        toast.success(initialData ? "Město bylo upraveno" : "Město bylo vytvořeno")
+        toast.success(initialData ? "Město bylo upraveno" : "Město bylo úspěšně vytvořeno")
         router.push("/admin/cities")
         router.refresh()
     }

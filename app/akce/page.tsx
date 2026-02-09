@@ -7,33 +7,54 @@ import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
 import { MapPin, ArrowRight } from "lucide-react";
 import { GoogleCalendar } from "@/components/google-calendar";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
-export default async function EventsPage() {
+export default async function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const supabase = await createClient();
   const now = new Date().toISOString();
+  
+  const params = await searchParams;
+  const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
+  const pageSize = 9;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
 
-  // Fetch upcoming events
+  // Fetch upcoming events (no pagination needed usually, as there are few)
   const { data: upcomingEvents } = await supabase
     .from('events')
     .select('*, cities(name)')
     .gte('start_time', now)
     .order('start_time', { ascending: true });
 
-  // Fetch past events
-  const { data: pastEvents } = await supabase
+  // Fetch past events with pagination
+  const { data: pastEvents, count } = await supabase
     .from('events')
-    .select('*, cities(name)')
+    .select('*, cities(name)', { count: 'exact' })
     .lt('start_time', now)
     .order('start_time', { ascending: false })
-    .limit(5); // Limit to last 5 past events
+    .range(from, to);
+
+  const totalPages = count ? Math.ceil(count / pageSize) : 0;
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-muted/30">
       <Navbar />
 
       {/* Hero */}
-      {/* Hero */}
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
+         {/* ... (Hero content same as before) ... */}
          <div className="absolute inset-0 z-0">
              <Image 
                  src="/images/backgrounds/akce-new-3.jpg" 
@@ -56,9 +77,9 @@ export default async function EventsPage() {
       {/* Upcoming Events List */}
       <section className="w-full py-20 max-w-4xl mx-auto px-5">
          <h2 className="text-2xl font-bold mb-8">Nadcházející akce</h2>
-         <div className="flex flex-col gap-4">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {!upcomingEvents || upcomingEvents.length === 0 ? (
-                <div className="text-center py-20 bg-card rounded-xl border">
+                <div className="text-center py-20 bg-card rounded-xl border col-span-full">
                     <p className="text-muted-foreground">Zatím žádné naplánované akce.</p>
                 </div>
             ) : (
@@ -66,39 +87,57 @@ export default async function EventsPage() {
                     <Link 
                         key={event.id} 
                         href={`/akce/${event.slug || '#'}`}
-                        className={`block bg-card p-6 rounded-xl border transition-all duration-200 hover:border-primary/50 group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
+                        className={`flex flex-col h-full bg-card rounded-xl border overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
                     >
-                        <div className="flex flex-row gap-6 items-start">
-                             {/* Date Badge */}
-                             <div className="flex flex-col items-center justify-center p-3 bg-muted/30 rounded-lg min-w-[80px] h-fit border group-hover:bg-primary/5 transition shrink-0">
-                                <span className="text-2xl font-bold text-primary">
-                                    {new Date(event.start_time).getDate()}
-                                </span>
-                                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                                    {new Date(event.start_time).toLocaleDateString('cs-CZ', { month: 'short' })}
-                                 </span>
-                             </div>
-                             
-                             {/* Details */}
-                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2">
-                                     <span className="text-xs font-bold text-white bg-black px-2 py-0.5 rounded">
-                                        {event.cities?.name || "Celostátní"}
-                                     </span>
-                                     <span className="flex items-center text-xs text-muted-foreground font-medium truncate">
-                                        <MapPin className="h-3 w-3 mr-1" /> {event.location || "Místo neupřesněno"}
-                                     </span>
-                                </div>
-                                <h3 className="text-xl font-bold truncate pr-4 group-hover:text-primary transition-colors">{event.title}</h3>
-                                <p className="text-muted-foreground text-sm line-clamp-2 mt-1">
-                                    {event.description}
-                                </p>
-                             </div>
+                        {/* Image Caption/Cover */}
+                        {event.image_url ? (
+                            <div className="relative h-48 w-full overflow-hidden">
+                                 <Image 
+                                    src={event.image_url} 
+                                    alt={event.title} 
+                                    fill 
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                 />
+                            </div>
+                        ) : (
+                            <div className="h-48 w-full bg-muted/50 flex items-center justify-center border-b">
+                                <MapPin className="h-10 w-10 text-muted-foreground/20" />
+                            </div>
+                        )}
 
-                             {/* Action Icon (Mobile/Desktop) */}
-                             <div className="self-center hidden sm:block text-muted-foreground group-hover:text-primary transition-colors">
-                                <ArrowRight className="h-5 w-5" />
-                             </div>
+                        <div className="p-5 flex flex-col flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                                    {new Date(event.start_time).toLocaleDateString('cs-CZ')}
+                                </span>
+                                
+                                {/* Smart Location: If city exists, show it. If not, try to parse city from location or show full location */}
+                                {(event.cities?.name || event.location) && (
+                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[150px]">
+                                        {event.cities?.name || event.location.split(',')[0]}
+                                    </span>
+                                )}
+                            </div>
+
+                            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                                {event.title}
+                            </h3>
+
+                            {/* Venue Line: Always show full location if available, with MapPin */}
+                            {event.location && (
+                                <div className="flex items-center text-xs text-muted-foreground mb-2">
+                                    <MapPin className="h-3 w-3 mr-1 shrink-0" />
+                                    <span className="truncate">{event.location}</span>
+                                </div>
+                            )}
+
+                            <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
+                                {event.description}
+                            </p>
+
+                            <div className="flex items-center text-primary font-medium text-sm mt-auto group-hover:underline underline-offset-4 decoration-primary/30">
+                                {event.gallery_images && event.gallery_images.length > 0 ? "Prohlédnout fotky" : "Zobrazit podrobnosti"} <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
+                            </div>
                         </div>
                     </Link>
                 ))
@@ -107,55 +146,105 @@ export default async function EventsPage() {
       </section>
 
       {/* Past Events List */}
-      <section className="w-full py-16 bg-muted/30 border-t px-5">
+      <section className="w-full py-16 bg-muted/30 border-t px-5" id="past-events">
          <div className="max-w-4xl mx-auto">
              <h2 className="text-2xl font-bold mb-8 text-muted-foreground">Proběhlé akce</h2>
-             <div className="flex flex-col gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 {!pastEvents || pastEvents.length === 0 ? (
-                    <p className="text-muted-foreground">Žádné proběhlé akce k zobrazení.</p>
+                    <p className="text-muted-foreground col-span-full text-center py-12">Žádné proběhlé akce k zobrazení.</p>
                 ) : (
                     pastEvents.map((event: any) => (
                         <Link 
                             key={event.id} 
                             href={`/akce/${event.slug || '#'}`}
-                            className={`block bg-card/50 p-6 rounded-xl border transition-all duration-200 hover:shadow-md hover:border-primary/50 group hover:opacity-100 opacity-70 hover:bg-card ${!event.slug ? "pointer-events-none" : ""}`}
+                            className={`flex flex-col h-full bg-card rounded-xl border overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
                         >
-                            <div className="flex flex-row gap-6 items-start">
-                                 {/* Date Badge */}
-                                 <div className="flex flex-col items-center justify-center p-3 bg-muted/50 rounded-lg min-w-[80px] h-fit border shrink-0">
-                                    <span className="text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">
-                                        {new Date(event.start_time).getDate()}
-                                    </span>
-                                     <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                                        {new Date(event.start_time).toLocaleDateString('cs-CZ', { month: 'short' })}
-                                     </span>
-                                 </div>
-                                 
-                                 {/* Details */}
-                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-2">
-                                         <span className="text-xs font-bold text-white bg-zinc-500 px-2 py-0.5 rounded">
-                                            {event.cities?.name || "Celostátní"}
-                                         </span>
-                                         <span className="flex items-center text-xs text-muted-foreground font-medium truncate">
-                                            <MapPin className="h-3 w-3 mr-1" /> {event.location || "Místo neupřesněno"}
-                                         </span>
-                                    </div>
-                                    <h3 className="text-xl font-bold truncate pr-4 text-muted-foreground group-hover:text-foreground transition-colors">{event.title}</h3>
-                                    <p className="text-muted-foreground text-sm line-clamp-2 mt-1">
-                                        {event.description}
-                                    </p>
-                                 </div>
+                            {/* Image Caption/Cover */}
+                            {event.image_url ? (
+                                <div className="relative h-48 w-full overflow-hidden">
+                                     <Image 
+                                        src={event.image_url} 
+                                        alt={event.title} 
+                                        fill 
+                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                     />
+                                </div>
+                            ) : (
+                                <div className="h-48 w-full bg-muted/50 flex items-center justify-center border-b">
+                                    <MapPin className="h-10 w-10 text-muted-foreground/20" />
+                                </div>
+                            )}
 
-                                 {/* Action Icon (Mobile/Desktop) */}
-                                 <div className="self-center hidden sm:block text-muted-foreground group-hover:text-primary transition-colors">
-                                    <ArrowRight className="h-5 w-5" />
-                                 </div>
+                            <div className="p-5 flex flex-col flex-1">
+                                <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                                    {new Date(event.start_time).toLocaleDateString('cs-CZ')}
+                                </span>
+                                {(event.cities?.name || event.location) && (
+                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[150px]">
+                                        {event.cities?.name || event.location.split(',')[0]}
+                                    </span>
+                                )}
+                            </div>
+
+                            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                                {event.title}
+                            </h3>
+
+                            {event.location && (
+                                <div className="flex items-center text-xs text-muted-foreground mb-2">
+                                    <MapPin className="h-3 w-3 mr-1 shrink-0" />
+                                    <span className="truncate">{event.location}</span>
+                                </div>
+                            )}
+
+                                <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
+                                    {event.description}
+                                </p>
+
+                                <div className="flex items-center text-primary font-medium text-sm mt-auto group-hover:underline underline-offset-4 decoration-primary/30">
+                                    {event.gallery_images && event.gallery_images.length > 0 ? "Prohlédnout fotky" : "Zobrazit podrobnosti"} <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
+                                </div>
                             </div>
                         </Link>
                     ))
                 )}
              </div>
+
+             {/* Pagination Controls */}
+             {totalPages > 1 && (
+                 <Pagination>
+                     <PaginationContent>
+                         {page > 1 && (
+                             <PaginationItem>
+                                 <PaginationPrevious href={`/akce?page=${page - 1}#past-events`} />
+                             </PaginationItem>
+                         )}
+                         
+                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+                             // Simple logic to show limited pages if too many (basic implementation for now)
+                             if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+                                 return (
+                                     <PaginationItem key={p}>
+                                         <PaginationLink href={`/akce?page=${p}#past-events`} isActive={page === p}>
+                                             {p}
+                                         </PaginationLink>
+                                     </PaginationItem>
+                                 );
+                             } else if (p === page - 2 || p === page + 2) {
+                                 return <PaginationItem key={p}><PaginationEllipsis /></PaginationItem>
+                             }
+                             return null;
+                         })}
+
+                         {page < totalPages && (
+                             <PaginationItem>
+                                 <PaginationNext href={`/akce?page=${page + 1}#past-events`} />
+                             </PaginationItem>
+                         )}
+                     </PaginationContent>
+                 </Pagination>
+             )}
          </div>
       </section>
 

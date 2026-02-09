@@ -3,8 +3,28 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // output: 'export', // Uncomment for strict static export
   images: {
-    // unoptimized: true, // Required for static export without external loader
-    qualities: [40, 75, 100],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'iinvsjtnbyxfrdygsfpo.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'kjdpmixlnhntmxjedpxh.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lwfpdjxsdmkfyrzqbrlk.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   },
 };
 

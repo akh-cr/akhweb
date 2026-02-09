@@ -6,46 +6,39 @@ import { ZoomIn } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Lightbox } from "@/components/ui/lightbox"
 
-const galleryImages = [
-  "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
-  "/images/gallery/MB_2025_08_14.11.40.58_09844.jpg",
-  "/images/gallery/MB_2025_08_14.17.15.34_09845.jpg",
-  "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
-  "/images/gallery/MB_2025_08_14.21.23.40_09896.jpg",
-  "/images/gallery/MB_2025_08_15.11.00.24_09923.jpg",
-  "/images/gallery/MB_2025_08_15.18.44.36_00004.jpg",
-  "/images/gallery/MB_2025_08_15.18.44.48_00011.jpg",
-  "/images/gallery/MB_2025_08_15.18.49.03_00070.jpg",
-  "/images/gallery/MB_2025_08_16.18.58.47_00238.jpg",
-  "/images/gallery/MB_2025_08_16.19.01.04_00246.jpg",
-  "/images/gallery/MB_2025_08_16.21.32.54_00274.jpg",
-]
+interface GalleryProps {
+  images?: string[]
+  title?: string
+}
 
-export function Gallery() {
+export function Gallery({ images = [], title = "Galerie" }: GalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   const showNext = () => {
     if (lightboxIndex === null) return
-    setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % galleryImages.length))
+    setLightboxIndex((prev) => (prev === null ? null : (prev + 1) % images.length))
   }
   
   const showPrev = () => {
     if (lightboxIndex === null) return
-    setLightboxIndex((prev) => (prev === null ? null : (prev - 1 + galleryImages.length) % galleryImages.length))
+    setLightboxIndex((prev) => (prev === null ? null : (prev - 1 + images.length) % images.length))
+  }
+
+  if (!images || images.length === 0) {
+      return null
   }
 
   return (
     <section className="w-full py-16 bg-background">
       <div className="max-w-6xl mx-auto px-5">
-        <h2 className="text-3xl font-bold mb-12 text-center">Galerie ze života AKH</h2>
+        <h2 className="text-3xl font-bold mb-12 text-center">{title}</h2>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {galleryImages.map((src, index) => (
+          {images.map((src, index) => (
             <div 
               key={index} 
               className={cn(
                 "relative aspect-square overflow-hidden rounded-xl cursor-pointer group bg-muted",
-                index >= 6 && "hidden md:block"
               )}
               onClick={() => setLightboxIndex(index)}
             >
@@ -68,7 +61,7 @@ export function Gallery() {
 
       {lightboxIndex !== null && (
         <Lightbox 
-            images={galleryImages}
+            images={images}
             index={lightboxIndex}
             onClose={() => setLightboxIndex(null)}
             onNext={showNext}

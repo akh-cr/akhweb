@@ -17,6 +17,8 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
       .select('*')
       .eq('id', id)
       .single()
+
+    const { data: cities } = await supabase.from('cities').select('id, name').order('name')
   
     if (!event) {
       notFound()
@@ -25,7 +27,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
     return (
       <div className="max-w-2xl mx-auto py-10">
         <h1 className="text-3xl font-bold mb-8">Upravit akci: {event.title}</h1>
-        <EventForm initialData={event} />
+        <EventForm initialData={event} cities={cities || []} />
       </div>
     )
   }

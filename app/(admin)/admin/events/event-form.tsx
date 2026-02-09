@@ -16,7 +16,18 @@ import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import Tiptap from "@/components/tiptap"
+import dynamic from "next/dynamic"
+
+const Tiptap = dynamic(() => import("@/components/tiptap"), { ssr: false })
+import { ImageUpload } from "@/components/image-upload"
+import { GalleryUpload } from "@/components/gallery-upload"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -27,15 +38,35 @@ const formSchema = z.object({
   start_time: z.string(),
   city_id: z.string().optional(),
   location: z.string().optional(),
-  image_url: z.string().url("Neplatná URL").optional().or(z.literal("")),
-  registration_link: z.string().url("Neplatná URL").optional().or(z.literal("")),
+  image_url: z.string().refine((val) => {
+      if (val === "") return true;
+      if (val.startsWith("/")) return true; // Allow relative URLs
+      if (val.startsWith("blob:")) return true; // Explicitly allow blobs
+      try {
+          new URL(val);
+          return true;
+      } catch {
+          return false;
+      }
+  }, { message: "Neplatná URL" }).optional().or(z.literal("")),
+  gallery_images: z.array(z.string()).optional(),
+  registration_link: z.string().refine((val) => {
+      if (val === "") return true;
+      try {
+          new URL(val);
+          return true;
+      } catch {
+          return false;
+      }
+  }, { message: "Neplatná URL" }).optional().or(z.literal("")),
 })
 
 interface EventFormProps {
   initialData?: z.infer<typeof formSchema> & { id: string }
+  cities: { id: string; name: string }[]
 }
 
-export function EventForm({ initialData }: EventFormProps) {
+export function EventForm({ initialData, cities }: EventFormProps) {
   const router = useRouter()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,6 +79,7 @@ export function EventForm({ initialData }: EventFormProps) {
       city_id: initialData?.city_id || "",
       location: initialData?.location || "",
       image_url: initialData?.image_url || "",
+      gallery_images: initialData?.gallery_images || [],
       registration_link: initialData?.registration_link || "",
     },
   })
@@ -63,9 +95,10 @@ export function EventForm({ initialData }: EventFormProps) {
         description: values.description,
         content: values.content,
         start_time: isoDate,
-        city_id: values.city_id || null, // Handle empty string as null
+        city_id: values.city_id === "null_option" ? null : (values.city_id || null),
         location: values.location,
         image_url: values.image_url || null,
+        gallery_images: values.gallery_images || [],
         registration_link: values.registration_link || null,
     }
 
@@ -124,6 +157,47 @@ export function EventForm({ initialData }: EventFormProps) {
             />
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Místo konání</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Např. Chata pod Sněžkou" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="city_id"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Město (pro filtraci)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Vyberte město" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                             <SelectItem value="null_option">Celostátní / Žádné město</SelectItem>
+                            {cities.map((city) => (
+                                <SelectItem key={city.id} value={city.id}>
+                                    {city.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+        </div>
+
         <FormField
             control={form.control}
             name="description"
@@ -153,43 +227,17 @@ export function EventForm({ initialData }: EventFormProps) {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Místo konání</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Např. Chata pod Sněžkou" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="city_id"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>ID Města (volitelné)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="např. brno (nechte prázdné pro celostátní)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
              <FormField
                 control={form.control}
                 name="image_url"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>URL Obrázku</FormLabel>
+                    <FormLabel>Úvodní obrázek</FormLabel>
                     <FormControl>
-                    <Input placeholder="https://..." {...field} />
+                    <ImageUpload 
+                        value={field.value || ""} 
+                        onChange={field.onChange} 
+                    />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -209,6 +257,23 @@ export function EventForm({ initialData }: EventFormProps) {
                 )}
             />
         </div>
+
+        <FormField
+            control={form.control}
+            name="gallery_images"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>Galerie fotek</FormLabel>
+                <FormControl>
+                <GalleryUpload 
+                    value={field.value || []} 
+                    onChange={field.onChange} 
+                />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+        />
 
         <Button type="submit">{initialData ? "Uložit změny" : "Vytvořit akci"}</Button>
       </form>

@@ -31,15 +31,16 @@ export function Navbar() {
 	            </Link>
             
             {/* Desktop Menu */}
-            <div className="hidden md:flex gap-6 text-sm font-medium uppercase tracking-wide text-foreground/80 overflow-x-auto">
+            <div className="hidden md:flex gap-6 text-sm font-medium uppercase tracking-wide text-foreground/80 items-center">
                 <Link href="/o-nas" className={linkClass("/o-nas")}>O AKH</Link>
                 <Link href="/akce" className={linkClass("/akce")}>Akce</Link>
                 <Link href="/spolecenstvi" className={linkClass("/spolecenstvi")}>Společenství</Link>
                 <a href="https://absolventskyvelehrad.cz" target="_blank" className="hover:text-primary transition-colors whitespace-nowrap flex items-center gap-1">
                     Absolventský Velehrad <ExternalLink className="h-3 w-3" />
                 </a>
-                {FEATURES.BLOGS_ENABLED && <Link href="/blog" className={linkClass("/blog")}>Blog</Link>}
+                
                 <Link href="/spoluprace" className={linkClass("/spoluprace")}>Spolupráce</Link>
+
                 <Link href="/kontakt" className={linkClass("/kontakt")}>Kontakt</Link>
             </div>
              
@@ -62,8 +63,8 @@ export function Navbar() {
                                 <a href="https://absolventskyvelehrad.cz" target="_blank" className="hover:text-primary flex items-center gap-2">
                                     Absolventský Velehrad <ExternalLink className="h-4 w-4" />
                                 </a>
-                                {FEATURES.BLOGS_ENABLED && <Link href="/blog" className={mobileLinkClass("/blog")}>Blog</Link>}
                                 <Link href="/spoluprace" className={mobileLinkClass("/spoluprace")}>Spolupráce</Link>
+
                                 <Link href="/kontakt" className={mobileLinkClass("/kontakt")}>Kontakt</Link>
                             </div>
                         </SheetContent>

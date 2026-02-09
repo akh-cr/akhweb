@@ -44,3 +44,7 @@ next-env.d.ts
 # archive
 scripts/archive/
 scripts/*.js
+
+# agent skills and mcp
+.agent/
+MCP_README.md

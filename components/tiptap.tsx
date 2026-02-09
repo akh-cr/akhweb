@@ -33,62 +33,18 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
-  const editor = useEditor({
-    extensions: [
-        StarterKit,
-        Image.configure({
-            HTMLAttributes: {
-                class: 'rounded-lg border shadow-sm max-w-full h-auto my-4',
-            },
-        }),
-        Link.configure({
-            openOnClick: false,
-            HTMLAttributes: {
-                class: 'text-primary underline underline-offset-4',
-            },
-        }),
-        Youtube.configure({
-            controls: false,
-            HTMLAttributes: {
-                class: 'rounded-lg overflow-hidden border shadow-sm my-4 w-full aspect-video',
-            },
-        }),
-    ],
-    content,
-    immediatelyRender: false,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
-      setSourceCode(editor.getHTML())
-    },
-    editorProps: {
-        attributes: {
-            class: "min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none dark:prose-invert"
-        }
-    }
-  })
+  // Ref to access editor inside uploadFile (which is defined before editor)
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null)
 
-  // Sync source code changes back to editor when switching modes
-  useEffect(() => {
-    if (!isSourceMode && editor) {
-        editor.commands.setContent(sourceCode)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSourceMode, editor])
-
-
-  if (!editor) {
-    return null
-  }
-
-  const triggerImageUpload = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  // Extract upload logic - Defined BEFORE useEditor to avoid ReferenceError
+  const uploadFile = async (file: File) => {
     setIsUploading(true)
+    const currentEditor = editorRef.current
+    
+    // 1. Optimistic UI: Show image immediately
+    const blobUrl = URL.createObjectURL(file)
+    currentEditor?.chain().focus().setImage({ src: blobUrl }).run()
+
     try {
         // Compress
         const options = {
@@ -104,7 +60,7 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
         const filePath = `uploads/${fileName}`
 
         const { error: uploadError } = await supabase.storage
-            .from('images')
+            .from('images') // Switched to 'images' bucket as it is confirmed working
             .upload(filePath, compressedFile)
 
         if (uploadError) {
@@ -115,20 +71,159 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
         const { data: { publicUrl } } = supabase.storage
             .from('images')
             .getPublicUrl(filePath)
+        
+        if (!publicUrl) {
+             throw new Error("No public URL returned from Supabase");
+        }
+        
+        console.log("Upload successful:", { filePath, publicUrl });
 
-        editor.chain().focus().setImage({ src: publicUrl }).run()
-        toast.success("Obrázek byl vložen")
+        if (!publicUrl) {
+             throw new Error("No public URL returned from Supabase");
+        }
+        
+        console.log("Upload successful:", { filePath, publicUrl });
+
+        // 2. Update the image source from Blob URL to Public URL
+        if (currentEditor) {
+            const { view } = currentEditor;
+            const { state } = view;
+            
+            let posToDelete = -1;
+            
+            // Find the node position
+            state.doc.descendants((node, pos) => {
+                if (node.type.name === 'image' && node.attrs.src === blobUrl) {
+                    posToDelete = pos;
+                    return false; // Stop iteration
+                }
+                return true;
+            });
+
+            if (posToDelete > -1) {
+                console.log("Replacing blobUrl with publicUrl at pos:", posToDelete);
+                
+                // Method 1: Update attributes (smoother)
+                // We select the node, then update its attributes
+                currentEditor.chain()
+                    .command(({ tr }) => {
+                        tr.setNodeMarkup(posToDelete, undefined, { src: publicUrl });
+                        return true;
+                    })
+                    .run();
+
+                toast.success("Obrázek byl úspěšně nahrazen");
+            } else {
+                 console.warn("Could not find image node with blobUrl:", blobUrl);
+                 // Fallback: Just insert it at current cursor
+                 currentEditor.chain().focus().setImage({ src: publicUrl }).run();
+            }
+        }
+        
+        // toast.success("Obrázek byl nahrán: " + publicUrl) // Debug URL
 
     } catch (error) {
-        console.error('Upload failed:', error)
-        toast.error('Nahrávání obrázku selhalo')
+        console.error('Upload failed details:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Neznámá chyba'
+        toast.error(`Chyba nahrávání: ${errorMessage}`)
+        
+        // Revert optimistic update on failure
+        if (currentEditor) {
+            const { state, view } = currentEditor
+             state.doc.descendants((node, pos) => {
+                if (node.type.name === 'image' && node.attrs.src === blobUrl) {
+                    const transaction = state.tr.delete(pos, pos + node.nodeSize)
+                    view.dispatch(transaction)
+                    return false
+                }
+                return true
+            })
+        }
+
     } finally {
         setIsUploading(false)
+        // URL.revokeObjectURL(blobUrl) // disable revocation for debugging - possible race condition
         if (fileInputRef.current) {
             fileInputRef.current.value = ''
         }
     }
   }
+
+  const editor = useEditor({
+    extensions: [
+        StarterKit,
+        Image.configure({
+            HTMLAttributes: {
+                class: 'rounded-lg border shadow-sm max-w-full h-auto my-4',
+            },
+        }),
+
+        Youtube.configure({
+            controls: false,
+            HTMLAttributes: {
+                class: 'rounded-lg overflow-hidden border shadow-sm my-4 w-full aspect-video',
+            },
+        }),
+        Link.configure({
+            openOnClick: false,
+        }),
+    ],
+    content,
+    immediatelyRender: false,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML())
+      setSourceCode(editor.getHTML())
+    },
+    editorProps: {
+        attributes: {
+            class: "min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none dark:prose-invert"
+        },
+        handleDrop: (view, event: DragEvent, slice, moved) => {
+            if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+                const file = event.dataTransfer.files[0];
+                if (file.type.startsWith('image/')) {
+                    uploadFile(file);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+  })
+
+  // We need to cleanup the object URL to avoid memory leaks
+  // although mostly handled by browser, good practice if we were using createObjectURL heavily
+  
+  // Sync editor instance to ref
+  useEffect(() => {
+     editorRef.current = editor
+  }, [editor])
+
+  // Sync source code changes back to editor when switching modes
+  useEffect(() => {
+    if (!isSourceMode && editor) {
+        editor.commands.setContent(sourceCode)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSourceMode, editor])
+
+
+  if (!editor) {
+    return null
+  }
+
+  /* eslint-disable @next/next/no-img-element */ 
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && editor) {
+        uploadFile(file)
+    }
+  }
+
 
   const addYoutube = () => {
     const url = window.prompt('URL YouTube videa')
@@ -178,42 +273,42 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
         />
         
         {/* Toolbar */}
-        <div className="flex items-center gap-1 p-2 bg-muted/40 border-b flex-wrap">
-            <Toggle pressed={!isSourceMode} onPressedChange={() => setIsSourceMode(false)} aria-label="Visual Editor" size="sm">
-                <Type className="h-4 w-4 mr-2" /> Vizuální
+        <div className="flex items-center gap-1 p-2 bg-muted/40 border-b overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+            <Toggle pressed={!isSourceMode} onPressedChange={() => setIsSourceMode(false)} aria-label="Visual Editor" size="sm" className="shrink-0">
+                <Type className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Vizuální</span>
             </Toggle>
-            <Toggle pressed={isSourceMode} onPressedChange={() => setIsSourceMode(true)} aria-label="Source Code" size="sm">
-                <Code className="h-4 w-4 mr-2" /> HTML Zdroj
+            <Toggle pressed={isSourceMode} onPressedChange={() => setIsSourceMode(true)} aria-label="Source Code" size="sm" className="shrink-0">
+                <Code className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">HTML Zdroj</span>
             </Toggle>
 
-            <Separator orientation="vertical" className="h-6 mx-2" />
+            <Separator orientation="vertical" className="h-6 mx-2 shrink-0" />
 
             {!isSourceMode && (
                 <>
-                    <Button variant={editor.isActive('bold') ? "secondary" : "ghost"} size="icon" onClick={() => editor.chain().focus().toggleBold().run()} className="h-8 w-8">
+                    <Button variant={editor.isActive('bold') ? "secondary" : "ghost"} size="icon" onClick={() => editor.chain().focus().toggleBold().run()} className="h-8 w-8 shrink-0">
                         <Bold className="h-4 w-4" />
                     </Button>
-                    <Button variant={editor.isActive('italic') ? "secondary" : "ghost"} size="icon" onClick={() => editor.chain().focus().toggleItalic().run()} className="h-8 w-8">
+                    <Button variant={editor.isActive('italic') ? "secondary" : "ghost"} size="icon" onClick={() => editor.chain().focus().toggleItalic().run()} className="h-8 w-8 shrink-0">
                         <Italic className="h-4 w-4" />
                     </Button>
-                    <Button variant={editor.isActive('link') ? "secondary" : "ghost"} size="icon" onClick={setLink} className="h-8 w-8">
+                    <Button variant={editor.isActive('link') ? "secondary" : "ghost"} size="icon" onClick={setLink} className="h-8 w-8 shrink-0">
                         <LinkIcon className="h-4 w-4" />
                     </Button>
                     
-                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <Separator orientation="vertical" className="h-6 mx-2 shrink-0" />
 
-                    <Button variant={editor.isActive('heading', { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 px-2 font-bold">
+                    <Button variant={editor.isActive('heading', { level: 2 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="h-8 px-2 font-bold shrink-0">
                         H2
                     </Button>
-                     <Button variant={editor.isActive('heading', { level: 3 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="h-8 px-2 font-bold">
+                     <Button variant={editor.isActive('heading', { level: 3 }) ? "secondary" : "ghost"} size="sm" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="h-8 px-2 font-bold shrink-0">
                         H3
                     </Button>
 
-                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <Separator orientation="vertical" className="h-6 mx-2 shrink-0" />
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                             <Button variant="ghost" size="sm" className="h-8 gap-2" disabled={isUploading}>
+                             <Button variant="ghost" size="sm" className="h-8 gap-2 shrink-0" disabled={isUploading}>
                                 {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
                                 Vložit
                              </Button>
@@ -240,7 +335,7 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                     <div className="ml-auto flex gap-1">
+                     <div className="ml-auto flex gap-1 shrink-0">
                         <Button variant="ghost" size="icon" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} className="h-8 w-8">
                             <Undo className="h-4 w-4" />
                         </Button>

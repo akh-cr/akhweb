@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS public.cities (
   region text,
   image_url text,
   description text,
+  gallery_images text[] DEFAULT '{}',
   created_at timestamptz DEFAULT now()
 );
 
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS public.events (
   end_time timestamptz,
   city_id uuid REFERENCES public.cities(id),
   image_url text,
+  gallery_images text[] DEFAULT '{}',
   created_at timestamptz DEFAULT now()
 );
 
