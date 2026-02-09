@@ -33,7 +33,9 @@ export function FeedSection({ items, showHeader = true }: { items: FeedItem[], s
             </div>
             <div className="flex gap-2">
                 <Link href="/akce">
-                    <Button variant="outline" size="sm">Všechny akce</Button>
+                    <Button variant="default" size="lg" className="rounded-full px-8 font-semibold shadow-sm hover:shadow-md transition-all">
+                        Všechny akce <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                 </Link>
             </div>
         </div>

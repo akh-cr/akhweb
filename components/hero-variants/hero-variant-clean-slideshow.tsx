@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { ArrowRight } from "lucide-react"
 
 const backgroundImages = [
   "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
@@ -54,16 +55,11 @@ export function HeroVariantCleanSlideshow() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          <Link href="/spolecenstvi">
-            <Button size="lg" className="h-14 px-10 text-lg rounded-full bg-white text-black hover:bg-white/90 transition-all font-bold border-2 border-white">
-              Najít společenství
-            </Button>
-          </Link>
-          <Link href="/akce">
-            <Button size="lg" variant="outline" className="h-14 px-10 text-lg rounded-full border-2 border-white text-white bg-black/20 hover:bg-white hover:text-black transition-all font-bold">
-              Kalendář akcí
-            </Button>
-          </Link>
+              <Link href="/o-nas">
+                <Button size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm rounded-full px-8 text-lg h-14">
+                  Více o nás <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
         </div>
       </div>
     </section>

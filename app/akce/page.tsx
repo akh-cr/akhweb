@@ -254,15 +254,15 @@ export default async function EventsPage({
             <div className="w-full max-w-4xl aspect-[4/3] md:aspect-[16/9] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-sm border border-border">
                 <GoogleCalendar />
             </div>
-            <div className="mt-8 flex gap-4">
-                 <a href="https://calendar.google.com/calendar/ical/c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com/public/basic.ics" target="_blank">
-                    <Button variant="outline">
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-5">
+                 <a href="https://calendar.google.com/calendar/ical/c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com/public/basic.ics" target="_blank" className="w-full sm:w-auto">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                         Odebírat iCal
                     </Button>
                  </a>
-                 <a href="https://calendar.google.com/calendar/embed?src=c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com&ctz=Europe%2FPrague" target="_blank">
-                    <Button variant="default">
-                        Otevřít v Google Kalendáři
+                 <a href="https://calendar.google.com/calendar/embed?src=c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com&ctz=Europe%2FPrague" target="_blank" className="w-full sm:w-auto">
+                    <Button variant="default" size="lg" className="w-full sm:w-auto shadow-md hover:shadow-lg transition-all dark:bg-white dark:text-black dark:hover:bg-zinc-200">
+                        Otevřít v Google Kalendáři <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                  </a>
             </div>
