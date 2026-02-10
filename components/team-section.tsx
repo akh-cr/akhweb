@@ -1,50 +1,23 @@
-"use client"
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createClient } from "@/lib/supabase/server";
 
-const councilMembers = [
-  {
-    name: "Vojtěch Kaska",
-    role: "Předseda",
-    bio: "Hlavní koordinátor činnosti AKH. Zodpovídá za vedení spolku a komunikaci s partnery.",
-    image: "", // Placeholder
-  },
-  {
-    name: "Jana Capůrková",
-    role: "Předsedkyně",
-    bio: "Zastupuje předsedu a koordinuje práci v regionech.",
-    image: "",
-  },
-  {
-    name: "Marie Svobodová",
-    role: "Hospodář",
-    bio: "Stará se o finance, granty a členské příspěvky.",
-    image: "",
-  },
-  {
-    name: "Petr Dvořák",
-    role: "Člen rady (PR)",
-    bio: "Spravuje sociální sítě, web a komunikaci s veřejností.",
-    image: "",
-  },
-  {
-    name: "Anna Černá",
-    role: "Člen rady (Akce)",
-    bio: "Pomáhá s organizací celostátních setkání a Velehradu.",
-    image: "",
-  },
-];
+export async function TeamSection() {
+  const supabase = await createClient();
+  const { data: councilMembers } = await supabase
+    .from('council_members')
+    .select('*')
+    .eq('active', true)
+    .order('priority', { ascending: true });
 
-const chaplains = [
- {
-    name: "P. Jiří Zámečník",
-    role: "Duchovní doprovázení",
-    bio: "Kněz, který nás duchovně doprovází, slouží mše a je k dispozici pro rozhovory.",
-    image: "",
-  },
-];
+  const chaplains = [
+   {
+      name: "P. Jiří Zámečník",
+      role: "Duchovní doprovázení",
+      bio: "Kněz, který nás duchovně doprovází, slouží mše a je k dispozici pro rozhovory.",
+      image: "",
+    },
+  ];
 
-export function TeamSection() {
   return (
     <section className="w-full py-20 px-5 bg-background">
       <div className="max-w-6xl mx-auto">
@@ -61,13 +34,13 @@ export function TeamSection() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-24">
-          {councilMembers.map((member, index) => (
-            <div key={index} className="flex flex-col items-center text-center group">
+          {(councilMembers || []).map((member, index) => (
+            <div key={member.id} className="flex flex-col items-center text-center group">
               <div className="relative mb-6">
                   <Avatar className="h-28 w-28 border-4 border-background group-hover:scale-105 transition-transform duration-300 ring-1 ring-border">
-                    <AvatarImage src={member.image} alt={member.name} className="object-cover" />
+                    <AvatarImage src={member.image_url || ""} alt={member.name} className="object-cover" />
                     <AvatarFallback className="text-3xl font-bold bg-primary/5 text-primary flex items-center justify-center">
-                        {member.name.split(' ').map(n => n[0]).join('')}
+                        {member.name.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
               </div>

@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS public.cities (
   region text,
   image_url text,
   description text,
+  content text,
   gallery_images text[] DEFAULT '{}',
+  metadata jsonb DEFAULT '{}'::jsonb,
   created_at timestamptz DEFAULT now()
 );
 

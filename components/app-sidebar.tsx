@@ -40,6 +40,11 @@ const items = [
     icon: MapPin,
   },
   {
+    title: "Rada AKH",
+    url: "/admin/council",
+    icon: Users,
+  },
+  {
     title: "Uživatelé",
     url: "/admin/users",
     icon: Users,

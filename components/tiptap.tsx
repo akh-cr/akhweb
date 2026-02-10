@@ -23,8 +23,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
-import imageCompression from 'browser-image-compression'
 import { toast } from "sonner"
+import { uploadImage } from '@/lib/storage'
 
 export default function Tiptap({ content, onChange }: { content: string, onChange: (html: string) => void }) {
   const [isSourceMode, setIsSourceMode] = useState(false)
@@ -46,43 +46,20 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
     currentEditor?.chain().focus().setImage({ src: blobUrl }).run()
 
     try {
-        // Compress
-        const options = {
-            maxSizeMB: 1, 
-            maxWidthOrHeight: 1920,
-            useWebWorker: true
-        }
-        const compressedFile = await imageCompression(file, options)
-
-        // Upload
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
-        const filePath = `uploads/${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-            .from('images') // Switched to 'images' bucket as it is confirmed working
-            .upload(filePath, compressedFile)
-
-        if (uploadError) {
-            console.error("Supabase storage error:", uploadError);
-            throw uploadError;
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('images')
-            .getPublicUrl(filePath)
+        const publicUrl = await uploadImage(file, {
+            bucket: 'images',
+            compression: {
+                maxSizeMB: 1, 
+                maxWidthOrHeight: 1920,
+                useWebWorker: true
+            }
+        })
         
-        if (!publicUrl) {
-             throw new Error("No public URL returned from Supabase");
-        }
-        
-        console.log("Upload successful:", { filePath, publicUrl });
+        console.log("Upload successful:", { publicUrl });
 
         if (!publicUrl) {
              throw new Error("No public URL returned from Supabase");
         }
-        
-        console.log("Upload successful:", { filePath, publicUrl });
 
         // 2. Update the image source from Blob URL to Public URL
         if (currentEditor) {

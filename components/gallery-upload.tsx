@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from 'react'
-import { createClient } from "@/lib/supabase/client"
-import imageCompression from 'browser-image-compression'
 import { Loader2, Upload, X, Image as ImageIcon, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { uploadImage } from '@/lib/storage'
 
 interface GalleryUploadProps {
     value?: string[]
@@ -17,7 +16,6 @@ interface GalleryUploadProps {
 export function GalleryUpload({ value = [], onChange, disabled }: GalleryUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
-    const supabase = createClient()
 
     const processFiles = async (files: File[]) => {
         if (!files || files.length === 0) return
@@ -29,31 +27,14 @@ export function GalleryUpload({ value = [], onChange, disabled }: GalleryUploadP
             // Process files sequentially to maintain order or parallel for speed?
             // Parallel is better for UX.
             const uploadPromises = files.map(async (file) => {
-                // Compress
-                const options = {
-                    maxSizeMB: 1, 
-                    maxWidthOrHeight: 1920,
-                    useWebWorker: true
-                }
-                const compressedFile = await imageCompression(file, options)
-
-                // Upload
-                const fileExt = file.name.split('.').pop()
-                const fileName = `gallery_${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
-                const filePath = `uploads/${fileName}`
-
-                const { error: uploadError } = await supabase.storage
-                    .from('images')
-                    .upload(filePath, compressedFile)
-
-                if (uploadError) {
-                    console.error("Supabase storage error:", uploadError);
-                    throw uploadError;
-                }
-
-                const { data: { publicUrl } } = supabase.storage
-                    .from('images')
-                    .getPublicUrl(filePath)
+                const publicUrl = await uploadImage(file, {
+                    bucket: 'images',
+                    compression: {
+                        maxSizeMB: 1, 
+                        maxWidthOrHeight: 1920,
+                        useWebWorker: true
+                    }
+                })
                 
                 return publicUrl
             })

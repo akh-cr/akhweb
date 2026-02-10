@@ -1,52 +1,33 @@
 "use client"
 
 import { useState } from 'react'
-import { createClient } from "@/lib/supabase/client"
-import imageCompression from 'browser-image-compression'
 import { Loader2, Upload, X } from 'lucide-react'
 import Image from 'next/image'
+import { uploadImage } from '@/lib/storage'
 
 interface ImageUploadProps {
     value?: string
     onChange: (url: string) => void
     disabled?: boolean
+    compressionOptions?: {
+        maxSizeMB?: number
+        maxWidthOrHeight?: number
+        useWebWorker?: boolean
+    }
 }
 
-export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, disabled, compressionOptions }: ImageUploadProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
-    const supabase = createClient()
 
     const processFile = async (file: File) => {
         if (!file) return
 
         setIsLoading(true)
         try {
-            // Compress
-            const options = {
-                maxSizeMB: 1, // Increased to 1MB result for better quality
-                maxWidthOrHeight: 1920, // Increased for better resolution
-                useWebWorker: true
-            }
-            const compressedFile = await imageCompression(file, options)
-
-            // Upload
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
-            const filePath = `uploads/${fileName}`
-
-            const { error: uploadError } = await supabase.storage
-                .from('images')
-                .upload(filePath, compressedFile)
-
-            if (uploadError) {
-                console.error("Supabase storage error:", uploadError);
-                throw uploadError;
-            }
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('images')
-                .getPublicUrl(filePath)
+            const publicUrl = await uploadImage(file, {
+                compression: compressionOptions
+            })
 
             onChange(publicUrl)
         } catch (error) {

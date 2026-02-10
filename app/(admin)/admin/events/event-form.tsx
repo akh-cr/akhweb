@@ -35,7 +35,9 @@ const formSchema = z.object({
   }),
   description: z.string().optional(),
   content: z.string().optional(),
-  start_time: z.string(),
+  start_time: z.string().min(1, {
+    message: "Vyberte datum a čas.",
+  }),
   city_id: z.string().optional(),
   location: z.string().optional(),
   image_url: z.string().refine((val) => {

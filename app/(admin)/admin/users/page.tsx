@@ -27,7 +27,7 @@ export default async function UsersPage() {
       </div>
 
       <div className="bg-card rounded-xl border p-2">
-         <DataTable columns={columns} data={users || []} />
+         <DataTable columns={columns} data={users || []} searchPlaceholder="Hledat podle emailu..." />
       </div>
       
       <div className="mt-8 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">

@@ -32,10 +32,10 @@ export function UserRoleDialog({ userId, currentRole, email }: { userId: string,
     setLoading(true)
     try {
       await updateUserRole(userId, role)
-      toast.success("Role updated successfully")
+      toast.success("Role úspěšně aktualizována")
       setOpen(false)
     } catch (error) {
-      toast.error("Failed to update role")
+      toast.error("Nepodařilo se aktualizovat roli")
       console.error(error)
     } finally {
       setLoading(false)
@@ -66,9 +66,9 @@ export function UserRoleDialog({ userId, currentRole, email }: { userId: string,
                     <SelectValue placeholder="Vyberte roli" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="user">Uživatel</SelectItem>
                     <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="admin">Administrátor</SelectItem>
                 </SelectContent>
             </Select>
           </div>
