@@ -8,13 +8,15 @@ and information sharing for Christian graduates in the Czech Republic.
 
 ## 🌟 Features
 
-- **Communities (Společenství)**: interactive directory of local graduate groups
+- **Communities (Společenství)**: Interactive directory of local graduate groups
   with map integration.
+- **Dynamic Content**: Fully editable headers, partner lists, and contact
+  details via the admin panel.
 - **Events (Akce)**: Upcoming events listing with detailed information and
   registration links.
-- **Content Pages**: About Us, Contact, Support, and useful links.
-- **Admin Dashboard**: Secure, role-based administration interface for managing
-  content.
+- **Admin Dashboard**: Secure interface with **Role-Based Access Control** and
+  **Explicit Save** mechanism for safety.
+- **Content pages**: About Us, Contact, Support, and useful links.
 - **Blog**: Integrated blogging platform (feature-flagged).
 
 ## 🛠 Technology Stack
