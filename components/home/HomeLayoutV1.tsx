@@ -10,13 +10,35 @@ import Link from "next/link";
 import { ViewSwitcher } from "@/components/events/ViewSwitcher";
 import { HomeLayoutProps } from "./types";
 
-export function HomeLayoutV1({ feedItems, design = "clean" }: HomeLayoutProps & { design?: string }) {
+export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayoutProps & { design?: string }) {
+  const galleryImages = content?.['home.hero']?.images || [
+    "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
+    "/images/gallery/MB_2025_08_14.11.40.58_09844.jpg",
+    "/images/gallery/MB_2025_08_14.17.15.34_09845.jpg",
+    "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg"
+  ];
+
+  const videoData = content?.['home.video'] || {
+    videoId: "Oz9jz9g3b7U",
+    title: "O nás",
+    description: "Podívejte se na krátké představení Absolventského křesťanského hnutí a zjistěte, kdo jsme a co děláme."
+  };
+
+  const aboutData = content?.['home.about'] || {
+    text: "Studentský život mají již za sebou, ale do rodinných společenství ještě nezapadají. Na skupinu mladých pracujících, kteří ještě nemají vlastní rodiny, se nejenom v církvi často zapomíná. AKH ČR si klade za cíl vyplnit tuto mezeru v pastorační péči, kterou mnozí absolventi cítí během hledání svého místa ve světě.",
+    items: [
+        "Spolupracovat a sdílet zkušenosti napříč regiony",
+        "Poskytnout vzájemnou podporu a sdílení",
+        "Zajišťovat podporu pro formování absolventských společenství v jednotlivých městech a regionech"
+    ]
+  };
+
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)]">
       <ViewSwitcher currentDesign={design} />
       <Navbar />
       
-      <HeroSection variant={design} />
+      <HeroSection variant={design} images={galleryImages} />
 
       {/* Feed Section - Replaces FeaturesGallery */}
       <FeedSection items={feedItems} />
@@ -24,30 +46,17 @@ export function HomeLayoutV1({ feedItems, design = "clean" }: HomeLayoutProps & 
       {/* Gallery Section */}
       <Gallery 
         title="Galerie ze života AKH"
-        images={[
-            "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
-            "/images/gallery/MB_2025_08_14.11.40.58_09844.jpg",
-            "/images/gallery/MB_2025_08_14.17.15.34_09845.jpg",
-            "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
-            "/images/gallery/MB_2025_08_14.21.23.40_09896.jpg",
-            "/images/gallery/MB_2025_08_15.11.00.24_09923.jpg",
-            "/images/gallery/MB_2025_08_15.18.44.36_00004.jpg",
-            "/images/gallery/MB_2025_08_15.18.44.48_00011.jpg",
-            "/images/gallery/MB_2025_08_15.18.49.03_00070.jpg",
-            "/images/gallery/MB_2025_08_16.18.58.47_00238.jpg",
-            "/images/gallery/MB_2025_08_16.19.01.04_00246.jpg",
-            "/images/gallery/MB_2025_08_16.21.32.54_00274.jpg",
-        ]}
+        images={galleryImages}
        />
       {/* Video Section */}
       <section className="w-full py-24 bg-black text-white px-5">
         <div className="max-w-4xl mx-auto text-center">
-             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-8">O nás</h2>
+             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-8">{videoData.title}</h2>
              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-900">
-                <VideoPlayer videoId="Oz9jz9g3b7U" />
+                <VideoPlayer videoId={videoData.videoId} />
              </div>
              <p className="mt-8 text-zinc-400 max-w-2xl mx-auto">
-                Podívejte se na krátké představení Absolventského křesťanského hnutí a zjistěte, kdo jsme a co děláme.
+                {videoData.description}
              </p>
         </div>
       </section>
@@ -75,14 +84,10 @@ export function HomeLayoutV1({ feedItems, design = "clean" }: HomeLayoutProps & 
              <div className="order-2 md:order-1">
                  <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">Proč absolventi?</h2>
                  <p className="text-zinc-400 text-lg leading-relaxed mb-6">
-                    Studentský život mají již za sebou, ale do rodinných společenství ještě nezapadají. Na skupinu mladých pracujících, kteří ještě nemají vlastní rodiny, se nejenom v církvi často zapomíná. AKH ČR si klade za cíl vyplnit tuto mezeru v pastorační péči, kterou mnozí absolventi cítí během hledání svého místa ve světě.
+                    {aboutData.text}
                  </p>
                  <ul className="space-y-4 mb-8">
-                    {[
-                        "Spolupracovat a sdílet zkušenosti napříč regiony",
-                        "Poskytnout vzájemnou podporu a sdílení",
-                        "Zajišťovat podporu pro formování absolventských společenství v jednotlivých městech a regionech"
-                    ].map((item, i) => (
+                    {aboutData.items.map((item: string, i: number) => (
                         <li key={i} className="flex items-center gap-3 text-zinc-300">
                             <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                                 <Check className="h-3 w-3 text-white" />

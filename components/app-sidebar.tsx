@@ -39,6 +39,12 @@ const items = [
     url: "/admin/cities",
     icon: MapPin,
   },
+
+  {
+    title: "Obsah webu",
+    url: "/admin/content",
+    icon: FileText,
+  },
   {
     title: "Rada AKH",
     url: "/admin/council",

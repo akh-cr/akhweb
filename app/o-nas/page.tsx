@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
+import { getContentBlocks, HeaderBlock, RichTextBlock } from "@/lib/content";
 import Link from "next/link";
 import Image from "next/image";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -7,8 +8,27 @@ import { Footer } from "@/components/footer";
 import { TeamSection } from "@/components/team-section";
 
 export default async function AboutPage() {
-  const supabase = await createClient();
-  const { data: page } = await supabase.from('pages').select('*').eq('slug', 'o-nas').single();
+  const contentMap = await getContentBlocks(['o-nas.header', 'o-nas.content']);
+  
+  const header = (contentMap['o-nas.header'] || {
+    title: "O Absolventském křesťanském hnutí",
+    subtitle: "",
+    image: "/images/backgrounds/o-nas-v4.jpg"
+  }) as HeaderBlock['content'];
+
+  const content = (contentMap['o-nas.content'] || {
+    content: `
+      <p class="mb-4">
+          Jsme společenství, které spojuje mladé absolventy v jejich víře a životě. Naším cílem je vytvářet prostor pro setkávání, sdílení a duchovní růst i po ukončení vysokoškolských studií.
+      </p>
+      <p class="mb-4">
+          Absolventské křesťanské hnutí (AKH) navazuje na tradici vysokoškolských katolických hnutí. Nabízíme přechodový můstek mezi studentským životem a plným zapojením do profesního a farního života. Organizujeme pravidelná setkání v regionech, celostátní akce, duchovní obnovy a vzdělávací programy.
+      </p>
+      <p>
+          Věříme, že víra se má žít ve všech oblastech života – v práci, v rodině i ve společnosti. Chceme se navzájem povzbuzovat k tomu, abychom byli solí země a světlem světa v prostředí, ve kterém žijeme a pracujeme.
+      </p>
+    `
+  }) as RichTextBlock['content'];
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-secondary/30">
@@ -17,8 +37,8 @@ export default async function AboutPage() {
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
          <div className="absolute inset-0 z-0">
              <Image 
-                 src="/images/backgrounds/o-nas-v4.jpg" 
-                 alt="About Background" 
+                 src={header.image || "/images/backgrounds/o-nas-v4.jpg"} 
+                 alt={header.title}
                  fill
                  priority
                  className="object-cover brightness-[0.25]" 
@@ -33,19 +53,9 @@ export default async function AboutPage() {
                 O nás
              </span>
              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight mb-8 text-white drop-shadow-xl max-w-3xl leading-tight">
-                O Absolventském křesťanském hnutí
+                {header.title}
              </h1>
-             <div className="text-base md:text-xl text-zinc-200 leading-relaxed rich-text max-w-3xl bg-black/40 p-8 rounded-3xl backdrop-blur-md border border-white/10 text-justify">
-                <p className="mb-4">
-                    Jsme společenství, které spojuje mladé absolventy v jejich víře a životě. Naším cílem je vytvářet prostor pro setkávání, sdílení a duchovní růst i po ukončení vysokoškolských studií.
-                </p>
-                <p className="mb-4">
-                    Absolventské křesťanské hnutí (AKH) navazuje na tradici vysokoškolských katolických hnutí. Nabízíme přechodový můstek mezi studentským životem a plným zapojením do profesního a farního života. Organizujeme pravidelná setkání v regionech, celostátní akce, duchovní obnovy a vzdělávací programy.
-                </p>
-                <p>
-                    Věříme, že víra se má žít ve všech oblastech života – v práci, v rodině i ve společnosti. Chceme se navzájem povzbuzovat k tomu, abychom byli solí země a světlem světa v prostředí, ve kterém žijeme a pracujeme.
-                </p>
-             </div>
+             <div className="text-base md:text-xl text-zinc-200 leading-relaxed rich-text max-w-3xl bg-black/40 p-8 rounded-3xl backdrop-blur-md border border-white/10 text-justify" dangerouslySetInnerHTML={{ __html: content.content }} />
          </div>
       </section>
 

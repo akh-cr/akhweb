@@ -17,6 +17,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
+import { getContentBlocks, HeaderBlock } from "@/lib/content";
+
 export default async function EventsPage({
   searchParams,
 }: {
@@ -24,6 +26,12 @@ export default async function EventsPage({
 }) {
   const supabase = await createClient();
   const now = new Date().toISOString();
+  const contentMap = await getContentBlocks(['akce.header']);
+  const header = (contentMap['akce.header'] || {
+    title: "Akce",
+    subtitle: "Přehled všech akcí, které pro tebe chystáme. Duchovní, zábavné i vzdělávací.",
+    image: "/images/backgrounds/akce-new-3.jpg"
+  }) as HeaderBlock['content'];
   
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
@@ -54,11 +62,10 @@ export default async function EventsPage({
 
       {/* Hero */}
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
-         {/* ... (Hero content same as before) ... */}
          <div className="absolute inset-0 z-0">
              <Image 
-                 src="/images/backgrounds/akce-new-3.jpg" 
-                 alt="Events Background" 
+                 src={header.image || "/images/backgrounds/akce-new-3.jpg"} 
+                 alt={header.title}
                  fill
                  priority
                  className="object-cover brightness-[0.3]"
@@ -67,9 +74,9 @@ export default async function EventsPage({
              />
          </div>
          <div className="relative z-10 w-full max-w-4xl mx-auto">
-             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-white">Akce</h1>
+             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-white">{header.title}</h1>
              <p className="text-zinc-200 text-xl md:text-2xl mx-auto">
-                 Přehled všech akcí, které pro tebe chystáme. Duchovní, zábavné i vzdělávací.
+                 {header.subtitle}
              </p>
          </div>
       </section>

@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { uploadImage } from '@/lib/storage'
 
-interface GalleryUploadProps {
+export interface GalleryUploadProps {
     value?: string[]
     onChange: (urls: string[]) => void
     disabled?: boolean
+    bucket?: string
+    folder?: string
 }
 
-export function GalleryUpload({ value = [], onChange, disabled }: GalleryUploadProps) {
+export function GalleryUpload({ value = [], onChange, disabled, bucket = 'images', folder = 'uploads' }: GalleryUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
 
@@ -28,7 +30,8 @@ export function GalleryUpload({ value = [], onChange, disabled }: GalleryUploadP
             // Parallel is better for UX.
             const uploadPromises = files.map(async (file) => {
                 const publicUrl = await uploadImage(file, {
-                    bucket: 'images',
+                    bucket: bucket,
+                    folder: folder,
                     compression: {
                         maxSizeMB: 1, 
                         maxWidthOrHeight: 1920,

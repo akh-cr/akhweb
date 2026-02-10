@@ -11,12 +11,12 @@ import { HeroVariantCleanSlideshow } from "./hero-variants/hero-variant-clean-sl
 
 type Variant = "default" | "split" | "minimal" | "clean"
 
-export function HeroSection({ variant = "clean" }: { variant?: string }) {
+export function HeroSection({ variant = "clean", images }: { variant?: string, images?: string[] }) {
   const renderGenericVariant = () => {
     switch (variant) {
       case "split": return <HeroVariantSplit />
       case "minimal": return <HeroVariantMinimal />
-      case "clean": return <HeroVariantCleanSlideshow />
+      case "clean": return <HeroVariantCleanSlideshow images={images} />
       case "default": 
       default: return <HeroVariantDefault />
     }

@@ -8,6 +8,15 @@ export interface FeedItem {
   location?: string
 }
 
+export interface HomeLayoutContent {
+  'home.gallery'?: { images: string[] };
+  'home.video'?: { videoId: string; title: string; description: string };
+  'home.about'?: { text: string; items: string[] };
+  'home.hero'?: { images: string[] };
+}
+
 export interface HomeLayoutProps {
   feedItems: FeedItem[];
+  // design is handled in the component definition
+  content?: HomeLayoutContent;
 }

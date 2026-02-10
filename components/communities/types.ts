@@ -2,6 +2,7 @@ export interface CommunityData {
     id: string;
     name: string;
     description: string | null;
+    content: string | null;
     image_url: string | null;
     mayor_id: string | null;
     mayor?: {

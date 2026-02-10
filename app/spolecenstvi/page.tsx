@@ -9,38 +9,45 @@ import { CommunitiesGallery } from "@/components/communities-gallery";
 import { CommunitiesMap } from "@/components/communities-map";
 
 import { createClient } from "@/lib/supabase/server";
+import { getContentBlocks, HeaderBlock } from "@/lib/content";
 
 export default async function CommunitiesPage() {
   const supabase = await createClient();
+  
+  // Parallel fetching
   const { data: page } = await supabase.from('pages').select('*').eq('slug', 'spolecenstvi').single();
   const { data: cities } = await supabase.from('cities').select('*').order('name');
+  const contentMap = await getContentBlocks(['spolecenstvi.header']);
+
+  const header = (contentMap['spolecenstvi.header'] || {
+    title: page?.title || "Společenství",
+    subtitle: "Podporujeme a sdružujeme lokální společenství absolventů a mladých pracujících. Vytváříme prostor pro sdílení, inspiraci a společný růst ve víře i v životě.",
+    image: "/images/backgrounds/spolecenstvi-new.jpg"
+  }) as HeaderBlock['content'];
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-background">
       <Navbar />
 
       {/* Hero */}
-      {/* Hero */}
-      {/* Hero */}
-      {/* Hero - Split Layout */}
       <section className="w-full pt-32 pb-16 md:pt-48 md:pb-32 bg-background border-b">
          <div className="max-w-7xl mx-auto px-5 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
              
              {/* Left Column: Content */}
              <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight mb-8 text-foreground leading-[1.1]">
-                    {page?.title || "Společenství"}
+                    {header.title}
                  </h1>
                  <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl">
-                    Podporujeme a sdružujeme lokální společenství absolventů a mladých pracujících. Vytváříme prostor pro sdílení, inspiraci a společný růst ve víře i v životě.
+                    {header.subtitle}
                  </p>
              </div>
 
              {/* Right Column: Image */}
              <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/10 rotate-2 hover:rotate-0 transition-all duration-700 group">
                  <Image 
-                    src="/images/backgrounds/spolecenstvi-new.jpg" 
-                    alt="Společenství" 
+                    src={header.image || "/images/backgrounds/spolecenstvi-new.jpg"} 
+                    alt={header.title}
                     fill
                     priority
                     className="object-cover scale-105 group-hover:scale-100 transition-transform duration-700"

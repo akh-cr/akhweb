@@ -5,28 +5,33 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
-const backgroundImages = [
+const defaultImages = [
   "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
   "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
   "/images/gallery/MB_2025_08_15.18.44.48_00011.jpg",
   "/images/gallery/MB_2025_08_16.18.58.47_00238.jpg",
 ]
 
-export function HeroVariantCleanSlideshow() {
+export function HeroVariantCleanSlideshow({ images = defaultImages }: { images?: string[] }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   useEffect(() => {
+    // Determine which images to use - if props are empty array, fallback to default
+    const displayImages = images.length > 0 ? images : defaultImages;
+    
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length)
+      setCurrentImageIndex((prev) => (prev + 1) % displayImages.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [])
+  }, [images])
+  
+  const displayImages = images.length > 0 ? images : defaultImages;
 
   return (
     <section className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center bg-black text-white overflow-hidden">
       {/* Background Slideshow */}
       <div className="absolute inset-0 z-0">
-        {backgroundImages.map((img, index) => (
+        {displayImages.map((img, index) => (
           <div
             key={img}
             className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"

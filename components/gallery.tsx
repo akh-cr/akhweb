@@ -48,8 +48,8 @@ export function Gallery({ images = [], title = "Galerie" }: GalleryProps) {
                 fill 
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                quality={40}
-                priority={index < 4}
+                quality={60}
+                priority={index < 8}
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <ZoomIn className="text-white h-8 w-8 drop-shadow-md" />

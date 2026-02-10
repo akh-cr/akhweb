@@ -26,22 +26,28 @@ export async function TeamSection() {
             </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 mb-24">
           {(councilMembers || []).map((member, index) => (
             <div key={member.id} className="flex flex-col items-center text-center group">
               <div className="relative mb-6">
-                  <Avatar className="h-28 w-28 border-4 border-background group-hover:scale-105 transition-transform duration-300 ring-1 ring-border">
+                  <Avatar className="h-32 w-32 border-4 border-background shadow-sm group-hover:scale-105 transition-transform duration-300 ring-1 ring-border/50">
                     <AvatarImage src={member.image_url || ""} alt={member.name} className="object-cover" />
                     <AvatarFallback className="text-3xl font-bold bg-primary/5 text-primary flex items-center justify-center">
                         {member.name.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-foreground tracking-tight group-hover:text-primary transition-colors">{member.name}</h3>
-              <p className="inline-block bg-muted px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">{member.role}</p>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
-                {member.bio}
-              </p>
+              
+              <h3 className="text-xl font-bold text-foreground tracking-tight group-hover:text-primary transition-colors mb-1">{member.name}</h3>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-4">{member.role}</p>
+              
+              {member.bio && (
+                  <p className="text-muted-foreground text-base leading-relaxed italic max-w-xs relative px-4">
+                    <span className="text-primary/20 absolute -top-2 left-0 text-2xl font-serif">"</span>
+                    {member.bio}
+                    <span className="text-primary/20 absolute -bottom-4 right-0 text-2xl font-serif">"</span>
+                  </p>
+              )}
             </div>
           ))}
         </div>

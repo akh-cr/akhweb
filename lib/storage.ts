@@ -3,6 +3,7 @@ import imageCompression from 'browser-image-compression'
 
 export interface UploadImageOptions {
     bucket?: string
+    folder?: string
     compression?: {
         maxSizeMB?: number
         maxWidthOrHeight?: number
@@ -34,7 +35,10 @@ export async function uploadImage(file: File, options: UploadImageOptions = {}):
         // Generate unique filename
         const fileExt = file.name.split('.').pop()
         const fileName = `${crypto.randomUUID()}.${fileExt}`
-        const filePath = `uploads/${fileName}`
+        const folder = options.folder || 'uploads'
+        // Remove trailing slash if present in folder
+        const cleanFolder = folder.endsWith('/') ? folder.slice(0, -1) : folder
+        const filePath = `${cleanFolder}/${fileName}`
 
         // Upload
         const { error: uploadError } = await supabase.storage

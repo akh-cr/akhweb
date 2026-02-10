@@ -5,23 +5,40 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, HandHeart, Heart, Link as LinkIcon, Users } from "lucide-react";
 import Link from "next/link";
 
-export default function SpolupracePage() {
-  const links = [
-    { title: "Absolventský Velehrad", url: "https://absolventskyvelehrad.cz/" },
-    { title: "Post-mládež", url: "https://www.post-mladez.cz/" },
-    { title: "Univerzitní křesťanské hnutí", url: "https://www.ukh.cz/" },
-    { title: "VKH ČR", url: "https://vkhcr.cz/" },
-    { title: "HELPNI", url: "https://helpni.cz/" },
-    { title: "Boží rande", url: "https://www.bozirande.cz/" },
-    { title: "Schola AV21", url: "https://www.facebook.com/scholaav21/" },
-    { 
-        title: "Festapp", 
-        url: "https://festapp.net/",
-        secondary: { title: "vstupenky.online", url: "https://vstupenky.online" }
-    },
-    { title: "Kamedit", url: "https://kamedit.com/" },
-    { title: "Credo Nadace", url: "https://www.credonadace.cz/" }
-  ];
+import { getContentBlocks, HeaderBlock, TextImageBlock, PartnersBlock } from "@/lib/content";
+
+export default async function SpolupracePage() {
+  const contentMap = await getContentBlocks(['spoluprace.header', 'spoluprace.zapoj_se', 'spoluprace.partners']);
+  
+  const header = (contentMap['spoluprace.header'] || {
+    title: "Spolupráce",
+    subtitle: "Tvoříme společenství společně. Zapoj se, podpoř nás nebo se inspiruj u našich partnerů.",
+    image: "/images/backgrounds/support.jpg"
+  }) as HeaderBlock['content'];
+
+  const zapojSe = (contentMap['spoluprace.zapoj_se'] || {
+    title: "Přidej ruku k dílu",
+    text: "Jsme vděční za každou pomoc. Organizace akcí, vedení společenství nebo technická podpora – každá ruka se počítá. Láká tě zapojit se aktivněji? Dej nám o sobě vědět!",
+    items: ["Organizace akcí a setkání", "Dobrovolnictví na Velehradě", "Duchovní podpora a modlitba"],
+    image: "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
+    ctaText: "Napiš nám",
+    ctaLink: "mailto:info@akhcr.cz"
+  }) as TextImageBlock['content'];
+
+  const partners = (contentMap['spoluprace.partners'] || {
+    links: [
+        { title: "Absolventský Velehrad", url: "https://absolventskyvelehrad.cz/" },
+        { title: "Post-mládež", url: "https://www.post-mladez.cz/" },
+        { title: "Univerzitní křesťanské hnutí", url: "https://www.ukh.cz/" },
+        { title: "VKH ČR", url: "https://vkhcr.cz/" },
+        { title: "HELPNI", url: "https://helpni.cz/" },
+        { title: "Boží rande", "url": "https://www.bozirande.cz/" },
+        { title: "Schola AV21", url: "https://www.facebook.com/scholaav21/" },
+        { title: "Festapp", url: "https://festapp.net/", secondary: { title: "vstupenky.online", url: "https://vstupenky.online" } },
+        { title: "Kamedit", url: "https://kamedit.com/" },
+        { title: "Credo Nadace", url: "https://www.credonadace.cz/" }
+    ]
+  }) as PartnersBlock['content'];
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)]">
@@ -31,8 +48,8 @@ export default function SpolupracePage() {
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 bg-zinc-950 text-white">
         <div className="absolute inset-0 z-0">
              <Image 
-                src="/images/backgrounds/support.jpg" 
-                alt="Support Background" 
+                src={header.image || "/images/backgrounds/support.jpg"} 
+                alt={header.title}
                 fill
                 priority
                 className="object-cover opacity-30" 
@@ -41,9 +58,9 @@ export default function SpolupracePage() {
              />
         </div>
         <div className="relative z-10 w-full max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">Spolupráce</h1>
+            <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">{header.title}</h1>
             <p className="text-xl md:text-2xl text-zinc-200 leading-relaxed">
-                Tvoříme společenství společně. Zapoj se, podpoř nás nebo se inspiruj u našich partnerů.
+                {header.subtitle}
             </p>
         </div>
       </section>
@@ -54,29 +71,28 @@ export default function SpolupracePage() {
              <div className="flex flex-col md:flex-row gap-12 items-center">
                  <div className="flex-1">
                      <span className="text-primary font-bold tracking-widest uppercase text-sm mb-2 block">Zapoj se</span>
-                     <h2 className="text-3xl md:text-4xl font-bold mb-6">Přidej ruku k dílu</h2>
+                     <h2 className="text-3xl md:text-4xl font-bold mb-6">{zapojSe.title || "Přidej ruku k dílu"}</h2>
                      <div className="prose text-muted-foreground leading-relaxed text-lg">
                         <p className="mb-4">
-                            Jsme vděční za každou pomoc. Organizace akcí, vedení společenství nebo technická podpora – každá ruka se počítá.
+                            {zapojSe.text}
                         </p>
-                        <ul className="space-y-2 mb-6">
-                            <li className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Organizace akcí a setkání</li>
-                            <li className="flex items-center gap-2"><HandHeart className="h-5 w-5 text-primary" /> Dobrovolnictví na Velehradě</li>
-                            <li className="flex items-center gap-2"><Heart className="h-5 w-5 text-primary" /> Duchovní podpora a modlitba</li>
-                        </ul>
-                        <p>
-                            Láká tě zapojit se aktivněji? Dej nám o sobě vědět!
-                        </p>
+                        {zapojSe.items && zapojSe.items.length > 0 && (
+                            <ul className="space-y-2 mb-6">
+                                {zapojSe.items.map((item, i) => (
+                                    <li key={i} className="flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-primary" /> {item}</li>
+                                ))}
+                            </ul>
+                        )}
                      </div>
                      <div className="mt-8">
                         <Button size="lg" asChild>
-                            <a href="mailto:info@akhcr.cz">Napiš nám</a>
+                            <a href={zapojSe.ctaLink || "mailto:info@akhcr.cz"}>{zapojSe.ctaText || "Napiš nám"}</a>
                         </Button>
                      </div>
                  </div>
                  <div className="flex-1 relative aspect-square md:aspect-[4/3] w-full bg-muted rounded-2xl overflow-hidden">
                      <Image
-                        src="/images/gallery/MB_2025_08_14.21.08.35_09887.jpg"
+                        src={zapojSe.image || "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg"}
                         alt="Dobrovolníci"
                         fill
                         className="object-cover"
@@ -98,7 +114,7 @@ export default function SpolupracePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {links.map((link: any, index) => (
+                {partners.links.map((link: any, index: number) => (
                     <div key={index} className="p-6 rounded-xl border bg-card hover:shadow-lg hover:border-primary/50 transition-all flex flex-col justify-between gap-4 group">
                         <div>
                             <h3 className="text-lg font-bold mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
