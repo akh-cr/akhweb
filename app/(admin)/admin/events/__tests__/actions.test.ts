@@ -15,6 +15,12 @@ const mockSupabase = {
   from: vi.fn(),
 }
 
+// Mock lib/storage-server
+vi.mock('@/lib/storage-server', () => ({
+    deleteImages: vi.fn(),
+    deleteImage: vi.fn()
+}))
+
 // Mock guards
 vi.mock('@/lib/auth/guards', () => ({
   requireAdmin: vi.fn(() => Promise.resolve({ user: { id: 'test-user' }, supabase: mockSupabase }))
@@ -22,6 +28,8 @@ vi.mock('@/lib/auth/guards', () => ({
 
 const mockDelete = vi.fn()
 const mockEq = vi.fn()
+const mockSelect = vi.fn()
+const mockSingle = vi.fn()
 
 describe('Events Actions', () => {
     beforeEach(() => {
@@ -31,11 +39,22 @@ describe('Events Actions', () => {
         vi.spyOn(console, 'error').mockImplementation(() => {})
 
         mockSupabase.from.mockReturnValue({
-            delete: mockDelete
+            delete: mockDelete,
+            select: mockSelect
         })
         mockDelete.mockReturnValue({
             eq: mockEq
         })
+        
+        // Mock select chain for image fetching
+        mockSelect.mockReturnValue({
+             eq: vi.fn().mockReturnValue({
+                 single: mockSingle
+             })
+        })
+        // Default: no images found, so we don't crash the delete logic
+        mockSingle.mockResolvedValue({ data: null })
+
         // success case: count 1
         mockEq.mockResolvedValue({ error: null, count: 1 })
     })
@@ -44,6 +63,8 @@ describe('Events Actions', () => {
         it('deletes event successfully', async () => {
             await deleteEvent('123')
             expect(mockSupabase.from).toHaveBeenCalledWith('events')
+            expect(mockSelect).toHaveBeenCalled() // It now selects images first
+            expect(mockDelete).toHaveBeenCalledWith({ count: 'exact' })
             expect(mockDelete).toHaveBeenCalledWith({ count: 'exact' })
             expect(mockEq).toHaveBeenCalledWith('id', '123')
             expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/events')

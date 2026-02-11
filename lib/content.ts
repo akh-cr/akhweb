@@ -56,12 +56,13 @@ export interface PartnersBlock extends BaseContentBlock {
   type: 'partners';
   content: {
     links: Array<{
-      title: string;
-      url: string;
-      secondary?: {
         title: string;
         url: string;
-      };
+        description?: string;
+        secondary?: {
+          title: string;
+          url: string;
+        };
     }>;
   };
 }

@@ -26,8 +26,8 @@ export default async function EditCityPage({ params }: EditCityPageProps) {
     notFound()
   }
 
-  return (
-    <div className="container mx-auto py-10">
+    return (
+    <div className="max-w-2xl mx-auto py-10 px-4 w-full">
       <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Upravit město: {city.name}</h1>
           {city.slug && (

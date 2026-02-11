@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, EyeOff } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { deleteEvent } from "./actions"
+import { toggleEventVisibility } from "./actions"
 import { toast } from "sonner"
 
 // This type definition matches your Supabase table
@@ -25,6 +27,7 @@ export type Event = {
   location: string | null
   slug: string
   created_at: string
+  is_hidden: boolean
 }
 
 export const columns: ColumnDef<Event>[] = [
@@ -41,13 +44,37 @@ export const columns: ColumnDef<Event>[] = [
         </Button>
       )
     },
+    cell: ({ row }) => {
+        const event = row.original
+        return (
+            <div className="flex items-center justify-between gap-3 w-full max-w-[300px] sm:max-w-none">
+                <div className="flex items-center gap-3 min-w-0">
+                    <Switch 
+                        checked={!!event.is_hidden}
+                        onCheckedChange={async (checked) => {
+                            try {
+                                await toggleEventVisibility(event.id, checked)
+                                toast.success(checked ? "Akce skryta" : "Akce zobrazena")
+                            } catch (error) {
+                                toast.error("Nepodařilo se změnit viditelnost")
+                            }
+                        }}
+                        className="data-[state=checked]:bg-muted-foreground scale-75 shrink-0"
+                        aria-label="Skrýt akci"
+                    />
+                    <span className={event.is_hidden ? "text-muted-foreground truncate" : "truncate"}>{event.title}</span>
+                </div>
+
+            </div>
+        )
+    }
   },
   {
     accessorKey: "location",
-    header: "Místo",
+    header: ({ column }) => <div className="hidden md:block">Místo</div>,
     cell: ({ row }) => {
         const location = row.getValue("location") as string
-        return <div className="font-medium text-sm text-muted-foreground">{location || "-"}</div>
+        return <div className="hidden md:block font-medium text-sm text-muted-foreground">{location || "-"}</div>
     }
   },
   {
@@ -111,42 +138,47 @@ function ActionCell({ event }: { event: Event }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <div className="flex items-center gap-2">
-                <Link href={`/admin/events/${event.id}`}>
-                    <Button variant="outline" size="sm">Upravit</Button>
+            <div className="flex items-center gap-0 sm:gap-2">
+                <Link href={`/admin/events/${event.id}`} className="sm:hidden">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                        <span className="sr-only">Upravit</span>
+                    </Button>
+                </Link>
+                <Link href={`/admin/events/${event.id}`} className="hidden sm:block">
+                    <Button variant="ghost" size="sm" className="h-8 px-2 text-primary hover:bg-primary/10">
+                        Upravit
+                    </Button>
                 </Link>
                 <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Otevřít menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Akce</DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => navigator.clipboard.writeText(event.id)}
-                    >
-                        Kopírovat ID
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <Link href={`/admin/events/${event.id}`}>
-                        <DropdownMenuItem>Upravit</DropdownMenuItem>
-                    </Link>
-                    <Link href={`/akce/${event.slug || '#'}`} target="_blank">
-                        <DropdownMenuItem>Zobrazit na webu</DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={(e) => {
-                            e.preventDefault()
-                            setOpen(true)
-                        }}
-                    >
-                        Smazat
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Otevřít menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Akce</DropdownMenuLabel>
+                        <DropdownMenuItem
+                            onClick={() => navigator.clipboard.writeText(event.id)}
+                        >
+                            Kopírovat ID
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <Link href={`/akce/${event.slug || '#'}`} target="_blank">
+                            <DropdownMenuItem>Zobrazit na webu</DropdownMenuItem>
+                        </Link>
+                        <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={(e) => {
+                                e.preventDefault()
+                                setOpen(true)
+                            }}
+                        >
+                            Smazat
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </>
     )

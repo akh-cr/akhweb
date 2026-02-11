@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, LogOut, Users, FileText, MapPin } from "lucide-react"
+import { Calendar, LogOut, Users, FileText, MapPin, Newspaper } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
@@ -25,15 +25,15 @@ import { FEATURES } from "@/lib/features"
 // Menu items.
 const items = [
   {
+    title: "Aktuality",
+    url: "/admin/posts",
+    icon: Newspaper,
+  },
+  {
     title: "Akce",
     url: "/admin/events",
     icon: Calendar,
   },
-  ...(FEATURES.BLOGS_ENABLED ? [{
-    title: "Blog",
-    url: "/admin/blog",
-    icon: FileText,
-  }] : []),
   {
     title: "Společenství",
     url: "/admin/cities",

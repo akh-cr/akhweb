@@ -29,7 +29,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
     }
   
     return (
-      <div className="max-w-2xl mx-auto py-10">
+      <div className="max-w-2xl mx-auto py-10 px-4 w-full">
         <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold">Upravit akci: {event.title}</h1>
             {event.slug && (

@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/s
 import { Menu, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { FEATURES } from "@/lib/features";
+
 
 export function Navbar() {
   const [mounted, setMounted] = useState(false);
@@ -33,6 +33,7 @@ export function Navbar() {
             {/* Desktop Menu */}
             <div className="hidden md:flex gap-6 text-sm font-medium uppercase tracking-wide text-foreground/80 items-center">
                 <Link href="/o-nas" className={linkClass("/o-nas")}>O AKH</Link>
+                <Link href="/blog" className={linkClass("/blog")}>Aktuality</Link>
                 <Link href="/akce" className={linkClass("/akce")}>Akce</Link>
                 <Link href="/spolecenstvi" className={linkClass("/spolecenstvi")}>Společenství</Link>
                 <a href="https://absolventskyvelehrad.cz" target="_blank" className="hover:text-primary transition-colors whitespace-nowrap flex items-center gap-1">
@@ -58,6 +59,7 @@ export function Navbar() {
                             <div className="flex flex-col gap-6 mt-6 text-lg font-medium">
                                 <Link href="/" className={mobileLinkClass("/")}>Domů</Link>
                                 <Link href="/o-nas" className={mobileLinkClass("/o-nas")}>O AKH</Link>
+                                <Link href="/blog" className={mobileLinkClass("/blog")}>Aktuality</Link>
                                 <Link href="/akce" className={mobileLinkClass("/akce")}>Akce</Link>
                                 <Link href="/spolecenstvi" className={mobileLinkClass("/spolecenstvi")}>Společenství</Link>
                                 <a href="https://absolventskyvelehrad.cz" target="_blank" className="hover:text-primary flex items-center gap-2">

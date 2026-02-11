@@ -73,7 +73,7 @@ export function CommunityLayoutV2({ community }: CommunityLayoutProps) {
                                     <User className="h-5 w-5 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-sm text-muted-foreground">Vedoucí</p>
+                                    <p className="font-semibold text-sm text-muted-foreground">Kontakt</p>
                                     <p className="text-foreground font-medium">{community.mayor.nickname || "Neznámý"}</p>
                                     {community.mayor.contact_email && (
                                         <a href={`mailto:${community.mayor.contact_email}`} className="text-sm text-primary hover:underline mt-1 block">

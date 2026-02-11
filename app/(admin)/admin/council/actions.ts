@@ -78,6 +78,19 @@ export async function updateCouncilMember(id: string, data: any) {
     if (currentRole?.role !== 'admin') {
       throw new Error("Only admins can delete members")
     }
+
+    // 1. Fetch image
+    const { data: member } = await supabase
+        .from('council_members')
+        .select('image_url')
+        .eq('id', id)
+        .single()
+
+    // 2. Delete image
+    if (member?.image_url) {
+        const { deleteImage } = await import("@/lib/storage-server")
+        await deleteImage(supabase, member.image_url)
+    }
   
     const { error } = await supabase
       .from('council_members')

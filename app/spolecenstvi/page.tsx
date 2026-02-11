@@ -16,7 +16,7 @@ export default async function CommunitiesPage() {
   
   // Parallel fetching
   const { data: page } = await supabase.from('pages').select('*').eq('slug', 'spolecenstvi').single();
-  const { data: cities } = await supabase.from('cities').select('*').order('name');
+  const { data: cities } = await supabase.from('cities').select('*').eq('is_hidden', false).order('name');
   const contentMap = await getContentBlocks(['spolecenstvi.header']);
 
   const header = (contentMap['spolecenstvi.header'] || {

@@ -20,50 +20,39 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  // Fetch upcoming events (limit 3)
-  const eventsPromise = supabase
-    .from('events')
-    .select('*, cities(name)')
-    .gte('start_time', now)
-    .order('start_time', { ascending: true })
-    .limit(3);
+  // Fetch unified news feed via RPC
+  const { data: feedData } = await supabase
+    .rpc('get_news_feed', { 
+        p_limit: 3, 
+        p_offset: 0, 
+        p_include_hidden: false 
+    });
 
   const contentPromise = supabase
     .from('content_blocks')
     .select('*')
     .in('id', ['home.gallery', 'home.video', 'home.about', 'home.hero']);
 
-  let [{ data: events }, { data: contentBlocks }] = await Promise.all([eventsPromise, contentPromise]);
+  let [{ data: contentBlocks }] = await Promise.all([
+    contentPromise
+  ]);
   
   const contentMap: HomeLayoutContent = (contentBlocks || []).reduce((acc: any, block: any) => {
     acc[block.id] = block.content;
     return acc;
   }, {});
 
-  // Fallback: If no upcoming events, show most recent past events
-  if (!events || events.length === 0) {
-      const { data: pastEvents } = await supabase
-        .from('events')
-        .select('*, cities(name)')
-        .lt('start_time', now)
-        .order('start_time', { ascending: false })
-        .limit(3);
-      events = pastEvents;
-  }
-
-
-
-  const feedItems = (events || []).map((e: any) => ({
-        id: e.id,
-        title: e.title,
-        slug: e.slug,
-        date: e.start_time,
-        type: 'event' as const,
-        excerpt: e.description,
-        location: e.location,
-        city: e.cities?.name,
-        image_url: e.image_url,
-        gallery_images: e.gallery_images
+  const feedItems = (feedData || []).map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      date: item.published_at,
+      type: item.type as 'post' | 'event' | 'community',
+      excerpt: item.excerpt,
+      location: item.location,
+      city: item.city_name,
+      image_url: item.image_url,
+      gallery_images: null // RPC doesn't return gallery images to keep payload light
   }));
 
   // Always use HomeLayoutV1, but pass the design param to control the hero variant

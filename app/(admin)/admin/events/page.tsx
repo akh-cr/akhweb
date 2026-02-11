@@ -9,14 +9,16 @@ export default async function EventsPage() {
   const { data: events } = await supabase.from('events').select('*').order('start_time', { ascending: false });
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="p-1 sm:p-4 md:p-8 mx-auto w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Správa Akcí</h1>
         <Link href="/admin/events/create">
             <Button>Přidat akci</Button>
         </Link>
       </div>
-      <DataTable columns={columns} data={events || []} />
+      <div className="rounded-md bg-card overflow-hidden">
+        <DataTable columns={columns} data={events || []} />
+      </div>
     </div>
   );
 }

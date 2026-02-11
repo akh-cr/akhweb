@@ -153,7 +153,7 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
     },
     editorProps: {
         attributes: {
-            class: "min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none dark:prose-invert"
+            class: "min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-full dark:prose-invert"
         },
         handleDrop: (view, event: DragEvent, slice, moved) => {
             if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {

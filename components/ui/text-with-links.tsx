@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from "@/lib/utils";
 
 interface TextWithLinksProps {
     text: string;
@@ -19,7 +20,7 @@ export function TextWithLinks({ text, className }: TextWithLinksProps) {
     const parts = cleanText.split(urlRegex);
 
     return (
-        <p className={className}>
+        <p className={cn("rich-text", className)}>
             {parts.map((part, index) => {
                 // Check if this part matches our URL pattern
                 if (part.match(urlRegex)) {
@@ -58,7 +59,6 @@ export function TextWithLinks({ text, className }: TextWithLinksProps) {
                                     href={cleanHref} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-primary underline hover:text-primary/80 transition-colors"
                                 >
                                     {cleanPart}
                                 </a>
@@ -73,7 +73,6 @@ export function TextWithLinks({ text, className }: TextWithLinksProps) {
                             href={href} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-primary underline hover:text-primary/80 transition-colors"
                         >
                             {part}
                         </a>

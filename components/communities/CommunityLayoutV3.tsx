@@ -84,7 +84,7 @@ export function CommunityLayoutV3({ community }: CommunityLayoutProps) {
                                     <User className="h-6 w-6 text-primary shrink-0" />
                                     <div>
                                         <p className="font-bold text-lg">{community.mayor.nickname || "Neznámý"}</p>
-                                        <p className="text-muted-foreground text-sm">Vedoucí</p>
+                                        <p className="text-muted-foreground text-sm">Kontakt</p>
                                     </div>
                                 </div>
                             )}
@@ -100,8 +100,8 @@ export function CommunityLayoutV3({ community }: CommunityLayoutProps) {
 
                          {community.mayor?.contact_email && (
                             <a href={`mailto:${community.mayor.contact_email}`}>
-                                <Button size="lg" className="w-full text-lg h-14 rounded-xl shadow-lg shadow-primary/20">
-                                    <Mail className="mr-2 h-5 w-5" /> Napsat vedoucímu
+                                    <Button size="lg" className="w-full text-lg h-14 rounded-xl shadow-lg shadow-primary/20">
+                                    <Mail className="mr-2 h-5 w-5" /> Napsat zprávu
                                 </Button>
                             </a>
                         )}

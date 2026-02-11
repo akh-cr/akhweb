@@ -10,7 +10,7 @@ interface FeedItem {
   title: string
   slug?: string
   date: string
-  type: 'event' | 'post'
+  type: 'event' | 'post' | 'community'
   excerpt?: string
   location?: string       // Full location string (e.g. "Klášter Emauzy, Praha")
   city?: string           // City name from relation (e.g. "Praha")
@@ -28,13 +28,13 @@ export function FeedSection({ items, showHeader = true }: { items: FeedItem[], s
         {showHeader && (
         <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Kalendář akcí</h2>
-                <p className="text-muted-foreground">Přehled nejbližších setkání a událostí</p>
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Aktuality a akce</h2>
+                <p className="text-muted-foreground">Novinky ze života hnutí a přehled nejbližších setkání</p>
             </div>
             <div className="flex gap-2">
-                <Link href="/akce">
+                <Link href="/blog">
                     <Button variant="default" size="lg" className="rounded-full px-8 font-semibold shadow-sm hover:shadow-md transition-all">
-                        Všechny akce <ArrowRight className="ml-2 h-4 w-4" />
+                        Další aktuality <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </Link>
             </div>
@@ -45,7 +45,11 @@ export function FeedSection({ items, showHeader = true }: { items: FeedItem[], s
           {items.map((item) => (
             <Link 
                 key={`${item.type}-${item.id}`} 
-                href={`/akce/${item.slug || '#'}`}
+                href={
+                    item.type === 'post' ? `/blog/${item.slug || '#'}` : 
+                    item.type === 'community' ? `/${item.slug || '#'}` :
+                    `/akce/${item.slug || '#'}`
+                }
                 className={`flex flex-col h-full bg-card rounded-xl border overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all group ${!item.slug ? "pointer-events-none opacity-80" : ""}`}
             >
                 {/* Image Caption/Cover */}

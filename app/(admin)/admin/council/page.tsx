@@ -29,13 +29,13 @@ export default async function CouncilPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-1 sm:p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Rada AKH</h1>
         <CouncilMemberDialog />
       </div>
 
-      <div className="bg-card rounded-xl border p-2">
+      <div className="bg-card rounded-xl p-2">
          <UsersDataTable columns={columns} data={members || []} filterColumnName="name" searchPlaceholder="Hledat podle jména..." />
       </div>
     </div>

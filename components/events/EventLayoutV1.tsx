@@ -3,7 +3,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Gallery } from "@/components/gallery";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, ArrowLeft } from "lucide-react";
+import { Calendar, Clock, MapPin, ArrowLeft, Facebook } from "lucide-react";
 import Link from "next/link";
 import { ViewSwitcher } from "./ViewSwitcher";
 import { TextWithLinks } from "@/components/ui/text-with-links";
@@ -65,9 +65,7 @@ export function EventLayoutV1({ event }: EventLayoutProps) {
                     {event.facebook_event_link && (
                          <a href={event.facebook_event_link} target="_blank" rel="noopener noreferrer">
                             <Button size="lg" variant="outline" className="px-8 rounded-full w-full sm:w-auto gap-2">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600">
-                                    <path d="M22 12.06C22 6.505 17.523 2 12 2C6.477 2 2 6.505 2 12.06C2 17.083 5.657 21.245 10.438 22V14.969H7.898V12.06H10.438V9.845C10.438 7.333 11.931 5.955 14.215 5.955C15.309 5.955 16.453 6.151 16.453 6.151V8.616H15.192C13.95 8.616 13.563 9.39 13.563 10.183V12.06H16.328L15.886 14.969H13.563V22C18.344 21.245 22 17.083 22 12.06Z" fill="currentColor" />
-                                </svg>
+                                <Facebook className="h-5 w-5 text-blue-600" />
                                 Událost na Facebooku
                             </Button>
                         </a>

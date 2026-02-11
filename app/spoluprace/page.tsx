@@ -27,16 +27,16 @@ export default async function SpolupracePage() {
 
   const partners = (contentMap['spoluprace.partners'] || {
     links: [
-        { title: "Absolventský Velehrad", url: "https://absolventskyvelehrad.cz/" },
-        { title: "Post-mládež", url: "https://www.post-mladez.cz/" },
-        { title: "Univerzitní křesťanské hnutí", url: "https://www.ukh.cz/" },
-        { title: "VKH ČR", url: "https://vkhcr.cz/" },
-        { title: "HELPNI", url: "https://helpni.cz/" },
-        { title: "Boží rande", "url": "https://www.bozirande.cz/" },
-        { title: "Schola AV21", url: "https://www.facebook.com/scholaav21/" },
-        { title: "Festapp", url: "https://festapp.net/", secondary: { title: "vstupenky.online", url: "https://vstupenky.online" } },
-        { title: "Kamedit", url: "https://kamedit.com/" },
-        { title: "Credo Nadace", url: "https://www.credonadace.cz/" }
+        { title: "Absolventský Velehrad", url: "https://absolventskyvelehrad.cz/", description: "" },
+        { title: "Post-mládež", url: "https://www.post-mladez.cz/", description: "" },
+        { title: "Univerzitní křesťanské hnutí", url: "https://www.ukh.cz/", description: "" },
+        { title: "VKH ČR", url: "https://vkhcr.cz/", description: "" },
+        { title: "HELPNI", url: "https://helpni.cz/", description: "" },
+        { title: "Boží rande", "url": "https://www.bozirande.cz/", description: "" },
+        { title: "Schola AV21", url: "https://www.facebook.com/scholaav21/", description: "" },
+        { title: "Festapp", url: "https://festapp.net/", secondary: { title: "vstupenky.online", url: "https://vstupenky.online" }, description: "" },
+        { title: "Kamedit", url: "https://kamedit.com/", description: "" },
+        { title: "Credo Nadace", url: "https://www.credonadace.cz/", description: "" }
     ]
   }) as PartnersBlock['content'];
 
@@ -121,6 +121,11 @@ export default async function SpolupracePage() {
                                 {link.title}
                                 <LinkIcon className="h-4 w-4 opacity-50" />
                             </h3>
+                            {link.description && (
+                                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                                    {link.description}
+                                </p>
+                            )}
                         </div>
                         <div className="flex flex-col gap-2 mt-2">
                              <a href={link.url} target="_blank" className="text-sm text-muted-foreground hover:text-foreground hover:underline truncate flex items-center gap-1">

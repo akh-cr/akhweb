@@ -64,8 +64,8 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    @apply bg-background text-foreground overflow-x-hidden;
   }
 }
 
@@ -121,7 +121,13 @@
     @apply border-l-4 border-gray-300 pl-4 italic my-4;
   }
 
-  /* Style scraped buttons */
+  /* Global link styling for rich text content */
+  .rich-text a, .prose a {
+    @apply text-primary underline hover:text-primary/80 transition-colors underline-offset-4 decoration-2;
+    text-decoration-line: underline !important;
+  }
+
+  /* Style scraped buttons - ensure they don't get double underlined if they are links */
   .prose a.button, .rich-text a.button {
     @apply inline-flex items-center justify-center rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 py-2 no-underline my-4;
   }

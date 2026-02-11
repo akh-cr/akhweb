@@ -315,6 +315,18 @@ export function ContentEditor({ initialBlocks }: { initialBlocks: ContentBlock[]
                                   }}
                               />
                           </div>
+                          <div className="grid gap-2 mb-2">
+                              <Label>Popis (volitelné)</Label>
+                              <Textarea 
+                                  value={link.description || ''} 
+                                  onChange={(e) => {
+                                      const newLinks = [...block.content.links];
+                                      newLinks[i] = { ...newLinks[i], description: e.target.value };
+                                      handleUpdate(block.id, { ...block.content, links: newLinks });
+                                  }}
+                                  rows={2}
+                              />
+                          </div>
                           <div className="grid gap-2">
                                <Label>Sekundární odkaz (volitelné)</Label>
                                <div className="flex gap-2">

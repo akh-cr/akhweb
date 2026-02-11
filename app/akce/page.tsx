@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import Image from "next/image";
+import { VideoPlayer } from "@/components/video-player";
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/pagination";
 
 import { getContentBlocks, HeaderBlock } from "@/lib/content";
+import { EventWithCity } from "@/types/supabase";
 
 export default async function EventsPage({
   searchParams,
@@ -43,16 +45,20 @@ export default async function EventsPage({
   const { data: upcomingEvents } = await supabase
     .from('events')
     .select('*, cities(name)')
+    .eq('is_hidden', false)
     .gte('start_time', now)
-    .order('start_time', { ascending: true });
+    .order('start_time', { ascending: true })
+    .returns<EventWithCity[]>();
 
   // Fetch past events with pagination
   const { data: pastEvents, count } = await supabase
     .from('events')
     .select('*, cities(name)', { count: 'exact' })
+    .eq('is_hidden', false)
     .lt('start_time', now)
     .order('start_time', { ascending: false })
-    .range(from, to);
+    .range(from, to)
+    .returns<EventWithCity[]>();
 
   const totalPages = count ? Math.ceil(count / pageSize) : 0;
 
@@ -90,7 +96,7 @@ export default async function EventsPage({
                     <p className="text-muted-foreground">Zatím žádné naplánované akce.</p>
                 </div>
             ) : (
-                upcomingEvents.map((event: any) => (
+                upcomingEvents.map((event) => (
                     <Link 
                         key={event.id} 
                         href={`/akce/${event.slug || '#'}`}
@@ -119,9 +125,9 @@ export default async function EventsPage({
                                 </span>
                                 
                                 {/* Smart Location: If city exists, show it. If not, try to parse city from location or show full location */}
-                                {(event.cities?.name || event.location) && (
+                                {(event.cities?.name || (event.location && event.location)) && (
                                     <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[150px]">
-                                        {event.cities?.name || event.location.split(',')[0]}
+                                        {event.cities?.name || (event.location ? event.location.split(',')[0] : '')}
                                     </span>
                                 )}
                             </div>
@@ -139,7 +145,7 @@ export default async function EventsPage({
                             )}
 
                             <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
-                                {event.description}
+                                {event.description || ''}
                             </p>
 
                             <div className="flex items-center text-primary font-medium text-sm mt-auto group-hover:underline underline-offset-4 decoration-primary/30">
@@ -160,7 +166,7 @@ export default async function EventsPage({
                 {!pastEvents || pastEvents.length === 0 ? (
                     <p className="text-muted-foreground col-span-full text-center py-12">Žádné proběhlé akce k zobrazení.</p>
                 ) : (
-                    pastEvents.map((event: any) => (
+                    pastEvents.map((event) => (
                         <Link 
                             key={event.id} 
                             href={`/akce/${event.slug || '#'}`}
@@ -189,7 +195,7 @@ export default async function EventsPage({
                                 </span>
                                 {(event.cities?.name || event.location) && (
                                     <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[150px]">
-                                        {event.cities?.name || event.location.split(',')[0]}
+                                        {event.cities?.name || (event.location ? event.location.split(',')[0] : '')}
                                     </span>
                                 )}
                             </div>
@@ -254,6 +260,19 @@ export default async function EventsPage({
              )}
          </div>
       </section>
+
+       {/* Video Section - Styled like HomeLayoutV1 */}
+       <section className="w-full py-24 bg-black text-white px-5">
+         <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-8">Ohlédnutí za minulými ročníky</h2>
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-900">
+                 <VideoPlayer videoId="YnE5zjv1XHY" />
+              </div>
+              <p className="mt-8 text-zinc-400 max-w-2xl mx-auto">
+                 Krátký sestřih toho nejlepšího z předchozích akcí a setkání.
+              </p>
+         </div>
+       </section>
 
       {/* Google Calendar Section */}
       <section className="w-full py-16 bg-white dark:bg-zinc-900 border-t flex flex-col items-center px-5">

@@ -101,8 +101,8 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
 
   if (loading) return <p className="p-10">Načítání...</p>
 
-  return (
-    <div className="max-w-4xl mx-auto py-10 space-y-6">
+    return (
+    <div className="max-w-4xl mx-auto py-10 px-4 w-full space-y-6">
        <div className="flex items-center justify-between">
          <div className="flex items-center gap-4">
             <Link href="/admin/blog">
@@ -151,9 +151,11 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
                 <Textarea id="excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={3} />
             </div>
 
-             <div className="grid gap-2">
+            <div className="grid gap-2">
                 <Label>Obsah</Label>
-                <Tiptap content={content} onChange={setContent} />
+                <div className="min-h-[300px] border rounded-md overflow-hidden max-w-full">
+                    <Tiptap content={content} onChange={setContent} />
+                </div>
             </div>
        </div>
     </div>

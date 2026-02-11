@@ -43,7 +43,7 @@ export function CommunityLayoutV1({ community }: CommunityLayoutProps) {
                 {/* Leader Info - Minimal */}
                 {community.mayor && (
                     <div className="bg-muted/30 p-8 rounded-2xl text-center mb-16">
-                        <h3 className="font-semibold mb-4">Kontakt na vedoucího</h3>
+                        <h3 className="font-semibold mb-4">Kontakt</h3>
                         <div className="flex flex-col items-center gap-2">
                             <div className="flex items-center gap-2 text-lg">
                                 <User className="h-5 w-5 text-primary" />

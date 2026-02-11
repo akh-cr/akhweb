@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { DataTable } from "./data-table"
 import { columns } from "./columns"
+import { InviteUserDialog } from "./invite-user-dialog"
 
 export default async function UsersPage() {
   const supabase = await createClient()
@@ -20,13 +21,13 @@ export default async function UsersPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-1 sm:p-4 md:p-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold">Uživatelé</h1>
-        {/* Add user button is just instructions since auth is self-serve */}
+        <InviteUserDialog />
       </div>
 
-      <div className="bg-card rounded-xl border p-2">
+      <div className="bg-card rounded-xl p-2 overflow-hidden">
          <DataTable columns={columns} data={users || []} searchPlaceholder="Hledat podle emailu..." />
       </div>
       
@@ -36,8 +37,9 @@ export default async function UsersPage() {
               <ul className="list-disc list-inside ml-2">
                   <li><strong>Admin:</strong> Má plná práva. Může spravovat uživatele, měnit jejich role a upravovat veškerý obsah webu.</li>
                   <li><strong>Editor:</strong> Může upravovat pouze obsah (akce, aktuality, stránky), ale nemůže spravovat ostatní uživatele.</li>
+                  <li><strong>User:</strong> Nemá přístup do administrace.</li>
               </ul>
-              <p className="mt-2">Noví uživatelé se musí nejprve zaregistrovat/přihlásit přes přihlašovací stránku. Poté se objeví v tomto seznamu jako "user" a můžete jim změnit roli.</p>
+              <p className="mt-2">Pozvaní uživatelé obdrží email s odkazem pro nastavení hesla.</p>
           </div>
       </div>
     </div>

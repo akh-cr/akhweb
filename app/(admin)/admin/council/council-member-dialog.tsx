@@ -51,7 +51,7 @@ type CouncilMember = {
     active: boolean
 }
 
-export function CouncilMemberDialog({ member }: { member?: CouncilMember }) {
+export function CouncilMemberDialog({ member, trigger }: { member?: CouncilMember, trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const isEditing = !!member
 
@@ -87,15 +87,17 @@ export function CouncilMemberDialog({ member }: { member?: CouncilMember }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {isEditing ? (
-            <Button variant="ghost" size="icon">
-                <Edit className="h-4 w-4" />
-            </Button>
-        ) : (
-            <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Přidat člena
-            </Button>
+        {trigger ? trigger : (
+            isEditing ? (
+                <Button variant="ghost" size="icon">
+                    <Edit className="h-4 w-4" />
+                </Button>
+            ) : (
+                <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Přidat člena
+                </Button>
+            )
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">

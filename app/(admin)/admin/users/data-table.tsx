@@ -125,6 +125,7 @@ export function DataTable<TData, TValue>({
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
+          className="px-4"
         >
           Předchozí
         </Button>
@@ -133,6 +134,7 @@ export function DataTable<TData, TValue>({
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
+          className="px-4"
         >
           Další
         </Button>

@@ -23,7 +23,12 @@ describe('Cities Actions', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         mockSupabase.from.mockReturnValue({
-            delete: mockDelete
+            delete: mockDelete,
+            select: vi.fn().mockReturnValue({
+                eq: vi.fn().mockReturnValue({
+                    single: vi.fn().mockResolvedValue({ data: { image_url: 'https://example.com/test.jpg' }, error: null })
+                })
+            })
         })
         mockDelete.mockReturnValue({
             eq: mockEq

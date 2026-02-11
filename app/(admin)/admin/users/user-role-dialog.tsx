@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -20,10 +22,11 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { updateUserRole } from "./actions"
 import { Edit } from "lucide-react"
 
-export function UserRoleDialog({ userId, currentRole, email }: { userId: string, currentRole: string, email: string }) {
+export function UserRoleDialog({ userId, currentRole, email, trigger }: { userId: string, currentRole: string, email: string, trigger?: React.ReactNode }) {
+  const supabase = createClient()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [role, setRole] = useState(currentRole)
   const [loading, setLoading] = useState(false)
@@ -31,9 +34,15 @@ export function UserRoleDialog({ userId, currentRole, email }: { userId: string,
   const handleSave = async () => {
     setLoading(true)
     try {
-      await updateUserRole(userId, role)
+      const { error } = await supabase.functions.invoke('update-user-role', {
+        body: { userId, role }
+      })
+
+      if (error) throw error
+
       toast.success("Role úspěšně aktualizována")
       setOpen(false)
+      router.refresh()
     } catch (error) {
       toast.error("Nepodařilo se aktualizovat roli")
       console.error(error)
@@ -45,9 +54,11 @@ export function UserRoleDialog({ userId, currentRole, email }: { userId: string,
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Edit className="h-4 w-4" />
-        </Button>
+        {trigger ? trigger : (
+            <Button variant="ghost" size="icon">
+            <Edit className="h-4 w-4" />
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
