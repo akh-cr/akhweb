@@ -53,15 +53,26 @@ export function EventLayoutV1({ event }: EventLayoutProps) {
                 </div>
 
                 {/* Call to Action */}
-                {event.registration_link && (
-                    <div className="my-16 flex justify-center">
+                <div className="my-16 flex flex-col sm:flex-row justify-center gap-4">
+                    {event.registration_link && (
                         <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
-                            <Button size="lg" className="px-8 rounded-full">
+                            <Button size="lg" className="px-8 rounded-full w-full sm:w-auto">
                                 Registrace na akci
                             </Button>
                         </a>
-                    </div>
-                )}
+                    )}
+                    
+                    {event.facebook_event_link && (
+                         <a href={event.facebook_event_link} target="_blank" rel="noopener noreferrer">
+                            <Button size="lg" variant="outline" className="px-8 rounded-full w-full sm:w-auto gap-2">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600">
+                                    <path d="M22 12.06C22 6.505 17.523 2 12 2C6.477 2 2 6.505 2 12.06C2 17.083 5.657 21.245 10.438 22V14.969H7.898V12.06H10.438V9.845C10.438 7.333 11.931 5.955 14.215 5.955C15.309 5.955 16.453 6.151 16.453 6.151V8.616H15.192C13.95 8.616 13.563 9.39 13.563 10.183V12.06H16.328L15.886 14.969H13.563V22C18.344 21.245 22 17.083 22 12.06Z" fill="currentColor" />
+                                </svg>
+                                Událost na Facebooku
+                            </Button>
+                        </a>
+                    )}
+                </div>
 
                  {/* Gallery - Simplified Bottom Section */}
                 {event.gallery_images && event.gallery_images.length > 0 && (

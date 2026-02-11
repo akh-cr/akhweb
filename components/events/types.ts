@@ -9,6 +9,7 @@ export interface EventData {
     registration_link: string | null;
     image_url: string | null;
     gallery_images: string[] | null;
+    facebook_event_link: string | null;
     city: {
         name: string;
         image_url?: string | null;

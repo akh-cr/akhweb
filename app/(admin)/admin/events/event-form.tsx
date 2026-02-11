@@ -61,6 +61,15 @@ const formSchema = z.object({
           return false;
       }
   }, { message: "Neplatná URL" }).optional().or(z.literal("")),
+  facebook_event_link: z.string().refine((val) => {
+      if (val === "") return true;
+      try {
+          new URL(val);
+          return true;
+      } catch {
+          return false;
+      }
+  }, { message: "Neplatná URL" }).optional().or(z.literal("")),
 })
 
 interface EventFormProps {
@@ -83,6 +92,7 @@ export function EventForm({ initialData, cities }: EventFormProps) {
       image_url: initialData?.image_url || "",
       gallery_images: initialData?.gallery_images || [],
       registration_link: initialData?.registration_link || "",
+      facebook_event_link: initialData?.facebook_event_link || "",
     },
   })
 
@@ -102,6 +112,7 @@ export function EventForm({ initialData, cities }: EventFormProps) {
         image_url: values.image_url || null,
         gallery_images: values.gallery_images || [],
         registration_link: values.registration_link || null,
+        facebook_event_link: values.facebook_event_link || null,
     }
 
     let error;
@@ -259,6 +270,20 @@ export function EventForm({ initialData, cities }: EventFormProps) {
                 )}
             />
         </div>
+
+        <FormField
+            control={form.control}
+            name="facebook_event_link"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>Odkaz na Facebook událost</FormLabel>
+                <FormControl>
+                <Input placeholder="https://facebook.com/events/..." {...field} />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+        />
 
         <FormField
             control={form.control}

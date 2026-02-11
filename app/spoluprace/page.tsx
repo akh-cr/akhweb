@@ -2,7 +2,7 @@ import { Navbar } from "@/components/navbar";
 import Image from "next/image";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, HandHeart, Heart, Link as LinkIcon, Users } from "lucide-react";
+import { ExternalLink, HandHeart, Heart, Link as LinkIcon, Users, FileText } from "lucide-react";
 import Link from "next/link";
 
 import { getContentBlocks, HeaderBlock, TextImageBlock, PartnersBlock } from "@/lib/content";
@@ -172,6 +172,17 @@ export default async function SpolupracePage() {
                         <p className="text-xs text-muted-foreground">Rychlá platba QR kódem</p>
                     </div>
                 </div>
+            </div>
+
+            <div className="mt-8">
+                <a 
+                    href="https://forms.gle/r7pDqbaC9xuV15nt5" 
+                    target="_blank" 
+                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors hover:underline underline-offset-4"
+                >
+                    <FileText className="h-4 w-4" />
+                    Žádost o vystavení formuláře pro potvrzení o daru
+                </a>
             </div>
         </div>
       </section>

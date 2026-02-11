@@ -98,7 +98,7 @@ export default async function EventsPage({
                     >
                         {/* Image Caption/Cover */}
                         {event.image_url ? (
-                            <div className="relative h-48 w-full overflow-hidden">
+                            <div className="relative aspect-video w-full overflow-hidden">
                                  <Image 
                                     src={event.image_url} 
                                     alt={event.title} 
@@ -107,7 +107,7 @@ export default async function EventsPage({
                                  />
                             </div>
                         ) : (
-                            <div className="h-48 w-full bg-muted/50 flex items-center justify-center border-b">
+                            <div className="aspect-video w-full bg-muted/50 flex items-center justify-center border-b">
                                 <MapPin className="h-10 w-10 text-muted-foreground/20" />
                             </div>
                         )}
@@ -168,7 +168,7 @@ export default async function EventsPage({
                         >
                             {/* Image Caption/Cover */}
                             {event.image_url ? (
-                                <div className="relative h-48 w-full overflow-hidden">
+                                <div className="relative aspect-video w-full overflow-hidden">
                                      <Image 
                                         src={event.image_url} 
                                         alt={event.title} 
@@ -177,7 +177,7 @@ export default async function EventsPage({
                                      />
                                 </div>
                             ) : (
-                                <div className="h-48 w-full bg-muted/50 flex items-center justify-center border-b">
+                                <div className="aspect-video w-full bg-muted/50 flex items-center justify-center border-b">
                                     <MapPin className="h-10 w-10 text-muted-foreground/20" />
                                 </div>
                             )}
@@ -261,15 +261,29 @@ export default async function EventsPage({
             <div className="w-full max-w-4xl aspect-[4/3] md:aspect-[16/9] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-sm border border-border">
                 <GoogleCalendar />
             </div>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-5">
-                 <a href="https://calendar.google.com/calendar/ical/c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com/public/basic.ics" target="_blank" className="w-full sm:w-auto">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
-                        Odebírat iCal
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-5 items-center justify-center">
+                 <a 
+                    href="https://calendar.google.com/calendar/ical/c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com/public/basic.ics" 
+                    target="_blank" 
+                    className="w-full sm:w-auto"
+                 >
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V9H19V20ZM19 7H5V6H19V7ZM12 13H17V18H12V13Z" />
+                        </svg>
+                        Stáhnout iCal
                     </Button>
                  </a>
-                 <a href="https://calendar.google.com/calendar/embed?src=c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com&ctz=Europe%2FPrague" target="_blank" className="w-full sm:w-auto">
+                 <a 
+                    href="https://calendar.google.com/calendar/render?cid=c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728@group.calendar.google.com" 
+                    target="_blank" 
+                    className="w-full sm:w-auto"
+                 >
                     <Button variant="default" size="lg" className="w-full sm:w-auto shadow-md hover:shadow-lg transition-all dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-                        Otevřít v Google Kalendáři <ArrowRight className="ml-2 h-4 w-4" />
+                        <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V9H19V20ZM19 7H5V6H19V7ZM12 13H17V18H12V13Z" />
+                        </svg>
+                        Odebírat Google Kalendář
                     </Button>
                  </a>
             </div>
