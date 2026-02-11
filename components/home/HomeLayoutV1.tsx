@@ -11,11 +11,20 @@ import { ViewSwitcher } from "@/components/events/ViewSwitcher";
 import { HomeLayoutProps } from "./types";
 
 export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayoutProps & { design?: string }) {
-  const galleryImages = content?.['home.hero']?.images || [
+  const heroImages = content?.['home.hero']?.images || [
     "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
     "/images/gallery/MB_2025_08_14.11.40.58_09844.jpg",
     "/images/gallery/MB_2025_08_14.17.15.34_09845.jpg",
     "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg"
+  ];
+
+  const galleryImages = content?.['home.gallery']?.images || [
+    "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
+    "/images/gallery/MB_2025_08_14.11.40.58_09844.jpg",
+    "/images/gallery/MB_2025_08_14.17.15.34_09845.jpg",
+    "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
+    "/images/gallery/MB_2025_08_14.21.23.40_09896.jpg",
+    "/images/gallery/MB_2025_08_14.21.23.51_.jpg"
   ];
 
   const videoData = content?.['home.video'] || {
@@ -38,7 +47,7 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
       <ViewSwitcher currentDesign={design} />
       <Navbar />
       
-      <HeroSection variant={design} images={galleryImages} />
+      <HeroSection variant={design} images={heroImages} />
 
       {/* Feed Section - Replaces FeaturesGallery */}
       <FeedSection items={feedItems} />
