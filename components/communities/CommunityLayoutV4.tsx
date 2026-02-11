@@ -43,9 +43,16 @@ export function CommunityLayoutV4({ community }: CommunityLayoutProps) {
 
                 {/* Content */}
                 {community.description && (
-                    <div className="prose prose-lg dark:prose-invert max-w-none leading-loose mb-12">
+                    <div className="prose prose-lg dark:prose-invert max-w-none leading-loose mb-8 rich-text">
                         <p>{community.description}</p>
                     </div>
+                )}
+
+                {community.content && (
+                    <div 
+                        className="prose prose-lg dark:prose-invert max-w-none leading-loose mb-12 rich-text"
+                        dangerouslySetInnerHTML={{ __html: community.content }}
+                    />
                 )}
 
                 {/* Leader Info - Minimal */}

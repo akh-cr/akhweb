@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import Tiptap from "@/components/tiptap"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
 export default function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -109,6 +109,13 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
                 <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
             </Link>
             <h1 className="text-3xl font-bold">{isNew ? "Nový článek" : "Upravit článek"}</h1>
+            {!isNew && slug && (
+                <Link href={`/blog/${slug}`} target="_blank">
+                    <Button variant="ghost" size="icon" title="Zobrazit na webu">
+                        <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </Button>
+                </Link>
+            )}
          </div>
          <Button onClick={handleSave} disabled={saving}>
             <Save className="h-4 w-4 mr-2" />

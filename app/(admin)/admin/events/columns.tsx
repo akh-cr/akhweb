@@ -22,6 +22,7 @@ export type Event = {
   title: string
   start_time: string
   city_id: string | null
+  location: string | null
   slug: string
   created_at: string
 }
@@ -42,11 +43,11 @@ export const columns: ColumnDef<Event>[] = [
     },
   },
   {
-    accessorKey: "city_id",
-    header: "Město",
+    accessorKey: "location",
+    header: "Místo",
     cell: ({ row }) => {
-        const city = row.getValue("city_id") as string
-        return <div className="uppercase font-medium text-xs text-muted-foreground">{city || "Celostátní"}</div>
+        const location = row.getValue("location") as string
+        return <div className="font-medium text-sm text-muted-foreground">{location || "-"}</div>
     }
   },
   {
@@ -110,7 +111,11 @@ function ActionCell({ event }: { event: Event }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <DropdownMenu>
+            <div className="flex items-center gap-2">
+                <Link href={`/admin/events/${event.id}`}>
+                    <Button variant="outline" size="sm">Upravit</Button>
+                </Link>
+                <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
                         <span className="sr-only">Otevřít menu</span>
@@ -142,6 +147,7 @@ function ActionCell({ event }: { event: Event }) {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+            </div>
         </>
     )
 }

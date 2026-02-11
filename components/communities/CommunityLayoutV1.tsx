@@ -35,7 +35,7 @@ export function CommunityLayoutV1({ community }: CommunityLayoutProps) {
 
                 {community.content && (
                     <div 
-                        className="prose prose-lg dark:prose-invert max-w-none leading-loose mb-12"
+                        className="prose prose-lg dark:prose-invert max-w-none leading-loose mb-12 rich-text"
                         dangerouslySetInnerHTML={{ __html: community.content }}
                     />
                 )}

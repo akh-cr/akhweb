@@ -43,9 +43,16 @@ export function CommunityLayoutV2({ community }: CommunityLayoutProps) {
                     )}
 
                     {community.description && (
-                        <div className="prose prose-lg dark:prose-invert max-w-none bg-background p-8 rounded-2xl border shadow-sm">
+                        <div className="prose prose-lg dark:prose-invert max-w-none bg-background p-8 rounded-2xl border shadow-sm mb-8 rich-text">
                             <p>{community.description}</p>
                         </div>
+                    )}
+
+                    {community.content && (
+                        <div 
+                            className="prose prose-lg dark:prose-invert max-w-none bg-background p-8 rounded-2xl border shadow-sm rich-text"
+                            dangerouslySetInnerHTML={{ __html: community.content }}
+                        />
                     )}
 
                      {community.gallery_images && community.gallery_images.length > 0 && (

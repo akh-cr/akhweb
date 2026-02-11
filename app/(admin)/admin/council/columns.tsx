@@ -34,7 +34,7 @@ export const columns: ColumnDef<CouncilMember>[] = [
           const member = row.original
           return (
               <Avatar>
-                  <AvatarImage src={member.image_url || ""} />
+                  <AvatarImage src={member.image_url || ""} className="object-cover" />
                   <AvatarFallback>{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
           )

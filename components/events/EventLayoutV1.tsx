@@ -48,7 +48,7 @@ export function EventLayoutV1({ event }: EventLayoutProps) {
                 </header>
 
                 {/* Content - Reader Mode */}
-                <div className="prose prose-lg dark:prose-invert max-w-none leading-loose">
+                <div className="prose prose-lg dark:prose-invert max-w-none leading-loose rich-text">
                     {event.content && <div dangerouslySetInnerHTML={{ __html: event.content }} />}
                 </div>
 

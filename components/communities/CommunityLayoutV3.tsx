@@ -54,9 +54,16 @@ export function CommunityLayoutV3({ community }: CommunityLayoutProps) {
                 {/* Left: Content */}
                 <div className="bg-background rounded-3xl p-8 md:p-12 shadow-2xl border">
                     {community.description && (
-                         <div className="prose prose-lg dark:prose-invert max-w-none">
+                         <div className="prose prose-lg dark:prose-invert max-w-none rich-text mb-8">
                             <p>{community.description}</p>
                         </div>
+                    )}
+
+                    {community.content && (
+                        <div 
+                            className="prose prose-lg dark:prose-invert max-w-none rich-text"
+                            dangerouslySetInnerHTML={{ __html: community.content }}
+                        />
                     )}
 
                     {community.gallery_images && community.gallery_images.length > 0 && (
