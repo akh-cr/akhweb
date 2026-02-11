@@ -113,6 +113,7 @@ export async function getContentBlocks(ids: string[]) {
     .select('*')
     .in('id', ids);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const blockMap = (data || []).reduce((acc: Record<string, any>, block: any) => {
     acc[block.id] = block.content;
     return acc;

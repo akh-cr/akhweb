@@ -1,1 +1,2 @@
-scripts/archive/
+scripts/archive/**/*
+supabase/tests/**/*

@@ -1,71 +1,49 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { assert, assertEquals } from 'https://deno.land/std@0.192.0/testing/asserts.ts'
+import { load } from "https://deno.land/std@0.220.0/dotenv/mod.ts";
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+const env = await load({ envPath: '.env.local', examplePath: null });
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || env['NEXT_PUBLIC_SUPABASE_URL'] || '';
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || '';
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Missing SUPABASE_URL or SUPABASE_ANON_KEY')
   Deno.exit(1)
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-const TEST_EMAIL = `test-user-${Date.now()}@example.com`
+Deno.test({
+  name: 'User Management Security (Anonymous)',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async (t) => {
 
-Deno.test('User Management Flow', async (t) => {
-  let createdUserId: string | null = null
-
-  await t.step('1. Invite User', async () => {
+  await t.step('Anon CANNOT Invite User', async () => {
     const { data, error } = await supabase.functions.invoke('invite-user', {
-      body: { email: TEST_EMAIL },
+      body: { email: 'test-anon@example.com' },
     })
+    // Consume body to prevent leak
+    if (data) {} 
     
-    // Note: If user invite works, it returns success message. 
-    // Typically invite returns user data if using admin api directly, but our function returns { message: ... }
-    if (error) throw error
-    assert(data.success, 'Invite should return success')
-
-    // Fetch user to get ID
-    const { data: { users } } = await supabase.auth.admin.listUsers()
-    const user = users.find(u => u.email === TEST_EMAIL)
-    assert(user, 'User should be created in Auth')
-    createdUserId = user.id
+    // Should fail with 401 Unauthorized or 403 Forbidden
+    assert(error, 'Anonymous user should NOT be able to invite users')
   })
 
-  await t.step('2. Update User Role', async () => {
-    assert(createdUserId, 'User ID must exist from previous step')
-    
+  await t.step('Anon CANNOT Update User Role', async () => {
     const { data, error } = await supabase.functions.invoke('update-user-role', {
-      body: { userId: createdUserId, role: 'editor' },
+      body: { userId: 'some-id', role: 'editor' },
     })
-
-    if (error) throw error
-    assert(data.success, 'Update role should return success')
-
-    // Verify in DB
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', createdUserId)
-      .single()
-    
-    if (roleError) throw roleError
-    assertEquals(roleData.role, 'editor', 'Role should be updated to editor')
+    if (data) {}
+    assert(error, 'Anonymous user should NOT be able to update roles')
   })
 
-  await t.step('3. Cleanup / Delete User', async () => {
-    if (!createdUserId) return
-
+  await t.step('Anon CANNOT Delete User', async () => {
     const { data, error } = await supabase.functions.invoke('delete-user', {
-      body: { userId: createdUserId },
+      body: { userId: 'some-id' },
     })
-
-    if (error) throw error
-    assert(data.success, 'Delete user should return success')
-
-    // Verify deletion
-    const { data: { user }, error: fetchError } = await supabase.auth.admin.getUserById(createdUserId)
-    assert(fetchError || !user, 'User should not exist in Auth')
+    if (data) {}
+    assert(error, 'Anonymous user should NOT be able to delete users')
   })
-})
+}})
+

@@ -73,7 +73,7 @@ export function InviteUserDialog() {
           Pozvat uživatele
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" id="invite-user-dialog-content">
         <DialogHeader>
           <DialogTitle>Pozvat nového uživatele</DialogTitle>
           <DialogDescription>

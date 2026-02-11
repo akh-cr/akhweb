@@ -51,7 +51,7 @@ export function DeleteUserDialog({ userId, email }: { userId: string, email: str
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent id={`delete-user-dialog-${userId}`}>
         <AlertDialogHeader>
           <AlertDialogTitle>Opravdu smazat uživatele?</AlertDialogTitle>
           <AlertDialogDescription>

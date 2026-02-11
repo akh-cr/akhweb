@@ -9,6 +9,7 @@ describe('Storage Server Utils', () => {
         storage: {
             from: mockFrom
         }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
 
     beforeEach(() => {

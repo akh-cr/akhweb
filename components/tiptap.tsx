@@ -22,7 +22,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { createClient } from "@/lib/supabase/client"
+// import { createClient } from "@/lib/supabase/client" // Unused
 import { toast } from "sonner"
 import { uploadImage } from '@/lib/storage'
 
@@ -31,7 +31,7 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
   const [sourceCode, setSourceCode] = useState(content)
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
+  // const supabase = createClient() // Unused
 
   // Ref to access editor inside uploadFile (which is defined before editor)
   const editorRef = useRef<ReturnType<typeof useEditor>>(null)

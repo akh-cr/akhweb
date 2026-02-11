@@ -57,7 +57,7 @@ const items = [
   },
 ]
 
-export function AppSidebar() {
+export function AppSidebar({ user }: { user?: { email?: string } | null }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -74,7 +74,9 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="mb-4 mt-2 h-auto py-2">
             <div className="flex items-center gap-2 px-1">
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img src="/logo.svg" alt="AKH Logo" className="h-4 w-auto object-contain dark:hidden" />
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img src="/logo-white.svg" alt="AKH Logo" className="h-4 w-auto object-contain hidden dark:block" />
                  <span className="font-bold text-lg">Admin</span>
             </div>
@@ -83,7 +85,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(item.url)}>
                     <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -96,6 +98,14 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4">
+        {user?.email && (
+            <div className="mb-4 flex items-center gap-2 px-1 text-sm text-muted-foreground overflow-hidden">
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Users className="h-3 w-3 text-primary" />
+                </div>
+                <span className="truncate" title={user.email}>{user.email}</span>
+            </div>
+        )}
         <Button variant="outline" className="w-full justify-start gap-2" onClick={handleLogout}>
             <LogOut className="h-4 w-4" />
             Odhlásit se

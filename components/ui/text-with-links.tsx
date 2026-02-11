@@ -33,9 +33,9 @@ export function TextWithLinks({ text, className }: TextWithLinksProps) {
                     // Simple logic to remove trailing punctuation if it was captured
                     // (e.g. "google.com." -> "google.com")
                     const trailingPunctuation = /[.,;!?)]$/;
-                    let suffix = "";
+                    // let suffix = ""; // Unused
                     if (trailingPunctuation.test(href)) {
-                        suffix = href.slice(-1);
+                        /* suffix = */ href.slice(-1);
                         href = href.slice(0, -1);
                         part = part.slice(0, -1); // Update display text too? 
                         // Actually, split(regex) includes the exact match. 

@@ -64,7 +64,7 @@ export default async function BlogPage({
   }));
 
   return (
-    <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-[#f5f5f5]">
+    <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-[#f5f5f5] dark:bg-background">
       <Navbar />
 
       {/* Blog Hero */}

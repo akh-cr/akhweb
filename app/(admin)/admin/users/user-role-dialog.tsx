@@ -60,7 +60,7 @@ export function UserRoleDialog({ userId, currentRole, email, trigger }: { userId
             </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" id={`user-role-dialog-${userId}`}>
         <DialogHeader>
           <DialogTitle>Upravit roli</DialogTitle>
           <DialogDescription>

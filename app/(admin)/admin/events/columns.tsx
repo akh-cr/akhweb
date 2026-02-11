@@ -62,7 +62,15 @@ export const columns: ColumnDef<Event>[] = [
                         className="data-[state=checked]:bg-muted-foreground scale-75 shrink-0"
                         aria-label="Skrýt akci"
                     />
-                    <span className={event.is_hidden ? "text-muted-foreground truncate" : "truncate"}>{event.title}</span>
+                    <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                         <span className={event.is_hidden ? "text-muted-foreground truncate opacity-60" : "truncate"}>{event.title}</span>
+                         {event.is_hidden && (
+                             <div className="flex items-center gap-1 rounded bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:text-amber-200 shrink-0">
+                                 <EyeOff className="h-3 w-3" />
+                                 <span className="hidden xs:inline">Skryto</span>
+                             </div>
+                         )}
+                    </div>
                 </div>
 
             </div>

@@ -78,9 +78,17 @@ export const columns: ColumnDef<Post>[] = [
                             <Users className="h-3 w-3" /> Společenství
                         </Badge>
                     )}
-                    <span className={post.is_hidden ? "text-muted-foreground truncate" : "truncate"}>
-                        {post.title}
-                    </span>
+                    <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                        <span className={post.is_hidden ? "text-muted-foreground truncate opacity-60" : "truncate"}>
+                            {post.title}
+                        </span>
+                        {post.is_hidden && (
+                            <div className="flex items-center gap-1 rounded bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:text-amber-200 shrink-0">
+                                <EyeOff className="h-3 w-3" />
+                                <span className="hidden xs:inline">Skryto</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         )

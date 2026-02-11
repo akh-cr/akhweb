@@ -27,7 +27,7 @@ export async function TeamSection() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16 mb-24">
-          {(councilMembers || []).map((member, index) => (
+          {(councilMembers || []).map((member) => (
             <div key={member.id} className="flex flex-col items-center text-center group">
               <div className="relative mb-6">
                   <Avatar className="h-32 w-32 border-4 border-background shadow-sm group-hover:scale-105 transition-transform duration-300 ring-1 ring-border/50">
@@ -43,9 +43,9 @@ export async function TeamSection() {
               
               {member.bio && (
                   <p className="text-muted-foreground text-base leading-relaxed italic max-w-xs relative px-4">
-                    <span className="text-primary/20 absolute -top-2 left-0 text-2xl font-serif">"</span>
+                    <span className="text-primary/20 absolute -top-2 left-0 text-2xl font-serif">&quot;</span>
                     {member.bio}
-                    <span className="text-primary/20 absolute -bottom-4 right-0 text-2xl font-serif">"</span>
+                    <span className="text-primary/20 absolute -bottom-4 right-0 text-2xl font-serif">&quot;</span>
                   </p>
               )}
             </div>
