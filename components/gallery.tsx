@@ -12,6 +12,7 @@ interface GalleryProps {
 }
 
 export function Gallery({ images = [], title = "Galerie" }: GalleryProps) {
+  const [visibleCount, setVisibleCount] = useState(8)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   const showNext = () => {
@@ -28,13 +29,15 @@ export function Gallery({ images = [], title = "Galerie" }: GalleryProps) {
       return null
   }
 
+  const visibleImages = images.slice(0, visibleCount)
+
   return (
     <section className="w-full py-16 bg-background">
       <div className="max-w-6xl mx-auto px-5">
         <h2 className="text-3xl font-bold mb-12 text-center">{title}</h2>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((src, index) => (
+          {visibleImages.map((src, index) => (
             <div 
               key={index} 
               className={cn(
@@ -57,6 +60,17 @@ export function Gallery({ images = [], title = "Galerie" }: GalleryProps) {
             </div>
           ))}
         </div>
+
+        {visibleCount < images.length && (
+          <div className="mt-8 text-center">
+            <button 
+              onClick={() => setVisibleCount(prev => prev + 12)}
+              className="px-6 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full font-medium transition-colors"
+            >
+              Zobrazit další ({images.length - visibleCount})
+            </button>
+          </div>
+        )}
       </div>
 
       {lightboxIndex !== null && (
