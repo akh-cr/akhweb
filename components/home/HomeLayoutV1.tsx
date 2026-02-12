@@ -5,6 +5,7 @@ import { FeedSection } from "@/components/feed-section";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { ViewSwitcher } from "@/components/events/ViewSwitcher";
 import { HomeLayoutProps } from "./types";
 import dynamic from "next/dynamic";
@@ -121,7 +122,14 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
              <div className="order-1 md:order-2 relative">
                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-2xl blur-3xl"></div>
                  <div className="relative h-[400px] w-full bg-zinc-800 rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center">
-                     <img src="/images/gallery/MB_2025_08_17.00.58.34_.jpg" alt="Foto: Život společenství" className="w-full h-full object-cover" />
+                     <Image 
+                        src="/images/gallery/MB_2025_08_17.00.58.34_.jpg" 
+                        alt="Foto: Život společenství" 
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        quality={80}
+                     />
                  </div>
              </div>
           </div>

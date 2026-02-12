@@ -13,38 +13,25 @@ interface HeroSectionProps {
 
 export function HeroVariantCleanSlideshow({ images }: HeroSectionProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [displayImages, setDisplayImages] = useState<string[]>([])
 
   useEffect(() => {
-    if (images && images.length > 0) {
-      // Preload images
-      const preloadedImages = images.map(src => {
-        const img = new window.Image()
-        img.src = src
-        return src
-      })
-      setDisplayImages(preloadedImages)
-    }
-  }, [images])
-
-  useEffect(() => {
-    if (displayImages.length > 1) {
+    if (images.length > 1) {
       const interval = setInterval(() => {
-        setCurrentImageIndex(prevIndex => (prevIndex + 1) % displayImages.length)
+        setCurrentImageIndex(prevIndex => (prevIndex + 1) % images.length)
       }, 5000) // Change image every 5 seconds
       return () => clearInterval(interval)
     }
-  }, [displayImages])
+  }, [images])
 
-  if (displayImages.length === 0) {
-    return null // Or a loading spinner
+  if (images.length === 0) {
+    return null
   }
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* Background Slideshow */}
       <div className="absolute inset-0 z-0">
-        {displayImages.map((img, index) => (
+        {images.map((img, index) => (
           <div
             key={img}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
