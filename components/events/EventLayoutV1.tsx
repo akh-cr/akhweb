@@ -5,13 +5,13 @@ import { Gallery } from "@/components/gallery";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, ArrowLeft, Facebook } from "lucide-react";
 import Link from "next/link";
-import { ViewSwitcher } from "./ViewSwitcher";
+
 import { TextWithLinks } from "@/components/ui/text-with-links";
 
 export function EventLayoutV1({ event }: EventLayoutProps) {
     return (
         <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-background">
-            <ViewSwitcher currentDesign="v1" />
+
             <Navbar />
 
             <article className="max-w-3xl mx-auto w-full px-5 py-24 md:py-32">

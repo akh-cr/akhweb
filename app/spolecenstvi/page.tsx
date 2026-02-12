@@ -4,7 +4,7 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { MapPin, ArrowRight, FileText, ExternalLink, Home, Lightbulb, Calendar, Link as LinkIcon, Download, Euro, User } from "lucide-react";
-import { CommunitiesGallery } from "@/components/communities-gallery";
+
 
 import { AnimatedImage } from "@/components/ui/animated-image";
 import dynamic from 'next/dynamic';
@@ -206,19 +206,7 @@ export default async function CommunitiesPage() {
         />
       </section>
 
-      {/* Gallery */}
-      <section className="w-full py-20 bg-muted/30 px-5 border-t">
-           <div className="max-w-6xl mx-auto text-center">
-               <span className="text-primary font-bold tracking-[0.2em] uppercase mb-4 text-xs md:text-sm bg-primary/10 px-3 py-1.5 rounded-full inline-block">
-                    Galerie
-               </span>
-               <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-12 text-foreground">Život ve společenství</h2>
-               
-                <div className="mt-8">
-                   <CommunitiesGallery />
-               </div>
-           </div>
-      </section>
+
 
       {/* Footer */}
       <Footer />

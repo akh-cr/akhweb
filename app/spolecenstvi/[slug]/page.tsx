@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { CommunityLayoutV1 } from "@/components/communities/CommunityLayoutV1";
-import { CommunityLayoutV2 } from "@/components/communities/CommunityLayoutV2";
-import { CommunityLayoutV3 } from "@/components/communities/CommunityLayoutV3";
-import { CommunityLayoutV4 } from "@/components/communities/CommunityLayoutV4";
+
 
 import { Metadata, ResolvingMetadata } from "next";
 
@@ -27,15 +25,11 @@ export async function generateMetadata(
 }
 
 export default async function CommunityDetailPage({ 
-    params,
-    searchParams 
+    params
 }: { 
-    params: Promise<{ slug: string }>,
-    searchParams: Promise<{ design?: string }>
+    params: Promise<{ slug: string }>
 }) {
   const unwrappedParams = await params;
-  const unwrappedSearchParams = await searchParams;
-  const design = unwrappedSearchParams.design || 'v1';
   
   console.log('CommunityDetailPage: slug=', unwrappedParams.slug);
 
@@ -61,15 +55,5 @@ export default async function CommunityDetailPage({
       }
   };
 
-  switch (design) {
-      case 'v2':
-          return <CommunityLayoutV2 community={communityData} />;
-      case 'v3':
-          return <CommunityLayoutV3 community={communityData} />;
-      case 'v4':
-          return <CommunityLayoutV4 community={communityData} />;
-      case 'v1':
-      default:
-          return <CommunityLayoutV1 community={communityData} />;
-  }
+  return <CommunityLayoutV1 community={communityData} />;
 }

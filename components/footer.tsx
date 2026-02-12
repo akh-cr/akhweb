@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Facebook, Instagram } from "lucide-react";
 
 export function Footer() {
   return (
@@ -27,6 +28,16 @@ export function Footer() {
                     <li><Link href="/spoluprace" className="hover:text-primary hover:underline transition-colors">Podpořte nás</Link></li>
                     <li><Link href="/uzitecne-odkazy" className="hover:text-primary hover:underline transition-colors">Užitečné odkazy</Link></li>
                     <li><Link href="/admin" className="hover:text-primary hover:underline transition-colors text-xs opacity-70">Vstup pro redaktory</Link></li>
+                    <li className="pt-2 flex gap-4">
+                        <a href="https://www.facebook.com/akhcr.cz/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                             <Facebook className="h-6 w-6" />
+                             <span className="sr-only">Facebook</span>
+                        </a>
+                        <a href="https://instagram.com/akh_cr" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                             <Instagram className="h-6 w-6" />
+                             <span className="sr-only">Instagram</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div>

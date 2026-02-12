@@ -52,7 +52,7 @@ export default async function BlogPage({
   const { data: heroBlock } = await supabase
     .from('content_blocks')
     .select('content')
-    .eq('id', 'blog.hero')
+    .eq('id', 'blog.header')
     .single();
 
   const heroContent = heroBlock?.content || {

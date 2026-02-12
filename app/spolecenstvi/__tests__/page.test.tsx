@@ -15,9 +15,6 @@ vi.mock('@/components/footer', () => ({
   Footer: () => <div data-testid="footer">Footer</div>
 }));
 
-vi.mock('@/components/communities-gallery', () => ({
-  CommunitiesGallery: () => <div data-testid="communities-gallery">Gallery</div>
-}));
 
 vi.mock('@/components/communities-map', () => ({
   CommunitiesMap: () => <div data-testid="communities-map">Map</div>
@@ -78,7 +75,7 @@ describe('CommunitiesPage', () => {
     // Check Components
     expect(screen.getByTestId('navbar')).toBeDefined();
     expect(await screen.findByTestId('communities-map')).toBeDefined();
-    expect(screen.getByTestId('communities-gallery')).toBeDefined();
+
     expect(screen.getByTestId('footer')).toBeDefined();
   });
 });

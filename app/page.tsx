@@ -24,9 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ design?: string }> }) {
-  const unwrappedSearchParams = await searchParams;
-  const design = unwrappedSearchParams.design || 'clean';
+export default async function Home() {
   
   const supabase = await createClient();
   const now = new Date().toISOString();
@@ -69,6 +67,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
       gallery_images: null // RPC doesn't return gallery images to keep payload light
   }));
 
-  // Always use HomeLayoutV1, but pass the design param to control the hero variant
-  return <HomeLayoutV1 feedItems={feedItems} design={design} content={contentMap} />;
+  // Always use HomeLayoutV1 with clean design
+  return <HomeLayoutV1 feedItems={feedItems} design="clean" content={contentMap} />;
 }

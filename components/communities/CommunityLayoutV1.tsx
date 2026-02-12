@@ -2,14 +2,14 @@ import { CommunityLayoutProps } from "./types";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Gallery } from "@/components/gallery";
-import { ViewSwitcher } from "@/components/events/ViewSwitcher";
+
 import { ArrowLeft, User, Mail } from "lucide-react";
 import Link from "next/link";
 
 export function CommunityLayoutV1({ community }: CommunityLayoutProps) {
     return (
         <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-background">
-            <ViewSwitcher currentDesign="v1" />
+
             <Navbar />
 
             <article className="max-w-3xl mx-auto w-full px-5 py-24 md:py-32">

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { ViewSwitcher } from "@/components/events/ViewSwitcher";
+
 import { HomeLayoutProps } from "./types";
 import dynamic from "next/dynamic";
 
@@ -52,7 +52,7 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)]">
-      <ViewSwitcher currentDesign={design} />
+
       <Navbar />
       
       <HeroSection variant={design} images={heroImages} />
