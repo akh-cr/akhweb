@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { slugify } from '@/lib/utils';
 import { redirect } from 'next/navigation';
 
 export interface Post {
@@ -83,7 +84,7 @@ export async function createPost(data: PostCreate) {
         .from('posts')
         .insert({
             ...data,
-            slug: data.slug || (await import("@/lib/utils")).slugify(data.title),
+            slug: data.slug || slugify(data.title),
             author_id: user.data.user.id
         });
 
