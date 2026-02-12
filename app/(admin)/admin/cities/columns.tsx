@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 
 export type City = {
@@ -98,6 +98,15 @@ export const columns: ColumnDef<City>[] = [
 
 function ActionCell({ city }: { city: City }) {
     const [open, setOpen] = useState(false)
+    const [isMounted, setIsMounted] = useState(false)
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
+    if (!isMounted) {
+        return <div className="h-8 w-8" />
+    }
 
     return (
         <>

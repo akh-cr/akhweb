@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { ArrowLeft, Globe, Settings, Megaphone, Calendar } from "lucide-react"
 import { FormActions } from "@/components/admin/form-actions"
+import { slugify } from "@/lib/utils"
 
 const Tiptap = dynamic(() => import("@/components/tiptap"), { ssr: false })
 import { ImageUpload } from "@/components/image-upload"
@@ -68,11 +69,7 @@ export function PostForm({ initialData }: PostFormProps) {
       form.setValue("title", title);
       
       if (!initialData) { // Only auto-generate for new posts to avoid breaking links
-          const slug = title
-              .toLowerCase()
-              .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
-              .replace(/[^a-z0-9]+/g, "-") // replace non-alphanumeric with dash
-              .replace(/^-+|-+$/g, ""); // remove leading/trailing dashes
+          const slug = slugify(title);
           
           // Only set if slug hasn't been manually touched (this is hard to track with just RHQ, simplified logic: always set if creating)
           if (!form.getValues("slug") || form.getFieldState("slug").isDirty === false) {

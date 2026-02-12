@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 export interface Event {
   id: string
   title: string
+  slug: string
   description: string
   content: string | null
   start_time: string
@@ -25,6 +26,12 @@ export type EventUpdate = Partial<EventCreate>
 export async function createEvent(data: EventCreate) {
   const { supabase } = await requireAdmin()
   
+  // Ensure we have a slug
+  if (!data.slug) {
+      const { slugify } = await import("@/lib/utils")
+      data.slug = slugify(data.title)
+  }
+
   const { error } = await supabase
     .from('events')
     .insert(data)

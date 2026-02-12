@@ -1,5 +1,7 @@
 "use client"
 
+import { cn, slugify } from "@/lib/utils"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -20,7 +22,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import dynamic from "next/dynamic"
-import { MapPin, Calendar as CalendarIcon, Settings, Megaphone } from "lucide-react"
+import { MapPin, Calendar as CalendarIcon, Settings, Megaphone, Globe } from "lucide-react"
 import { FormActions } from "@/components/admin/form-actions"
 
 // Import Tiptap dynamically to avoid SSR issues
@@ -34,6 +36,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 const formSchema = z.object({
   title: z.string().min(2, {
     message: "Název akce musí mít alespoň 2 znaky.",
+  }),
+  slug: z.string().min(2, {
+    message: "Slug musí mít alespoň 2 znaky.",
+  }).regex(/^[a-z0-9-]+$/, {
+    message: "Slug může obsahovat pouze malá písmena, čísla a pomlčky.",
   }),
   description: z.string().min(10, {
     message: "Popis musí mít alespoň 10 znaků.",
@@ -70,6 +77,7 @@ export function EventForm({ initialData, cities }: EventFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialData?.title || "",
+      slug: initialData?.slug || "",
       description: initialData?.description || "",
       content: initialData?.content || "",
       // Convert ISO date to datetime-local format if initialData exists
@@ -90,8 +98,20 @@ export function EventForm({ initialData, cities }: EventFormProps) {
     // Convert local datetime to ISO string for DB
     const isoDate = new Date(values.start_time).toISOString();
 
+    // Auto-generate slug (mock logic here as Event schema doesn't seem to have slug field yet? Wait, let me check the schema/types)
+    // Looking at the file, the formSchema DOES NOT HAVE SLUG. 
+    // I need to ADD slug to formSchema first!
+
+    // Auto-generate slug if empty
+    let slug = values.slug
+    if (!slug && values.title) {
+        slug = slugify(values.title)
+        toast.info(`Slug byl automaticky vygenerován: ${slug}`)
+    }
+
     const dataToSave = {
         title: values.title,
+        slug: slug,
         description: values.description,
         content: values.content || null,
         start_time: isoDate,
@@ -203,8 +223,40 @@ export function EventForm({ initialData, cities }: EventFormProps) {
                         <FormItem>
                         <FormLabel>Název akce</FormLabel>
                         <FormControl>
-                            <Input placeholder="Např. Silvestr na horách" {...field} />
+                            <Input 
+                                placeholder="Např. Silvestr na horách" 
+                                {...field} 
+                                onChange={(e) => {
+                                    field.onChange(e)
+                                    if (!initialData) {
+                                        const value = e.target.value
+                                        const slug = slugify(value)
+                                        // Only update if slug is empty or hasn't been manually edited
+                                        const currentSlug = form.getValues("slug")
+                                        const slugState = form.getFieldState("slug")
+                                        if (!currentSlug || !slugState.isDirty) {
+                                            form.setValue("slug", slug)
+                                        }
+                                    }
+                                }}
+                            />
                         </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="slug"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>URL adresa (slug)</FormLabel>
+                        <div className="relative">
+                            <Input {...field} className="pl-16" placeholder="Automaticky dle názvu" />
+                            <div className="absolute left-3 top-2.5 text-xs text-muted-foreground font-mono">/akce/</div>
+                            <Globe className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        </div>
                         <FormMessage />
                         </FormItem>
                     )}

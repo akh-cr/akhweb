@@ -8,8 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 import { Gallery } from "@/components/gallery";
 
 import { HomeLayoutV1 } from "@/components/home/HomeLayoutV1";
-import { HomeLayoutV2 } from "@/components/home/HomeLayoutV2";
-import { HomeLayoutV3 } from "@/components/home/HomeLayoutV3";
 
 import { HomeLayoutContent } from "@/components/home/types";
 

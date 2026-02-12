@@ -83,6 +83,7 @@ export async function createPost(data: PostCreate) {
         .from('posts')
         .insert({
             ...data,
+            slug: data.slug || (await import("@/lib/utils")).slugify(data.title),
             author_id: user.data.user.id
         });
 

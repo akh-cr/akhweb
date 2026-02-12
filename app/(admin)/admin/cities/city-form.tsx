@@ -1,5 +1,7 @@
 "use client"
 
+import { cn, slugify } from "@/lib/utils"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
@@ -134,10 +136,8 @@ export function CityForm({ initialData }: CityFormProps) {
     // Auto-generate slug if empty
     let slug = values.slug
     if (!slug && values.name) {
-        slug = values.name.toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)/g, "")
+        slug = slugify(values.name)
+        toast.info(`Slug byl automaticky vygenerován: ${slug}`)
     }
 
     const dataToSave = {
@@ -319,7 +319,23 @@ export function CityForm({ initialData }: CityFormProps) {
                     <FormItem>
                         <FormLabel>Název města</FormLabel>
                         <FormControl>
-                        <Input placeholder="Např. Brno" {...field} />
+                        <Input 
+                            placeholder="Např. Brno" 
+                            {...field} 
+                            onChange={(e) => {
+                                field.onChange(e)
+                                if (!initialData) {
+                                    const value = e.target.value
+                                    const slug = slugify(value)
+                                    // Only update if slug is empty or hasn't been manually edited
+                                    const currentSlug = form.getValues("slug")
+                                    const slugState = form.getFieldState("slug")
+                                    if (!currentSlug || !slugState.isDirty) {
+                                        form.setValue("slug", slug)
+                                    }
+                                }
+                            }}
+                        />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -353,7 +369,7 @@ export function CityForm({ initialData }: CityFormProps) {
                     name="slug"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>URL Slug (volitelné)</FormLabel>
+                        <FormLabel>URL Slug</FormLabel>
                         <FormControl>
                         <Input placeholder="Automaticky dle názvu" {...field} />
                         </FormControl>

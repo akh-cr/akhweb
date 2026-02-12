@@ -29,7 +29,8 @@ vi.mock('next/navigation', () => ({
 
 const mockToast = vi.hoisted(() => ({
     success: vi.fn(),
-    error: vi.fn()
+    error: vi.fn(),
+    info: vi.fn()
 }))
 
 vi.mock('sonner', () => ({

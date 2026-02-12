@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export const columns: ColumnDef<Post>[] = [
   {
@@ -122,6 +122,15 @@ export const columns: ColumnDef<Post>[] = [
 
 function ActionCell({ post }: { post: Post }) {
     const [open, setOpen] = useState(false)
+    const [isMounted, setIsMounted] = useState(false)
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
+    if (!isMounted) {
+        return <div className="h-8 w-8" />
+    }
 
     return (
         <>
