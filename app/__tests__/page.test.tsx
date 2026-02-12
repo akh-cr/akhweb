@@ -28,7 +28,7 @@ describe('Home Page', () => {
         searchParams: Promise.resolve({})
     };
 
-    const jsx = await Home(props);
+    const jsx = await Home();
     render(jsx);
 
     expect(mockSupabase.rpc).toHaveBeenCalled();

@@ -55,11 +55,11 @@ const items = [
     url: "/admin/users",
     icon: Users,
   },
-  {
-    title: "Statistiky",
-    url: "/admin/statistics",
-    icon: BarChart,
-  },
+  // {
+  //   title: "Statistiky",
+  //   url: "/admin/statistics",
+  //   icon: BarChart,
+  // },
 ]
 
 export function AppSidebar({ user }: { user?: { email?: string } | null }) {

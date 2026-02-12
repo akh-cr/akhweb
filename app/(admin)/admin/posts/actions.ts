@@ -26,33 +26,31 @@ export type PostUpdate = Partial<PostCreate>;
 export async function getPosts(): Promise<Post[]> {
     const supabase = await createClient();
     
-    // Use the RPC to fetch unified feed (including hidden items for admin)
+    // Fetch posts directly from DB to ensure admins see everything (drafts, future posts, etc.)
     const { data, error } = await supabase
-        .rpc('get_news_feed', { 
-            p_limit: 100, 
-            p_offset: 0, 
-            p_include_hidden: true 
-        });
+        .from('posts')
+        .select('*')
+        .order('published_at', { ascending: false, nullsFirst: true });
 
     if (error) {
-        console.error('Error fetching news feed:', JSON.stringify(error, null, 2));
+        console.error('Error fetching posts:', JSON.stringify(error, null, 2));
         return [];
     }
 
-    // Map RPC result to Post interface
+    // Map to Post interface
     return (data || []).map((item: any) => ({
         id: item.id,
         title: item.title,
         slug: item.slug,
         excerpt: item.excerpt,
-        content: null, // RPC doesn't return full content (optimization)
+        content: null, // Optimization
         published_at: item.published_at,
         image_url: item.image_url,
-        author_id: '', // Not returned by RPC
-        created_at: item.published_at, // Fallback
-        updated_at: item.published_at, // Fallback
+        author_id: item.author_id,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
         is_hidden: item.is_hidden,
-        type: item.type as 'post' | 'event' | 'community'
+        type: 'post' // Always 'post' here
     }));
 }
 
