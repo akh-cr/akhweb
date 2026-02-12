@@ -95,7 +95,7 @@ export async function createPost(data: PostCreate) {
     revalidatePath('/admin/posts');
     revalidatePath('/blog');
     revalidatePath('/');
-    redirect('/admin/posts');
+    // redirect('/admin/posts'); // Removed to avoid NEXT_REDIRECT error in client try/catch
 }
 
 export async function updatePost(id: string, data: PostUpdate) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, LogOut, Users, FileText, MapPin, Newspaper } from "lucide-react"
+import { Calendar, LogOut, Users, FileText, MapPin, Newspaper, BarChart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
@@ -54,6 +54,11 @@ const items = [
     title: "Uživatelé",
     url: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "Statistiky",
+    url: "/admin/statistics",
+    icon: BarChart,
   },
 ]
 
