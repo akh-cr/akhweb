@@ -48,7 +48,7 @@ export function HeroVariantDefault() {
           Absolventské<br className="block" /> křesťanské hnutí
         </h1>
         
-        <p className="text-lg md:text-2xl text-white/80 max-w-2xl leading-relaxed font-light">
+        <p className="text-lg md:text-2xl text-white max-w-2xl leading-relaxed font-normal drop-shadow-xl">
           Spojujeme lidi, kteří chtějí růst ve víře i v životě. <br className="hidden md:block" />
           Přidej se k síti absolventských společenství po celé ČR.
         </p>

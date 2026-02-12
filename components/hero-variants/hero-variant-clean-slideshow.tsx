@@ -62,10 +62,10 @@ export function HeroVariantCleanSlideshow({ images }: HeroSectionProps) {
              />
           </div>
         ))}
-        {/* Minimal Dark Overlay - Lighter/removed for clearer photo */}
-        <div className="absolute inset-0 bg-black/10 z-10" />
+        {/* Minimal Dark Overlay - Balanced for readability */}
+        <div className="absolute inset-0 bg-black/20 z-10" />
         {/* Subtle Gradient from bottom to ensure text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/5 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 z-10" />
       </div>
 
       <div className="relative z-20 container mx-auto px-5 text-center flex flex-col items-center gap-8">
@@ -75,7 +75,7 @@ export function HeroVariantCleanSlideshow({ images }: HeroSectionProps) {
           <span className="text-white/90">KŘESŤANSKÉ HNUTÍ</span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-white/95 max-w-2xl font-light tracking-wide leading-relaxed drop-shadow-md">
+        <p className="text-xl md:text-2xl text-white max-w-2xl font-normal tracking-wide leading-relaxed drop-shadow-xl">
           Spojujeme lidi, kteří chtějí růst ve víře i v životě. <br className="hidden md:block" />
           Přidej se k síti absolventských společenství po celé ČR.
         </p>
