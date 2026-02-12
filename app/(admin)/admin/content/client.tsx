@@ -16,6 +16,9 @@ import { toast } from 'sonner';
 
 import { ContentBlock } from '@/lib/content';
 
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 function getBlockUrl(blockId: string): string {
     const [page] = blockId.split('.');
     switch (page) {
@@ -29,7 +32,7 @@ function getBlockUrl(blockId: string): string {
     }
 }
 
-export function ContentEditor({ initialBlocks }: { initialBlocks: ContentBlock[] }) {
+export function ContentEditor({ initialBlocks, councilMembers = [] }: { initialBlocks: ContentBlock[], councilMembers?: any[] }) {
   const [blocks, setBlocks] = useState(initialBlocks);
   const [dirtyBlocks, setDirtyBlocks] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<string | null>(null);
@@ -368,6 +371,9 @@ export function ContentEditor({ initialBlocks }: { initialBlocks: ContentBlock[]
               </div>
             )}
 
+
+
+
             {block.type === 'contact_details' && (
                 <div className="space-y-6">
                     <div className="space-y-2">
@@ -422,6 +428,42 @@ export function ContentEditor({ initialBlocks }: { initialBlocks: ContentBlock[]
                                 }}>
                                     <Trash className="h-4 w-4" />
                                 </Button>
+                                 <div className="grid grid-cols-2 gap-4 mb-4">
+                                     <div className="col-span-2">
+                                         <Label>Vybrat člena rady (vyplní údaje automaticky)</Label>
+                                         <Select 
+                                            value={person.councilMemberId || "none"} 
+                                            onValueChange={(value) => {
+                                                const newPeople = [...block.content.people];
+                                                if (value && value !== "none") {
+                                                    const member = councilMembers?.find(m => m.id === value);
+                                                    if (member) {
+                                                        newPeople[i] = { 
+                                                            ...newPeople[i], 
+                                                            councilMemberId: value,
+                                                            name: member.name,
+                                                            role: member.role,
+                                                            image: member.image_url || "" 
+                                                        };
+                                                    }
+                                                } else {
+                                                     newPeople[i] = { ...newPeople[i], councilMemberId: undefined };
+                                                }
+                                                handleUpdate(block.id, { ...block.content, people: newPeople });
+                                            }}
+                                         >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Vyberte člena..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">-- Žádný / Vlastní --</SelectItem>
+                                                {(councilMembers || []).map((m: any) => (
+                                                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                         </Select>
+                                     </div>
+                                 </div>
                                  <div className="grid grid-cols-2 gap-2">
                                      <div>
                                          <Label>Jméno</Label>
@@ -470,6 +512,11 @@ export function ContentEditor({ initialBlocks }: { initialBlocks: ContentBlock[]
                                  </div>
                              </div>
                          ))}
+                         <Button variant="outline" size="sm" onClick={() => {
+                              handleUpdate(block.id, { ...block.content, people: [...block.content.people, { name: "", role: "" }] });
+                         }}>
+                            <Plus className="mr-2 h-4 w-4" /> Přidat osobu
+                        </Button>
                     </div>
                 </div>
             )}
@@ -482,6 +529,112 @@ export function ContentEditor({ initialBlocks }: { initialBlocks: ContentBlock[]
                     bucket="content"
                     folder="gallery"
                 />
+              </div>
+            )}
+
+
+            {block.type === 'materials' && (
+              <div className="space-y-4">
+                  <div>
+                    <Label>Titulek</Label>
+                    <Input 
+                      value={block.content.title} 
+                      onChange={(e) => handleUpdate(block.id, { ...block.content, title: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Popis</Label>
+                    <Textarea 
+                      value={block.content.description} 
+                      onChange={(e) => handleUpdate(block.id, { ...block.content, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Položky (Materiály)</Label>
+                    {(block.content.items || []).map((item: any, i: number) => (
+                        <div key={i} className="mb-4 p-4 border rounded relative bg-muted/20">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="absolute top-2 right-2 text-destructive"
+                                onClick={() => {
+                                    const newItems = block.content.items.filter((_: any, idx: number) => idx !== i);
+                                    handleUpdate(block.id, { ...block.content, items: newItems });
+                                }}
+                            >
+                                <Trash className="h-4 w-4" />
+                            </Button>
+                            
+                            <div className="grid gap-4">
+                                <div>
+                                    <Label>Název</Label>
+                                    <Input 
+                                        value={item.title} 
+                                        onChange={(e) => {
+                                            const newItems = [...block.content.items];
+                                            newItems[i] = { ...newItems[i], title: e.target.value };
+                                            handleUpdate(block.id, { ...block.content, items: newItems });
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>URL</Label>
+                                    <Input 
+                                        value={item.url} 
+                                        onChange={(e) => {
+                                            const newItems = [...block.content.items];
+                                            newItems[i] = { ...newItems[i], url: e.target.value };
+                                            handleUpdate(block.id, { ...block.content, items: newItems });
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Ikona</Label>
+                                    <Select 
+                                        value={item.icon || 'FileText'} 
+                                        onValueChange={(value) => {
+                                            const newItems = [...block.content.items];
+                                            newItems[i] = { ...newItems[i], icon: value };
+                                            handleUpdate(block.id, { ...block.content, items: newItems });
+                                        }}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Vyberte ikonu" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="FileText">Dokument (FileText)</SelectItem>
+                                            <SelectItem value="Home">Dům (Home)</SelectItem>
+                                            <SelectItem value="Lightbulb">Žárovka (Lightbulb)</SelectItem>
+                                            <SelectItem value="MapPin">Mapa (MapPin)</SelectItem>
+                                            <SelectItem value="Calendar">Kalendář (Calendar)</SelectItem>
+                                            <SelectItem value="Link">Odkaz (Link)</SelectItem>
+                                            <SelectItem value="Download">Stáhnout (Download)</SelectItem>
+                                            <SelectItem value="Euro">Peníze (Euro)</SelectItem>
+                                            <SelectItem value="User">Uživatel (User)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>Popis (volitelné)</Label>
+                                    <Textarea 
+                                        value={item.description || ''} 
+                                        onChange={(e) => {
+                                            const newItems = [...block.content.items];
+                                            newItems[i] = { ...newItems[i], description: e.target.value };
+                                            handleUpdate(block.id, { ...block.content, items: newItems });
+                                        }}
+                                        rows={2}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={() => {
+                        handleUpdate(block.id, { ...block.content, items: [...(block.content.items || []), { title: "", url: "" }] });
+                    }}>
+                        <Plus className="mr-2 h-4 w-4" /> Přidat položku
+                    </Button>
+                  </div>
               </div>
             )}
           </CardContent>

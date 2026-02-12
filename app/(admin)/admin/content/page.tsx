@@ -8,10 +8,16 @@ export default async function ContentPage() {
     .select('*')
     .order('id');
 
+  const { data: councilMembers } = await supabase
+    .from('council_members')
+    .select('*')
+    .eq('active', true)
+    .order('name');
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold">Správa obsahu</h1>
-      <ContentEditor initialBlocks={blocks || []} />
+      <ContentEditor initialBlocks={blocks || []} councilMembers={councilMembers || []} />
     </div>
   );
 }

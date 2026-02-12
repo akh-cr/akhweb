@@ -3,7 +3,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
-import { MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight, FileText, ExternalLink, Home, Lightbulb, Calendar, Link as LinkIcon, Download, Euro, User } from "lucide-react";
 import { CommunitiesGallery } from "@/components/communities-gallery";
 
 import { AnimatedImage } from "@/components/ui/animated-image";
@@ -27,6 +27,71 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+
+const ICON_MAP: Record<string, any> = {
+    FileText,
+    Home,
+    Lightbulb,
+    MapPin,
+    Calendar,
+    Link: LinkIcon,
+    Download,
+    Euro,
+    User
+};
+
+function MaterialsSection({ block, defaults }: { 
+    block?: { title: string; description?: string; items: Array<{ title: string; url: string; description?: string; icon?: string }> },
+    defaults: { title: string; description: string; items: Array<{ title: string; url: string; description: string; icon?: string }> }
+}) {
+    const content = block || defaults;
+    const items = content.items || [];
+    
+    if (!block && items.length === 0) return null; 
+
+    return (
+        <div className="relative z-10 max-w-6xl mx-auto px-5">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-6 text-foreground">
+                    {content.title || defaults.title}
+                </h2>
+                <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                    {content.description || defaults.description}
+                </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {items.map((item, i) => {
+                    const IconComponent = (item.icon && ICON_MAP[item.icon]) ? ICON_MAP[item.icon] : FileText;
+                    
+                    return (
+                        <a 
+                            key={i} 
+                            href={item.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="group"
+                        >
+                            <div className="h-full bg-background border rounded-2xl p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg flex flex-col items-start text-left">
+                                <div className="w-12 h-12 rounded-xl bg-muted text-muted-foreground flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <IconComponent className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{item.title}</h3>
+                                <p className="text-muted-foreground mb-4 flex-grow">
+                                    {item.description}
+                                </p>
+                                <div className="flex items-center text-sm font-medium text-primary mt-auto">
+                                    Otevřít <ExternalLink className="ml-2 w-4 h-4" />
+                                </div>
+                            </div>
+                        </a>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 export default async function CommunitiesPage() {
   const supabase = await createClient();
   
@@ -36,7 +101,7 @@ export default async function CommunitiesPage() {
     contentMap
   ] = await Promise.all([
     supabase.from('cities').select('*').eq('is_hidden', false).order('name'),
-    getContentBlocks(['spolecenstvi.header'])
+    getContentBlocks(['spolecenstvi.header', 'spolecenstvi.materials'])
   ]);
 
   const header = (contentMap['spolecenstvi.header'] || {
@@ -112,20 +177,33 @@ export default async function CommunitiesPage() {
       <section className="w-full py-32 bg-zinc-50 dark:bg-zinc-900/50 border-y relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         
-        <div className="relative z-10 max-w-4xl mx-auto px-5 text-center">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-6 text-foreground">
-                Pro vedoucí společenství
-            </h2>
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-10">
-                Hledáš materiály, tipy pro vedení nebo inspiraci pro tvé společenství? <br className="hidden md:block"/>Připravili jsme pro tebe sekci plnou užitečných zdrojů.
-            </p>
-            
-            <a href="https://docs.google.com/document/d/1p2J2KJqbFXwVzJgH9zyf7_ttx1E4CBHd/edit?usp=drive_link&ouid=103164862258109550481&rtpof=true&sd=true" target="_blank">
-                <Button size="lg" className="h-14 px-10 rounded-full text-lg font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-105 transition-all">
-                    Zobrazit materiály <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-            </a>
-        </div>
+        <MaterialsSection 
+            block={contentMap['spolecenstvi.materials'] as any} 
+            defaults={{
+                title: "Pro vedoucí společenství",
+                description: "Hledáš materiály, tipy pro vedení nebo inspiraci pro tvé společenství? Připravili jsme pro tebe sekci plnou užitečných zdrojů.",
+                items: [
+                    {
+                        title: "Databáze ubytování",
+                        url: "https://docs.google.com/spreadsheets/d/10v4XYUtua2s5mbCZYWK1jJZWRBxAeWNz_PQCv1oRzUE/edit?usp=sharing",
+                        description: "Přehled ubytovacích možností pro víkendovky a akce společenství.",
+                        icon: "Home"
+                    },
+                    {
+                        title: "Inspiromat pro skupinky",
+                        url: "https://docs.google.com/document/d/1ZyCQmEj6_oeI9ZrkTTHfXKGOrK6iuitYPPyU0oIuSAI/edit?usp=sharing",
+                        description: "Tipy a podklady pro vedení modlitebních a sdílecích skupinek.",
+                        icon: "Lightbulb"
+                    },
+                    {
+                        title: "Materiály pro vedoucí",
+                        url: "https://docs.google.com/document/d/1p2J2KJqbFXwVzJgH9zyf7_ttx1E4CBHd/edit?usp=drive_link&ouid=103164862258109550481&rtpof=true&sd=true",
+                        description: "Kompletní sada dokumentů, formulářů a návodů pro vedení.",
+                        icon: "FileText"
+                    }
+                ]
+            }}
+        />
       </section>
 
       {/* Gallery */}

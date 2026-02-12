@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function KeStazeniPage() {
   const documents = [
-    { name: "Stanovy AKH ČR", size: "166 KB", type: "pdf", url: "/documents/stanovy-akh-cr.pdf" },
+    { name: "Stanovy AKH ČR (2025)", size: "90 KB", type: "pdf", url: "/documents/stanovy-akh-cr.pdf" },
     { name: "Přihláška do spolku AKH", size: "19 KB", type: "docx", url: "/documents/prihlaska-do-spolku-akh.docx" },
     { name: "Idea AKH ČR - prezentace", size: "413 KB", type: "pptx", url: "/documents/idea-akh-cr-prezentace.pptx" },
   ] as const;

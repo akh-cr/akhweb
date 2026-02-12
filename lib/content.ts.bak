@@ -1,7 +1,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-export type ContentBlockType = 'header' | 'rich_text' | 'text_image' | 'gallery' | 'video' | 'partners' | 'contact_details' | 'text' | 'council_members' | 'materials';
+export type ContentBlockType = 'header' | 'rich_text' | 'text_image' | 'gallery' | 'video' | 'partners' | 'contact_details' | 'text' | 'council_members';
 
 export interface BaseContentBlock {
   id: string;
@@ -106,22 +106,7 @@ export type ContentBlock =
   | PartnersBlock
   | ContactDetailsBlock
   | TextSimpleBlock
-  | CouncilMembersBlock
-  | MaterialsBlock;
-
-export interface MaterialsBlock extends BaseContentBlock {
-  type: 'materials';
-  content: {
-    title: string;
-    description?: string;
-    items: Array<{
-      title: string;
-      url: string;
-      description?: string;
-      icon?: string;
-    }>;
-  };
-}
+  | CouncilMembersBlock;
 
 export interface CouncilMembersBlock extends BaseContentBlock {
   type: 'council_members';

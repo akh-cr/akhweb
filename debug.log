@@ -1,0 +1,14 @@
+2026-02-12T18:37:19.567Z URL: Defined
+2026-02-12T18:37:19.568Z Key: Defined
+2026-02-12T18:37:19.568Z Council Response Keys: error, data, count, status, statusText
+2026-02-12T18:37:19.568Z Council Data Length: 13
+2026-02-12T18:37:19.568Z First Member: {
+  "id": "3f1ccbaa-ce18-42af-81a5-f0a73d5dec0d",
+  "name": "Markéta Doleželová",
+  "role": "Finance",
+  "bio": "",
+  "image_url": "https://iinvsjtnbyxfrdygsfpo.supabase.co/storage/v1/object/public/images/uploads/16051805-21ee-40b2-93cd-44f44a15e6a7.webp",
+  "active": true,
+  "priority": 5,
+  "created_at": "2026-02-10T09:11:15.265422+00:00"
+}

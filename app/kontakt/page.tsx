@@ -170,7 +170,21 @@ export default async function ContactPage() {
                         <div key={i}>
                             <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2">{person.role}</p>
                             <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold text-secondary-foreground">{person.image}</div>
+                                {person.image?.startsWith('http') || person.image?.startsWith('/') ? (
+                                    <div className="h-10 w-10 rounded-full overflow-hidden relative border shadow-sm shrink-0">
+                                         <Image 
+                                            src={person.image} 
+                                            alt={person.name} 
+                                            fill 
+                                            className="object-cover"
+                                            sizes="40px"
+                                         />
+                                    </div>
+                                ) : (
+                                    <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold text-secondary-foreground shrink-0 text-sm">
+                                        {person.image || person.name.substring(0,2).toUpperCase()}
+                                    </div>
+                                )}
                                 <div>
                                     <p className="font-bold">{person.name}</p>
                                     {person.phone && (
