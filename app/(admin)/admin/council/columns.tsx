@@ -14,6 +14,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 
 export type CouncilMember = {
@@ -104,19 +115,40 @@ export const columns: ColumnDef<CouncilMember>[] = [
     cell: ({ row }) => {
       const member = row.original
 
-      const handleDelete = async () => {
-          if (confirm("Opravdu chcete smazat tohoto člena?")) {
-              try {
-                  await deleteCouncilMember(member.id)
-                  toast.success("Člen smazán")
-              } catch (e) {
-                  toast.error("Chyba při mazání")
-              }
-          }
-      }
- 
       return (
         <div className="flex items-center gap-0 sm:gap-2">
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Trash className="h-4 w-4" />
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Opravdu smazat?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tato akce je nevratná. Člen "{member.name}" bude smazán.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Zrušit</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                            onClick={async () => {
+                                try {
+                                    await deleteCouncilMember(member.id)
+                                    toast.success("Člen smazán")
+                                } catch (e) {
+                                    toast.error("Chyba při mazání")
+                                }
+                            }}
+                        >
+                            Smazat
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             <div className="sm:hidden">
                 <CouncilMemberDialog 
                     member={member}
@@ -139,9 +171,6 @@ export const columns: ColumnDef<CouncilMember>[] = [
                     } 
                 />
             </div>
-            <Button variant="ghost" size="icon" onClick={handleDelete} className="text-destructive hover:text-destructive">
-                <Trash className="h-4 w-4" />
-            </Button>
         </div>
       )
     },
