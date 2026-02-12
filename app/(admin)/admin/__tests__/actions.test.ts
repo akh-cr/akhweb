@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createPost } from '../posts/actions';
+import { createPost, getPosts } from '../posts/actions';
 import { createEvent } from '../events/actions';
 import { createCouncilMember } from '../council/actions';
 
@@ -33,11 +33,13 @@ const mockFrom = vi.fn().mockReturnValue({
 });
 
 const mockAuthGetUser = vi.fn();
+const mockRpc = vi.fn();
 const mockSupabase = {
   from: mockFrom,
   auth: {
     getUser: mockAuthGetUser,
   },
+  rpc: mockRpc,
 };
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -198,6 +200,55 @@ describe('Admin Creation Actions', () => {
       expect(mockInsert).toHaveBeenCalledWith(memberData);
       const { revalidatePath } = await import('next/cache');
       expect(revalidatePath).toHaveBeenCalledWith('/admin/council');
+    });
+  });
+
+  describe('getPosts', () => {
+    it('should fetch posts using get_admin_news_feed RPC', async () => {
+      const mockData = [
+        {
+          id: '1',
+          title: 'Post 1',
+          slug: 'post-1',
+          excerpt: 'Excerpt 1',
+          published_at: '2023-01-01T00:00:00Z',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z',
+          image_url: 'img1.jpg',
+          author_id: 'user1',
+          is_hidden: false,
+          type: 'post'
+        },
+        {
+          id: '2',
+          title: 'Event 1',
+          slug: 'event-1',
+          excerpt: 'Desc 1',
+          published_at: null, // Draft
+          created_at: '2023-02-01T00:00:00Z',
+          updated_at: '2023-02-01T00:00:00Z',
+          image_url: 'img2.jpg',
+          author_id: null,
+          is_hidden: true,
+          type: 'event'
+        }
+      ];
+
+      mockRpc.mockResolvedValue({ data: mockData, error: null });
+
+      const results = await getPosts();
+
+      expect(mockRpc).toHaveBeenCalledWith('get_admin_news_feed', {
+        p_limit: 100,
+        p_offset: 0
+      });
+
+      expect(results).toHaveLength(2);
+      expect(results[0].title).toBe('Post 1');
+      expect(results[0].type).toBe('post');
+      expect(results[1].title).toBe('Event 1');
+      expect(results[1].type).toBe('event');
+      expect(results[1].author_id).toBe(''); // Should handle null author_id
     });
   });
 });

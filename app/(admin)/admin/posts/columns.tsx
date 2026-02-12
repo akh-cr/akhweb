@@ -53,31 +53,33 @@ export const columns: ColumnDef<Post>[] = [
             <div className="flex items-center justify-between gap-3 w-full max-w-[300px] sm:max-w-none">
                 <div className="flex items-center gap-3 min-w-0">
 
-                    {!isEvent && !isCommunity && (
-                        <Switch 
-                            checked={!!post.is_hidden}
-                            onCheckedChange={async (checked) => {
-                                try {
-                                    await togglePostVisibility(post.id, checked)
-                                    toast.success(checked ? "Článek skryt" : "Článek zobrazen")
-                                } catch (error) {
-                                    toast.error("Nepodařilo se změnit viditelnost")
-                                }
-                            }}
-                            className="data-[state=checked]:bg-muted-foreground scale-75 shrink-0"
-                            aria-label="Skrýt článek"
-                        />
-                    )}
-                    {isEvent && (
-                        <Badge variant="outline" className="gap-1 font-normal text-muted-foreground shrink-0">
-                            <Calendar className="h-3 w-3" /> Akce
-                        </Badge>
-                    )}
-                    {isCommunity && (
-                        <Badge variant="outline" className="gap-1 font-normal text-muted-foreground shrink-0">
-                            <Users className="h-3 w-3" /> Společenství
-                        </Badge>
-                    )}
+                    <div className="w-[120px] shrink-0 flex items-center">
+                        {!isEvent && !isCommunity && (
+                            <Switch 
+                                checked={!!post.is_hidden}
+                                onCheckedChange={async (checked) => {
+                                    try {
+                                        await togglePostVisibility(post.id, checked)
+                                        toast.success(checked ? "Článek skryt" : "Článek zobrazen")
+                                    } catch (error) {
+                                        toast.error("Nepodařilo se změnit viditelnost")
+                                    }
+                                }}
+                                className="data-[state=checked]:bg-muted-foreground scale-75 shrink-0"
+                                aria-label="Skrýt článek"
+                            />
+                        )}
+                        {isEvent && (
+                            <Badge variant="outline" className="gap-1 font-normal text-muted-foreground shrink-0">
+                                <Calendar className="h-3 w-3" /> Akce
+                            </Badge>
+                        )}
+                        {isCommunity && (
+                            <Badge variant="outline" className="gap-1 font-normal text-muted-foreground shrink-0">
+                                <Users className="h-3 w-3" /> Společenství
+                            </Badge>
+                        )}
+                    </div>
                     <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                         <span className={post.is_hidden ? "text-muted-foreground truncate opacity-60" : "truncate"}>
                             {post.title}

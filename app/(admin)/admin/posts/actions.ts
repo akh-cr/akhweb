@@ -26,14 +26,21 @@ export type PostUpdate = Partial<PostCreate>;
 export async function getPosts(): Promise<Post[]> {
     const supabase = await createClient();
     
-    // Fetch all content types in parallel for the admin feed
-    const [postsResult, eventsResult, communitiesResult] = await Promise.all([
-        supabase.from('posts').select('*').order('published_at', { ascending: false, nullsFirst: true }),
-        supabase.from('events').select('*').order('published_at', { ascending: false, nullsFirst: true }),
-        supabase.from('communities').select('*').not('news_publish_date', 'is', null).order('news_publish_date', { ascending: false })
-    ]);
+    // Use the RPC for unified feed fetching
+    // This RPC handles joining tables, filtering, and sorting
+    // It returns a superset of get_news_feed with all columns needed for admin
+    const { data, error } = await supabase.rpc('get_admin_news_feed', { 
+        p_limit: 100, // Fetch more for admin list
+        p_offset: 0
+    });
 
-    const posts = (postsResult.data || []).map((item: any) => ({
+    if (error) {
+        console.error('Error fetching admin news feed:', JSON.stringify(error, null, 2));
+        return [];
+    }
+
+    // Map to Post interface
+    return (data || []).map((item: any) => ({
         id: item.id,
         title: item.title,
         slug: item.slug,
@@ -43,54 +50,10 @@ export async function getPosts(): Promise<Post[]> {
         created_at: item.created_at,
         updated_at: item.updated_at,
         image_url: item.image_url,
-        author_id: item.author_id,
+        author_id: item.author_id ? item.author_id : '', // Handle potential nulls
         is_hidden: item.is_hidden,
-        type: 'post' as const
+        type: item.type as 'post' | 'event' | 'community'
     }));
-
-    const events = (eventsResult.data || []).map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        slug: item.slug,
-        excerpt: item.description, // Map description to excerpt
-        content: null,
-        published_at: item.published_at, // Some events might not have this, check schema
-        created_at: item.created_at,
-        updated_at: item.created_at, // Fallback
-        image_url: item.image_url,
-        author_id: '',
-        is_hidden: item.is_hidden,
-        type: 'event' as const
-    }));
-
-    const communities = (communitiesResult.data || []).map((item: any) => ({
-        id: item.id,
-        title: item.name, // Community uses 'name'
-        slug: item.slug,
-        excerpt: item.description,
-        content: null,
-        published_at: item.news_publish_date, // Use news_publish_date
-        created_at: item.created_at,
-        updated_at: item.created_at,
-        image_url: item.image_url,
-        author_id: '',
-        is_hidden: false, // Communities in news feed are generally visible if they have a date
-        type: 'community' as const
-    }));
-
-    // Combine and sort
-    const allItems = [...posts, ...events, ...communities].sort((a, b) => {
-        // Handle nulls (drafts) - put them at the top
-        if (!a.published_at && !b.published_at) {
-             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        }
-        if (!a.published_at) return -1;
-        if (!b.published_at) return 1;
-        
-        return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
-    });
-
-    return allItems;
 }
 
 export async function getPost(id: string): Promise<Post | null> {
