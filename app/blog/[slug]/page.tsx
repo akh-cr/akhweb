@@ -6,6 +6,27 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { TextWithLinks } from "@/components/ui/text-with-links";
 
+import { Metadata, ResolvingMetadata } from "next";
+
+type Props = {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const slug = (await params).slug
+  const supabase = await createClient();
+  const { data: post } = await supabase.from('posts').select('title, excerpt').eq('slug', slug).single();
+
+  return {
+    title: post?.title || 'Článek nenalezen',
+    description: post?.excerpt || 'Detail článku',
+  }
+}
+
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const unwrappedParams = await params;
   const supabase = await createClient();

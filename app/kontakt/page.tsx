@@ -1,54 +1,72 @@
-import Link from "next/link";
-import Image from "next/image";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { AnimatedImage } from "@/components/ui/animated-image";
+import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Footer } from "@/components/footer";
-import { Mail, Facebook, Instagram, FileText } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { FileText, Mail, Instagram, Facebook } from "lucide-react";
+import Image from "next/image";
+import { getContentBlocks, HeaderBlock } from "@/lib/content";
+import { Metadata } from "next";
+import { getPageSeo } from "@/lib/seo";
 
-import { getContentBlocks, HeaderBlock, ContactDetailsBlock } from "@/lib/content";
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPageSeo('kontakt');
+  return {
+    title: seo?.title || "Kontakt",
+    description: seo?.description || "Kontaktní informace a spojení na náš tým.",
+  };
+}
+
+// Define interface for details if not imported
+interface ContactDetails {
+    address: string[];
+    email: string;
+    bankAccount: string;
+    socials: {
+        facebook?: string;
+        instagram?: string;
+    };
+    people: Array<{
+        role: string;
+        name: string;
+        image: string; // emoji or char
+        phone?: string;
+    }>;
+}
 
 export default async function ContactPage() {
-  const supabase = await createClient();
-  const { data: page } = await supabase.from('pages').select('*').eq('slug', 'kontakt').single();
+    // Parallel fetching
+    const contentMap = await getContentBlocks(['kontakt.header', 'kontakt.details']);
 
-  const contentMap = await getContentBlocks(['kontakt.header', 'kontakt.details']);
-  
-  const header = (contentMap['kontakt.header'] || {
-    title: page?.title || "Kontakt",
-    subtitle: "Jsme tu pro vás. Napište nám, zavolejte nebo se stavte na některé z našich akcí.",
-    image: "/images/backgrounds/contact.jpg"
-  }) as HeaderBlock['content'];
+    const header = (contentMap['kontakt.header'] || {
+        title: "Kontakt",
+        subtitle: "Jsme tu pro tebe. Ozvi se nám.",
+        image: "/images/backgrounds/contact.jpg"
+    }) as HeaderBlock['content'];
 
-  const details = (contentMap['kontakt.details'] || {
-    address: [
-        "Absolventské křesťanské hnutí, z. s.",
-        "Ječná 505/2, Nové Město",
-        "120 00 Praha 2",
-        "IČO: 21202125"
-    ],
-    email: "info@akhcr.cz",
-    bankAccount: "2002808176/2010",
-    socials: {
-        facebook: "https://www.facebook.com/akhcr.cz/",
-        instagram: "https://instagram.com/akh_cr"
-    },
-    people: [
-        { name: "Vojtěch Kaska", role: "Předseda spolku", phone: "+420 720 339 904", image: "VK" },
-        { name: "Jana Capůrková", role: "Předsedkyně spolku", image: "JC" }
-    ]
-  }) as ContactDetailsBlock['content'];
+    // Default details as fallback
+    const defaultDetails: ContactDetails = {
+        address: ["Velehrad 1", "687 06 Velehrad"],
+        email: "info@absolventskyvelehrad.cz",
+        bankAccount: "2100435942/2010",
+        socials: {
+            facebook: "https://www.facebook.com/absolventskyvelehrad",
+            instagram: "https://www.instagram.com/absolventsky_velehrad/"
+        },
+        people: [
+             { role: "Hlavní koordinátor", name: "Jan Novák", image: "JN", phone: "+420 123 456 789" }
+        ]
+    };
 
-  return (
-    <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-secondary/30">
+    const details = (contentMap['kontakt.details'] || defaultDetails) as ContactDetails;
+
+    return (
+    <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-background">
       <Navbar />
 
-      {/* Header */}
       {/* Hero */}
-      <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5">
+      <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
         <div className="absolute inset-0 z-0">
-             <Image 
+             <AnimatedImage 
                 src={header.image || "/images/backgrounds/contact.jpg"} 
                 alt={header.title}
                 fill
@@ -156,7 +174,7 @@ export default async function ContactPage() {
                                 <div>
                                     <p className="font-bold">{person.name}</p>
                                     {person.phone && (
-                                        <a href={`tel:${person.phone.replace(/\s/g, '')}`} className="text-sm text-muted-foreground hover:text-primary transition">{person.phone}</a>
+                                        <a href={`tel:${person.phone.split(' ').join('')}`} className="text-sm text-muted-foreground hover:text-primary transition">{person.phone}</a>
                                     )}
                                 </div>
                             </div>

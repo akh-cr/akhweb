@@ -114,7 +114,7 @@ export function PostForm({ initialData }: PostFormProps) {
   return (
     <div className="pb-12">
         <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto pb-20">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-20">
             <FormActions 
                 isDirty={form.formState.isDirty}
                 onCancel={() => router.back()}

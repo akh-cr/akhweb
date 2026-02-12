@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -12,6 +12,15 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 
 export function CommunitiesMap({ cities }: { cities: any[] }) {
   const [hoveredCity, setHoveredCity] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <div className="w-full h-full bg-muted animate-pulse rounded-xl" />
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto aspect-[16/9] relative bg-muted/20 rounded-xl border border-border overflow-hidden my-12">

@@ -1,45 +1,66 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
-const defaultImages = [
-  "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
-  "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
-  "/images/gallery/MB_2025_08_15.18.44.48_00011.jpg",
-  "/images/gallery/MB_2025_08_16.18.58.47_00238.jpg",
-]
+interface HeroSectionProps {
+  images: string[]
+}
 
-export function HeroVariantCleanSlideshow({ images = defaultImages }: { images?: string[] }) {
+export function HeroVariantCleanSlideshow({ images }: HeroSectionProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [displayImages, setDisplayImages] = useState<string[]>([])
 
   useEffect(() => {
-    // Determine which images to use - if props are empty array, fallback to default
-    const displayImages = images.length > 0 ? images : defaultImages;
-    
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % displayImages.length)
-    }, 5000)
-    return () => clearInterval(interval)
+    if (images && images.length > 0) {
+      // Preload images
+      const preloadedImages = images.map(src => {
+        const img = new window.Image()
+        img.src = src
+        return src
+      })
+      setDisplayImages(preloadedImages)
+    }
   }, [images])
-  
-  const displayImages = images.length > 0 ? images : defaultImages;
+
+  useEffect(() => {
+    if (displayImages.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex(prevIndex => (prevIndex + 1) % displayImages.length)
+      }, 5000) // Change image every 5 seconds
+      return () => clearInterval(interval)
+    }
+  }, [displayImages])
+
+  if (displayImages.length === 0) {
+    return null // Or a loading spinner
+  }
 
   return (
-    <section className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center bg-black text-white overflow-hidden">
+    <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* Background Slideshow */}
       <div className="absolute inset-0 z-0">
         {displayImages.map((img, index) => (
           <div
             key={img}
-            className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
-            style={{
-              backgroundImage: `url('${img}')`,
-              opacity: index === currentImageIndex ? 0.75 : 0, // Brighter photo
-            }}
-          />
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentImageIndex ? "opacity-75" : "opacity-0"
+            }`}
+          >
+             <Image
+                src={img}
+                alt="Slideshow Background"
+                fill
+                priority={index === 0}
+                className="object-cover object-center"
+                sizes="100vw"
+                quality={85}
+             />
+          </div>
         ))}
         {/* Minimal Dark Overlay - Lighter/removed for clearer photo */}
         <div className="absolute inset-0 bg-black/10 z-10" />

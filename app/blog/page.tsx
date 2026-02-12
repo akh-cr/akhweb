@@ -13,6 +13,17 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
+import { Metadata } from "next";
+import { getPageSeo } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPageSeo('blog');
+  return {
+    title: seo?.title || "Aktuality",
+    description: seo?.description || "Články, zamyšlení a novinky ze života hnutí.",
+  };
+}
+
 export default async function BlogPage({
   searchParams,
 }: {

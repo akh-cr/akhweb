@@ -1,26 +1,46 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { MapPin, ArrowRight } from "lucide-react";
 import { CommunitiesGallery } from "@/components/communities-gallery";
-import { CommunitiesMap } from "@/components/communities-map";
+
+import { AnimatedImage } from "@/components/ui/animated-image";
+import dynamic from 'next/dynamic';
+
+const CommunitiesMap = dynamic(() => import('@/components/communities-map').then(mod => mod.CommunitiesMap), {
+  loading: () => <div className="w-full h-[400px] bg-muted animate-pulse rounded-2xl" />
+});
 
 import { createClient } from "@/lib/supabase/server";
 import { getContentBlocks, HeaderBlock } from "@/lib/content";
+
+import { Metadata } from "next";
+import { getPageSeo } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPageSeo('spolecenstvi');
+  return {
+    title: seo?.title || "Společenství",
+    description: seo?.description || "Mapa a seznam společenství absolventů a mladých pracujících po celé ČR.",
+  };
+}
 
 export default async function CommunitiesPage() {
   const supabase = await createClient();
   
   // Parallel fetching
-  const { data: page } = await supabase.from('pages').select('*').eq('slug', 'spolecenstvi').single();
-  const { data: cities } = await supabase.from('cities').select('*').eq('is_hidden', false).order('name');
-  const contentMap = await getContentBlocks(['spolecenstvi.header']);
+  const [
+    { data: cities },
+    contentMap
+  ] = await Promise.all([
+    supabase.from('cities').select('*').eq('is_hidden', false).order('name'),
+    getContentBlocks(['spolecenstvi.header'])
+  ]);
 
   const header = (contentMap['spolecenstvi.header'] || {
-    title: page?.title || "Společenství",
+    title: "Společenství",
     subtitle: "Podporujeme a sdružujeme lokální společenství absolventů a mladých pracujících. Vytváříme prostor pro sdílení, inspiraci a společný růst ve víře i v životě.",
     image: "/images/backgrounds/spolecenstvi-new.jpg"
   }) as HeaderBlock['content'];
@@ -45,7 +65,7 @@ export default async function CommunitiesPage() {
 
              {/* Right Column: Image */}
              <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/10 rotate-2 hover:rotate-0 transition-all duration-700 group">
-                 <Image 
+                 <AnimatedImage 
                     src={header.image || "/images/backgrounds/spolecenstvi-new.jpg"} 
                     alt={header.title}
                     fill

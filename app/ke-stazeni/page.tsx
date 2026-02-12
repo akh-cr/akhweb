@@ -2,7 +2,18 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { FileList } from "@/components/file-list";
 
-export default function KeStazeniPage() {
+import { Metadata } from "next";
+import { getPageSeo } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPageSeo('ke-stazeni');
+  return {
+    title: seo?.title || "Ke stažení",
+    description: seo?.description || "Oficiální dokumenty, stanovy a materiály spolku.",
+  };
+}
+
+export default async function KeStazeniPage() {
   const documents = [
     { name: "Stanovy AKH ČR", size: "166 KB", type: "pdf", url: "/documents/stanovy-akh-cr.pdf" },
     { name: "Přihláška do spolku AKH", size: "19 KB", type: "docx", url: "/documents/prihlaska-do-spolku-akh.docx" },

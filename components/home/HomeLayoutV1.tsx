@@ -2,13 +2,20 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { HeroSection } from "@/components/hero-section";
 import { FeedSection } from "@/components/feed-section";
-import { Gallery } from "@/components/gallery";
-import { VideoPlayer } from "@/components/video-player";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { ViewSwitcher } from "@/components/events/ViewSwitcher";
 import { HomeLayoutProps } from "./types";
+import dynamic from "next/dynamic";
+
+const Gallery = dynamic(() => import("@/components/gallery").then(mod => mod.Gallery), {
+  loading: () => <div className="w-full h-96 bg-muted/20 animate-pulse" />
+});
+
+const VideoPlayer = dynamic(() => import("@/components/video-player").then(mod => mod.VideoPlayer), {
+  loading: () => <div className="w-full h-full bg-zinc-900 animate-pulse rounded-2xl" />
+});
 
 export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayoutProps & { design?: string }) {
   const heroImages = content?.['home.hero']?.images || [

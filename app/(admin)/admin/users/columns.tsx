@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button"
 import { UserRoleDialog } from "./user-role-dialog"
 import { DeleteUserDialog } from "./delete-user-dialog"
 import { Badge } from "@/components/ui/badge"
+import { InviteUserDialog } from "./invite-user-dialog"
 
 export type User = {
   id: string
   email: string
   role: string
   created_at: string
+  email_confirmed_at?: string | null
 }
 
 export const columns: ColumnDef<User>[] = [
@@ -30,11 +32,15 @@ export const columns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
         const user = row.original
+        const isConfirmed = !!user.email_confirmed_at
+        
         return (
             <div className="flex items-center justify-between gap-3 w-full max-w-[300px] sm:max-w-none">
-                <div className="flex items-center gap-3 min-w-0">
-
+                <div className="flex flex-col min-w-0">
                     <span className="truncate">{user.email}</span>
+                    {!isConfirmed && (
+                        <span className="text-xs text-amber-500">Čeká na přijetí pozvánky</span>
+                    )}
                 </div>
             </div>
         )
@@ -56,16 +62,38 @@ export const columns: ColumnDef<User>[] = [
     accessorKey: "created_at",
     header: ({ column }) => <div className="hidden md:block">Vytvořeno</div>,
     cell: ({ row }) => {
-        return <div className="hidden md:block">{new Date(row.getValue("created_at")).toLocaleDateString('cs-CZ')}</div>
+        return <div className="hidden md:block">{new Date(row.getValue("created_at")).toLocaleDateString('cs-CZ', { timeZone: 'Europe/Prague' })}</div>
     }
   },
   {
     id: "actions",
     cell: ({ row }) => {
       const user = row.original
+      const isConfirmed = !!user.email_confirmed_at
+      
+      const handleReinvite = async () => {
+         // We can reuse the invite logic or call a specialized function.
+         // For simplicity here, we might need a separate component or just use a specialized ReinviteButton component
+         // to keep hooks clean. But let's check if we can inline a quick fetch or if we should create a component.
+         // Since we can't use hooks effectively in this cell callback if it's not a component, 
+         // it's better to create a small ReinviteButton component.
+      }
  
       return (
-        <div className="flex items-center gap-0 sm:gap-2">
+        <div className="flex items-center justify-end gap-2">
+            {!isConfirmed ? (
+                <InviteUserDialog 
+                    variant="ghost" 
+                    size="icon" 
+                    iconOnly={true} 
+                    defaultEmail={user.email} 
+                    title="Znovu pozvat"
+                    className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/20"
+                />
+            ) : (
+                <div className="w-8 h-8" /> 
+            )}
+
             <div className="sm:hidden">
                 <UserRoleDialog 
                     userId={user.id} 

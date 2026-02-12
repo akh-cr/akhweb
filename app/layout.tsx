@@ -16,8 +16,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Absolventské křesťanské hnutí",
-  description: "Společenství mladých křesťanů",
+  title: {
+    template: "%s | Absolventské křesťanské hnutí",
+    default: "Absolventské křesťanské hnutí",
+  },
+  description: "Společenství mladých křesťanů. Nabízíme přechodový můstek mezi studentským životem a plným zapojením do profesního a farního života.",
   icons: {
     icon: "/logo.svg",
     shortcut: "/logo.svg",

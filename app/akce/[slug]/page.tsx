@@ -5,6 +5,27 @@ import { EventLayoutV2 } from "@/components/events/EventLayoutV2";
 import { EventLayoutV3 } from "@/components/events/EventLayoutV3";
 import { EventLayoutV4 } from "@/components/events/EventLayoutV4";
 
+import { Metadata, ResolvingMetadata } from "next";
+
+type Props = {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const slug = decodeURIComponent((await params).slug)
+  const supabase = await createClient();
+  const { data: event } = await supabase.from('events').select('title, description').eq('slug', slug).single();
+
+  return {
+    title: event?.title || 'Akce nenalezena',
+    description: event?.description ? event.description.substring(0, 160) : 'Detail akce',
+  }
+}
+
 export default async function EventDetailPage({ 
     params,
     searchParams 
@@ -18,7 +39,6 @@ export default async function EventDetailPage({
 
   const supabase = await createClient();
   const slug = decodeURIComponent(unwrappedParams.slug); // Ensure we decode before querying
-  console.log(`Debug: Fetching event with slug: "${slug}" (raw: "${unwrappedParams.slug}")`);
 
   const { data: rawEvent } = await supabase
     .from('events')

@@ -70,8 +70,13 @@ Deno.serve(async (req) => {
 
     const existingUser = data.users.find(u => u.email?.toLowerCase() === email.toLowerCase())
     if (existingUser) {
-        console.warn('User already exists:', email)
-        throw new Error('User already exists')
+        if (existingUser.email_confirmed_at) {
+            console.warn('User already active:', email)
+            throw new Error('User already active. Please reset password instead.')
+        } else {
+            console.log('User exists but not confirmed. Resending invite...')
+            // Proceed to generate link for existing user
+        }
     }
 
     // Use configured SITE_URL or fallback to production

@@ -5,6 +5,27 @@ import { CommunityLayoutV2 } from "@/components/communities/CommunityLayoutV2";
 import { CommunityLayoutV3 } from "@/components/communities/CommunityLayoutV3";
 import { CommunityLayoutV4 } from "@/components/communities/CommunityLayoutV4";
 
+import { Metadata, ResolvingMetadata } from "next";
+
+type Props = {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const slug = (await params).slug;
+  const supabase = await createClient();
+  const { data: city } = await supabase.from('cities').select('name, description').eq('slug', slug).single();
+
+  return {
+    title: city?.name || 'Společenství nenalezeno',
+    description: `Společenství v ${city?.name}. ${city?.description ? city.description.substring(0, 100) : ''}`,
+  }
+}
+
 export default async function CommunityDetailPage({ 
     params,
     searchParams 

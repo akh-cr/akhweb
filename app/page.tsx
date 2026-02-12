@@ -13,6 +13,17 @@ import { HomeLayoutV3 } from "@/components/home/HomeLayoutV3";
 
 import { HomeLayoutContent } from "@/components/home/types";
 
+import { Metadata } from "next";
+import { getPageSeo } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPageSeo('home');
+  return {
+    title: seo?.title || "Úvod",
+    description: seo?.description || "Společenství mladých křesťanů. Nabízíme přechodový můstek mezi studentským životem a plným zapojením do profesního a farního života.",
+  };
+}
+
 export default async function Home({ searchParams }: { searchParams: Promise<{ design?: string }> }) {
   const unwrappedSearchParams = await searchParams;
   const design = unwrappedSearchParams.design || 'clean';
@@ -20,21 +31,24 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  // Fetch unified news feed via RPC
-  const { data: feedData } = await supabase
-    .rpc('get_news_feed', { 
+  // Parallel fetching for initial load speed
+  const [
+    { data: feedData },
+    [{ data: contentBlocks }]
+  ] = await Promise.all([
+     // Fetch unified news feed via RPC
+     supabase.rpc('get_news_feed', { 
         p_limit: 3, 
         p_offset: 0, 
         p_include_hidden: false 
-    });
-
-  const contentPromise = supabase
-    .from('content_blocks')
-    .select('*')
-    .in('id', ['home.gallery', 'home.video', 'home.about', 'home.hero']);
-
-  let [{ data: contentBlocks }] = await Promise.all([
-    contentPromise
+      }),
+      // Fetch Content Blocks
+      Promise.all([
+        supabase
+          .from('content_blocks')
+          .select('*')
+          .in('id', ['home.gallery', 'home.video', 'home.about', 'home.hero'])
+      ])
   ]);
   
   const contentMap: HomeLayoutContent = (contentBlocks || []).reduce((acc: any, block: any) => {

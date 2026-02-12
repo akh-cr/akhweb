@@ -2,46 +2,41 @@ import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
 import { getContentBlocks, HeaderBlock, RichTextBlock } from "@/lib/content";
 import Link from "next/link";
-import Image from "next/image";
+import { AnimatedImage } from "@/components/ui/animated-image";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Footer } from "@/components/footer";
 import { TeamSection } from "@/components/team-section";
 
+import { Metadata } from "next";
+import { getPageSeo } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPageSeo('o-nas');
+  return {
+    title: seo?.title || "O nás",
+    description: seo?.description || "Zjistěte více o Absolventském křesťanském hnutí, naší vizi a lidech, kteří za ním stojí.",
+  };
+}
+
 export default async function AboutPage() {
   const contentMap = await getContentBlocks(['o-nas.header', 'o-nas.content']);
   
-  const header = (contentMap['o-nas.header'] || {
-    title: "O Absolventském křesťanském hnutí",
-    subtitle: "",
-    image: "/images/backgrounds/o-nas-v4.jpg"
-  }) as HeaderBlock['content'];
-
-  const content = (contentMap['o-nas.content'] || {
-    content: `
-      <p class="mb-4">
-          Jsme společenství, které spojuje mladé absolventy v jejich víře a životě. Naším cílem je vytvářet prostor pro setkávání, sdílení a duchovní růst i po ukončení vysokoškolských studií.
-      </p>
-      <p class="mb-4">
-          Absolventské křesťanské hnutí (AKH) navazuje na tradici vysokoškolských katolických hnutí. Nabízíme přechodový můstek mezi studentským životem a plným zapojením do profesního a farního života. Organizujeme pravidelná setkání v regionech, celostátní akce, duchovní obnovy a vzdělávací programy.
-      </p>
-      <p>
-          Věříme, že víra se má žít ve všech oblastech života – v práci, v rodině i ve společnosti. Chceme se navzájem povzbuzovat k tomu, abychom byli solí země a světlem světa v prostředí, ve kterém žijeme a pracujeme.
-      </p>
-    `
-  }) as RichTextBlock['content'];
+  const header = contentMap['o-nas.header'] as HeaderBlock['content'];
+  const content = contentMap['o-nas.content'] as RichTextBlock['content'];
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-secondary/30">
       <Navbar />
 
-      <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
+      {/* Hero */}
+      <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5">
          <div className="absolute inset-0 z-0">
-             <Image 
-                 src={header.image || "/images/backgrounds/o-nas-v4.jpg"} 
+             <AnimatedImage 
+                 src={header.image || "/images/backgrounds/onas-new.jpg"} 
                  alt={header.title}
                  fill
                  priority
-                 className="object-cover brightness-[0.25]" 
+                 className="object-cover brightness-[0.3]" 
                  sizes="100vw"
                  quality={80}
              />

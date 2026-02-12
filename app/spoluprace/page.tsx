@@ -7,38 +7,23 @@ import Link from "next/link";
 
 import { getContentBlocks, HeaderBlock, TextImageBlock, PartnersBlock } from "@/lib/content";
 
+import { Metadata } from "next";
+import { getPageSeo } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getPageSeo('spoluprace');
+  return {
+    title: seo?.title || "Spolupráce | AKH ČR",
+    description: seo?.description || "Zapoj se, podpoř nás nebo se inspiruj u našich partnerů. Tvoříme společenství společně.",
+  };
+}
+
 export default async function SpolupracePage() {
   const contentMap = await getContentBlocks(['spoluprace.header', 'spoluprace.zapoj_se', 'spoluprace.partners']);
   
-  const header = (contentMap['spoluprace.header'] || {
-    title: "Spolupráce",
-    subtitle: "Tvoříme společenství společně. Zapoj se, podpoř nás nebo se inspiruj u našich partnerů.",
-    image: "/images/backgrounds/support.jpg"
-  }) as HeaderBlock['content'];
-
-  const zapojSe = (contentMap['spoluprace.zapoj_se'] || {
-    title: "Přidej ruku k dílu",
-    text: "Jsme vděční za každou pomoc. Organizace akcí, vedení společenství nebo technická podpora – každá ruka se počítá. Láká tě zapojit se aktivněji? Dej nám o sobě vědět!",
-    items: ["Organizace akcí a setkání", "Dobrovolnictví na Velehradě", "Duchovní podpora a modlitba"],
-    image: "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
-    ctaText: "Napiš nám",
-    ctaLink: "mailto:info@akhcr.cz"
-  }) as TextImageBlock['content'];
-
-  const partners = (contentMap['spoluprace.partners'] || {
-    links: [
-        { title: "Absolventský Velehrad", url: "https://absolventskyvelehrad.cz/", description: "" },
-        { title: "Post-mládež", url: "https://www.post-mladez.cz/", description: "" },
-        { title: "Univerzitní křesťanské hnutí", url: "https://www.ukh.cz/", description: "" },
-        { title: "VKH ČR", url: "https://vkhcr.cz/", description: "" },
-        { title: "HELPNI", url: "https://helpni.cz/", description: "" },
-        { title: "Boží rande", "url": "https://www.bozirande.cz/", description: "" },
-        { title: "Schola AV21", url: "https://www.facebook.com/scholaav21/", description: "" },
-        { title: "Festapp", url: "https://festapp.net/", secondary: { title: "vstupenky.online", url: "https://vstupenky.online" }, description: "" },
-        { title: "Kamedit", url: "https://kamedit.com/", description: "" },
-        { title: "Credo Nadace", url: "https://www.credonadace.cz/", description: "" }
-    ]
-  }) as PartnersBlock['content'];
+  const header = contentMap['spoluprace.header'] as HeaderBlock['content'];
+  const zapojSe = contentMap['spoluprace.zapoj_se'] as TextImageBlock['content'];
+  const partners = contentMap['spoluprace.partners'] as PartnersBlock['content'];
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)]">
@@ -186,7 +171,7 @@ export default async function SpolupracePage() {
                     className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors hover:underline underline-offset-4"
                 >
                     <FileText className="h-4 w-4" />
-                    Žádost o vystavení formuláře pro potvrzení o daru
+                    Žádost o vystavení potvrzení o daru
                 </a>
             </div>
         </div>

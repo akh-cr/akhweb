@@ -25,12 +25,39 @@ import { createClient } from "@/lib/supabase/client"
 import { UserPlus } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-export function InviteUserDialog() {
+interface InviteUserDialogProps {
+    variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+    size?: "default" | "sm" | "lg" | "icon"
+    className?: string
+    iconOnly?: boolean
+    defaultEmail?: string
+    title?: string
+}
+
+export function InviteUserDialog({ 
+    variant = "default", 
+    size = "default", 
+    className,
+    iconOnly = false,
+    defaultEmail = "",
+    title = "Pozvat uživatele"
+}: InviteUserDialogProps = {}) {
   const [open, setOpen] = useState(false)
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(defaultEmail)
   const [role, setRole] = useState("editor")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  // Reset email to default when dialog opens
+  const handleOpenChange = (newOpen: boolean) => {
+      setOpen(newOpen)
+      if (newOpen && defaultEmail) {
+          setEmail(defaultEmail)
+      }
+      if (!newOpen && !defaultEmail) {
+          setEmail("")
+      }
+  }
 
   const handleInvite = async () => {
     if (!email) {
@@ -52,9 +79,9 @@ export function InviteUserDialog() {
       // But let's check data just in case your function returns { error: ... }
       if (data?.error) throw new Error(data.error)
 
-      toast.success(`Uživatel ${email} byl pozván`)
+      toast.success(defaultEmail ? `Pozvánka pro ${email} byla znovu odeslána` : `Uživatel ${email} byl pozván`)
       setOpen(false)
-      setEmail("")
+      if (!defaultEmail) setEmail("")
       router.refresh()
       
     } catch (error: any) {
@@ -66,18 +93,20 @@ export function InviteUserDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Pozvat uživatele
+        <Button variant={variant} size={size} className={className} title={title}>
+          <UserPlus className={iconOnly ? "h-4 w-4" : "mr-2 h-4 w-4"} />
+          {!iconOnly && title}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]" id="invite-user-dialog-content">
         <DialogHeader>
-          <DialogTitle>Pozvat nového uživatele</DialogTitle>
+          <DialogTitle>{defaultEmail ? "Znovu pozvat uživatele" : "Pozvat nového uživatele"}</DialogTitle>
           <DialogDescription>
-            Uživatel obdrží email s pozvánkou.
+            {defaultEmail 
+                ? "Uživatel obdrží novou pozvánku emailem." 
+                : "Uživatel obdrží email s pozvánkou."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -91,6 +120,7 @@ export function InviteUserDialog() {
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 placeholder="email@example.com"
+                disabled={!!defaultEmail}
             />
           </div>
           <div className="grid items-center gap-4">
