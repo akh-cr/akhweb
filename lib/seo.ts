@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Metadata } from "next";
 
 export async function getPageSeo(slug: string): Promise<{ title?: string; description?: string } | null> {
-  const supabase = await createClient();
+
   
   // Try to fetch page metadata
   // We select widely to cover potential failure modes if columns don't exist, 
@@ -14,6 +14,7 @@ export async function getPageSeo(slug: string): Promise<{ title?: string; descri
   // Let's rely on 'title' and check for 'description' or 'excerpt' (common in this codebase).
   
   try {
+    const supabase = await createClient();
     const { data: page, error } = await supabase
         .from('pages')
         .select('title, seo_title, description, seo_description, excerpt')

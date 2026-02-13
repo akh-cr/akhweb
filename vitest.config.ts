@@ -11,6 +11,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './')
     },
-    exclude: ['**/node_modules/**', '**/dist/**', '**/cypress/**', '**/.{idea,git,cache,output,temp}/**', '**/supabase/**']
+    exclude: ['**/node_modules/**', '**/dist/**', '**/cypress/**', '**/.{idea,git,cache,output,temp}/**', '**/supabase/**', '**/.archive/**']
   },
 })

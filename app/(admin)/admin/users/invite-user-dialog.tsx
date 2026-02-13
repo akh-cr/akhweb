@@ -95,7 +95,7 @@ export function InviteUserDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant={variant} size={size} className={className} title={title}>
+        <Button variant={variant} size={size} className={className} title={title} suppressHydrationWarning>
           <UserPlus className={iconOnly ? "h-4 w-4" : "mr-2 h-4 w-4"} />
           {!iconOnly && title}
         </Button>

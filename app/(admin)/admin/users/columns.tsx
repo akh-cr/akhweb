@@ -81,18 +81,14 @@ export const columns: ColumnDef<User>[] = [
  
       return (
         <div className="flex items-center justify-end gap-2">
-            {!isConfirmed ? (
-                <InviteUserDialog 
-                    variant="ghost" 
-                    size="icon" 
-                    iconOnly={true} 
-                    defaultEmail={user.email} 
-                    title="Znovu pozvat"
-                    className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/20"
-                />
-            ) : (
-                <div className="w-8 h-8" /> 
-            )}
+            <InviteUserDialog 
+                variant="ghost" 
+                size="icon" 
+                iconOnly={true} 
+                defaultEmail={user.email} 
+                title={!isConfirmed ? "Znovu pozvat" : "Obnovit heslo"}
+                className={`h-8 w-8 ${!isConfirmed ? "text-amber-500 hover:text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/20" : "text-muted-foreground hover:text-primary"}`}
+            />
 
             <div className="sm:hidden">
                 <UserRoleDialog 

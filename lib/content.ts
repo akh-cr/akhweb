@@ -133,17 +133,22 @@ export interface CouncilMembersBlock extends BaseContentBlock {
 }
 
 export async function getContentBlocks(ids: string[]) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('content_blocks')
-    .select('*')
-    .in('id', ids);
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+        .from('content_blocks')
+        .select('*')
+        .in('id', ids);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const blockMap = (data || []).reduce((acc: Record<string, any>, block: any) => {
-    acc[block.id] = block.content;
-    return acc;
-  }, {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const blockMap = (data || []).reduce((acc: Record<string, any>, block: any) => {
+        acc[block.id] = block.content;
+        return acc;
+    }, {});
 
-  return blockMap;
+    return blockMap;
+  } catch (error) {
+    console.error('Error fetching content blocks:', error);
+    return {};
+  }
 }

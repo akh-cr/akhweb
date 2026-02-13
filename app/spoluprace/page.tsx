@@ -19,11 +19,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SpolupracePage() {
-  const contentMap = await getContentBlocks(['spoluprace.header', 'spoluprace.zapoj_se', 'spoluprace.partners']);
+  const contentMap = await getContentBlocks(['spoluprace.header', 'spoluprace.zapoj_se', 'spoluprace.partners', 'kontakt.details']);
   
-  const header = contentMap['spoluprace.header'] as HeaderBlock['content'];
-  const zapojSe = contentMap['spoluprace.zapoj_se'] as TextImageBlock['content'];
-  const partners = contentMap['spoluprace.partners'] as PartnersBlock['content'];
+  const header = contentMap['spoluprace.header'] as HeaderBlock['content'] || { title: 'Spolupráce', subtitle: 'Budujeme společenství společně.' };
+  const zapojSe = contentMap['spoluprace.zapoj_se'] as TextImageBlock['content'] || { title: 'Zapoj se', text: 'Přidej se k nám.', items: [] };
+  const partners = contentMap['spoluprace.partners'] as PartnersBlock['content'] || { links: [] };
+  const contactDetails = contentMap['kontakt.details'] as any || {}; 
+  const bankAccount = contactDetails?.bankAccount;
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)]">
@@ -144,7 +146,7 @@ export default async function SpolupracePage() {
                     <div className="text-left">
                         <p className="text-sm uppercase tracking-wide text-muted-foreground font-medium mb-1">Číslo účtu</p>
                         <p className="text-2xl font-mono font-bold text-foreground mb-4 select-all">
-                            2002808176/2010
+                            {bankAccount}
                         </p>
                         <p className="text-sm text-muted-foreground">
                             Variabilní symbol: <span className="font-mono text-foreground font-bold">777</span>

@@ -1,10 +1,15 @@
-"use client"
-
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Facebook, Instagram } from "lucide-react";
+import { getContentBlocks, ContactDetailsBlock } from "@/lib/content";
 
-export function Footer() {
+export async function Footer() {
+  const contentMap = await getContentBlocks(['kontakt.details']);
+  const details = contentMap['kontakt.details'] as ContactDetailsBlock['content'] | undefined;
+  
+  const bankAccount = details?.bankAccount;
+  const email = details?.email || "info@akhcr.cz";
+
   return (
       <footer className="w-full py-12 text-center text-sm text-muted-foreground border-t bg-background">
          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-left px-5">
@@ -18,8 +23,8 @@ export function Footer() {
             <div>
                 <h4 className="font-bold mb-4 text-foreground">Bankovní spojení</h4>
                 <p>Číslo účtu:</p>
-                <p className="font-mono">2002808176/2010</p>
-                <p className="mt-4"><a href="mailto:info@akhcr.cz" className="hover:text-primary hover:underline transition-colors">info@akhcr.cz</a></p>
+                <p className="font-mono">{bankAccount}</p>
+                <p className="mt-4"><a href={`mailto:${email}`} className="hover:text-primary hover:underline transition-colors">{email}</a></p>
             </div>
             <div>
                 <h4 className="font-bold mb-4 text-foreground">Odkazy</h4>
