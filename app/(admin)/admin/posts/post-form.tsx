@@ -97,9 +97,12 @@ export function PostForm({ initialData }: PostFormProps) {
         if (initialData) {
             await updatePost(initialData.id, dataToSave)
             toast.success("Aktualita byla upravena")
+            form.reset(values) // Reset form state to clear dirty flag
+            router.push("/admin/posts") // Redirect to overview
         } else {
             await createPost(dataToSave)
             toast.success("Aktualita byla vytvořena")
+            form.reset(values) // Reset even on create to prevent warning during redirect
             router.push("/admin/posts")
         }
         router.refresh()

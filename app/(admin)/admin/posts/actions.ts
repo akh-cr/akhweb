@@ -119,8 +119,7 @@ export async function updatePost(id: string, data: PostUpdate) {
     const { error } = await supabase
         .from('posts')
         .update({
-            ...data,
-            updated_at: new Date().toISOString()
+            ...data
         })
         .eq('id', id);
 

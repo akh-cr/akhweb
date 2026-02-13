@@ -184,6 +184,7 @@ export function CityForm({ initialData }: CityFormProps) {
         toast.error("Chyba při ukládání města: " + error.message)
     } else {
         toast.success(initialData ? "Město bylo upraveno" : "Město bylo úspěšně vytvořeno")
+        form.reset(values)
         router.push("/admin/cities")
         router.refresh()
     }

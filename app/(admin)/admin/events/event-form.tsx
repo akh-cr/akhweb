@@ -129,9 +129,12 @@ export function EventForm({ initialData, cities }: EventFormProps) {
         if (initialData) {
             await updateEvent(initialData.id, dataToSave)
             toast.success("Akce byla upravena")
+            form.reset(values)
+            router.push("/admin/events") // Redirect to overview
         } else {
             await createEvent(dataToSave)
             toast.success("Akce byla úspěšně vytvořena")
+            form.reset(values)
             router.push("/admin/events")
         }
         router.refresh()
