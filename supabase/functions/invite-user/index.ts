@@ -103,10 +103,24 @@ Deno.serve(async (req) => {
     
     // Check if the link itself looks wrong (e.g. localhost when we want production)
     // AND we are NOT in a local environment.
-    if (inviteLink.includes('localhost') && !siteUrl.includes('localhost')) {
+    const isLocalEnv = siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1');
+    if (inviteLink.includes('localhost') && !isLocalEnv) {
          console.warn('Patched localhost base URL in invite link to production');
-         inviteLink = inviteLink.replace('http://localhost:3000', siteUrl)
-                                .replace('http%3A%2F%2Flocalhost%3A3000', encodeURIComponent(siteUrl));
+         // Robustly replace http://localhost:PORT or https://localhost:PORT with siteUrl
+         inviteLink = inviteLink.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, siteUrl);
+         
+         // Also try to fix encoded params if they leaked
+         // We do this by parsing the url, fixing the redirect_to param if exists
+         try {
+            const urlObj = new URL(inviteLink);
+            const redirectToParam = urlObj.searchParams.get('redirect_to');
+            if (redirectToParam && (redirectToParam.includes('localhost') || redirectToParam.includes('127.0.0.1'))) {
+                urlObj.searchParams.set('redirect_to', redirectTo);
+                inviteLink = urlObj.toString();
+            }
+         } catch (e) {
+             console.error('Failed to parse/patch url params:', e);
+         }
     }
     
     console.log(`Final Link: ${inviteLink}`)
