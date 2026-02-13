@@ -57,3 +57,6 @@ MCP_README.md
 umami_build/
 umami_deploy_isolated/
 clean_deploy/
+
+# Deployment Artifacts
+deploy-*.zip

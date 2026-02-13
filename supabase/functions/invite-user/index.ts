@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     }
 
     // Use configured SITE_URL or fallback to production
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://akhweb.netlify.app'
+    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://akhcr.cz'
     const redirectTo = `${siteUrl}/auth/v?next=/auth/update-password`
     
     // 4. Generate Link instead of sending email directly via Supabase (Bypassing Rate Limit)
