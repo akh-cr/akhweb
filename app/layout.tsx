@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { UmamiTracker } from "@/components/analytics/UmamiTracker";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -51,7 +50,6 @@ export default function RootLayout({
         >
           {children}
           <Toaster position="top-right" />
-          <UmamiTracker />
         </ThemeProvider>
       </body>
     </html>

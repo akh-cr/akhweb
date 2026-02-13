@@ -17,8 +17,8 @@ import { getPageSeo } from "@/lib/seo";
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getPageSeo('home');
   return {
-    title: seo?.title || "Úvod",
-    description: seo?.description || "Společenství mladých křesťanů. Nabízíme přechodový můstek mezi studentským životem a plným zapojením do profesního a farního života.",
+    title: seo?.title || "AKH - ABSOLVENTSKÉ KŘESŤANSKÉ HNUTÍ",
+    description: seo?.description || "Spojujeme lidi, kteří chtějí růst ve víře i v životě. Přidej se k síti absolventských společenství po celé ČR.",
   };
 }
 

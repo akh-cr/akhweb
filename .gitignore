@@ -42,6 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 # archive
+/.archive/
 scripts/archive/
 scripts/*.js
 
@@ -51,3 +52,8 @@ MCP_README.md
 
 # Local Netlify folder
 .netlify
+
+# Umami Deployment
+umami_build/
+umami_deploy_isolated/
+clean_deploy/
