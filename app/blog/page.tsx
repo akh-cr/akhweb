@@ -16,6 +16,8 @@ import {
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getPageSeo('blog');
   return {

@@ -10,6 +10,8 @@ import { getContentBlocks, HeaderBlock, TextImageBlock, PartnersBlock } from "@/
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getPageSeo('spoluprace');
   return {

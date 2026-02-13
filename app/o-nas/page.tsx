@@ -10,6 +10,8 @@ import { TeamSection } from "@/components/team-section";
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getPageSeo('o-nas');
   return {
@@ -21,8 +23,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AboutPage() {
   const contentMap = await getContentBlocks(['o-nas.header', 'o-nas.content']);
   
-  const header = contentMap['o-nas.header'] as HeaderBlock['content'];
-  const content = contentMap['o-nas.content'] as RichTextBlock['content'];
+  const header = contentMap['o-nas.header'] as HeaderBlock['content'] | undefined;
+  const content = contentMap['o-nas.content'] as RichTextBlock['content'] | undefined;
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-secondary/30">
@@ -32,8 +34,8 @@ export default async function AboutPage() {
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5">
          <div className="absolute inset-0 z-0">
              <AnimatedImage 
-                 src={header.image || "/images/backgrounds/onas-new.jpg"} 
-                 alt={header.title}
+                 src={header?.image || "/images/backgrounds/onas-new.jpg"} 
+                 alt={header?.title || "O nás"}
                  fill
                  priority
                  className="object-cover brightness-[0.3]" 
@@ -48,9 +50,9 @@ export default async function AboutPage() {
                 O nás
              </span>
              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight mb-8 text-white drop-shadow-xl max-w-3xl leading-tight">
-                {header.title}
+                {header?.title || "O nás"}
              </h1>
-             <div className="text-base md:text-xl text-zinc-200 leading-relaxed rich-text max-w-3xl bg-black/40 p-8 rounded-3xl backdrop-blur-md border border-white/10 text-justify" dangerouslySetInnerHTML={{ __html: content.content }} />
+             <div className="text-base md:text-xl text-zinc-200 leading-relaxed rich-text max-w-3xl bg-black/40 p-8 rounded-3xl backdrop-blur-md border border-white/10 text-justify" dangerouslySetInnerHTML={{ __html: content?.content || "" }} />
          </div>
       </section>
 
