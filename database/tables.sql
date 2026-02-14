@@ -79,16 +79,9 @@ CREATE TABLE public.posts (
     is_hidden boolean DEFAULT false
 );
 
--- Table: profiles
-CREATE TABLE public.profiles (
-    id uuid NOT NULL PRIMARY KEY,
-    email text,
-    role text DEFAULT 'editor'::text,
-    assigned_city_id text,
-    full_name text
-);
-
 -- Table: user_roles
+-- Note: profiles table was removed (was unused - see migration 20260214_drop_profiles_table.sql)
+-- RBAC is handled through user_roles table only
 CREATE TABLE public.user_roles (
     id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id uuid NOT NULL,
