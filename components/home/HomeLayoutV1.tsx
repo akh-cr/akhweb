@@ -77,14 +77,16 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
       </section>
 
       {/* Why Absolventi - Split Section */}
-      {aboutData && (
+      {aboutData && (aboutData.title || aboutData.text) && (
       <section className="w-full py-24 bg-zinc-900 text-white px-5 overflow-hidden">
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
              <div className="order-2 md:order-1">
-                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">{aboutData.title}</h2>
+                 {aboutData.title && <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">{aboutData.title}</h2>}
+                 {aboutData.text && (
                  <p className="text-zinc-400 text-lg leading-relaxed mb-6">
                     {aboutData.text}
                  </p>
+                 )}
                  {aboutData.items && aboutData.items.length > 0 && (
                  <ul className="space-y-4 mb-8">
                     {aboutData.items.map((item: string, i: number) => (

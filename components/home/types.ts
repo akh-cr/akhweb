@@ -11,7 +11,14 @@ export interface FeedItem {
 export interface HomeLayoutContent {
   'home.gallery'?: { images: string[] };
   'home.video'?: { videoId: string; title: string; description: string };
-  'home.about'?: { text: string; items: string[] };
+  'home.about'?: { 
+    title?: string; 
+    text?: string; 
+    items?: string[];
+    image?: string;
+    ctaText?: string;
+    ctaLink?: string;
+  };
   'home.hero'?: { images: string[] };
 }
 
