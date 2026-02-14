@@ -60,3 +60,6 @@ clean_deploy/
 
 # Deployment Artifacts
 deploy-*.zip
+
+# Storage migration backup
+/backup/

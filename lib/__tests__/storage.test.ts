@@ -1,12 +1,16 @@
 
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { uploadImage } from '../storage';
-import { createClient } from '@/lib/supabase/client';
+import { createStorageClient } from '@/lib/supabase/storage-client';
 import imageCompression from 'browser-image-compression';
 
 // Mock dependencies
-vi.mock('@/lib/supabase/client', () => ({
-  createClient: vi.fn(),
+vi.mock('@/lib/supabase/storage-client', () => ({
+  createStorageClient: vi.fn(),
+}));
+
+vi.mock('@/lib/supabase/storage-config', () => ({
+  STORAGE_BUCKET: 'akhweb',
 }));
 
 vi.mock('browser-image-compression', () => ({
@@ -27,9 +31,9 @@ describe('uploadImage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup Supabase mock chain
-    (createClient as unknown as Mock).mockReturnValue({
+    (createStorageClient as unknown as Mock).mockReturnValue({
       storage: {
         from: mockFrom.mockReturnValue({
           upload: mockUpload,
@@ -46,7 +50,7 @@ describe('uploadImage', () => {
 
   it('should compress and upload image with default settings', async () => {
     const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
-    
+
     const url = await uploadImage(file);
 
     expect(imageCompression).toHaveBeenCalledWith(file, {
@@ -54,10 +58,10 @@ describe('uploadImage', () => {
       maxWidthOrHeight: 1920,
       useWebWorker: true,
     });
-    
-    expect(mockFrom).toHaveBeenCalledWith('images');
+
+    expect(mockFrom).toHaveBeenCalledWith('akhweb');
     expect(mockUpload).toHaveBeenCalledWith(
-      expect.stringMatching(/^uploads\/.*\.jpg$/), 
+      expect.stringMatching(/^images\/uploads\/.*\.jpg$/),
       expect.any(File)
     );
     expect(url).toBe('https://example.com/image.jpg');
@@ -74,20 +78,20 @@ describe('uploadImage', () => {
     await uploadImage(file, options);
 
     expect(imageCompression).toHaveBeenCalledWith(file, { maxSizeMB: 0.5 });
-    expect(mockFrom).toHaveBeenCalledWith('custom-bucket');
+    expect(mockFrom).toHaveBeenCalledWith('akhweb');
     expect(mockUpload).toHaveBeenCalledWith(
-      expect.stringMatching(/^custom-folder\/.*\.png$/),
+      expect.stringMatching(/^custom-bucket\/custom-folder\/.*\.png$/),
       expect.any(File)
     );
   });
 
   it('should clean folder path', async () => {
     const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
-    
+
     await uploadImage(file, { folder: 'trailing/slash/' });
 
     expect(mockUpload).toHaveBeenCalledWith(
-      expect.stringMatching(/^trailing\/slash\/.*\.jpg$/),
+      expect.stringMatching(/^images\/trailing\/slash\/.*\.jpg$/),
       expect.any(File)
     );
   });

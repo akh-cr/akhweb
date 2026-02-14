@@ -168,7 +168,9 @@ export async function deletePost(id: string) {
 }
 
 export async function uploadBlogImage(formData: FormData) {
-    const supabase = await createClient();
+    const { createStorageServerClient } = await import("@/lib/supabase/storage-server-client");
+    const { STORAGE_BUCKET } = await import("@/lib/supabase/storage-config");
+    const storageClient = createStorageServerClient();
     const file = formData.get('file') as File;
     const path = formData.get('path') as string; // e.g. 'blog-images' or just 'images'
 
@@ -178,10 +180,10 @@ export async function uploadBlogImage(formData: FormData) {
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `${path}/${fileName}`;
+    const filePath = `blog/${path}/${fileName}`;
 
-    const { error } = await supabase.storage
-        .from('blog')
+    const { error } = await storageClient.storage
+        .from(STORAGE_BUCKET)
         .upload(filePath, file);
 
     if (error) {
@@ -190,8 +192,8 @@ export async function uploadBlogImage(formData: FormData) {
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-        .from('blog')
+    const { data: { publicUrl } } = storageClient.storage
+        .from(STORAGE_BUCKET)
         .getPublicUrl(filePath);
 
     return { publicUrl };

@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/client"
+import { createStorageClient } from "@/lib/supabase/storage-client"
+import { STORAGE_BUCKET } from "@/lib/supabase/storage-config"
 import imageCompression from 'browser-image-compression'
 
 export interface UploadImageOptions {
@@ -18,8 +19,9 @@ export interface UploadImageOptions {
  * @returns The public URL of the uploaded image
  */
 export async function uploadImage(file: File, options: UploadImageOptions = {}): Promise<string> {
-    const supabase = createClient()
-    const bucket = options.bucket || 'images'
+    const supabase = createStorageClient()
+    const bucket = STORAGE_BUCKET
+    const bucketPrefix = options.bucket || 'images'
     
     // Default compression settings
     const compressionConfig = options.compression || {
@@ -38,7 +40,7 @@ export async function uploadImage(file: File, options: UploadImageOptions = {}):
         const folder = options.folder || 'uploads'
         // Remove trailing slash if present in folder
         const cleanFolder = folder.endsWith('/') ? folder.slice(0, -1) : folder
-        const filePath = `${cleanFolder}/${fileName}`
+        const filePath = `${bucketPrefix}/${cleanFolder}/${fileName}`
 
         // Upload
         const { error: uploadError } = await supabase.storage
