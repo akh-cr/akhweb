@@ -58,6 +58,8 @@ type safety.
 │   └── supabase/         # Supabase Client/Server helpers
 ├── public/               # Static assets (images, documents)
 ├── scripts/              # Maintenance, migration & MCP scripts
+├── sites/                # Standalone subsites (separate from Next.js)
+│   └── praha/            # praha.akhcr.cz – deployed via GitHub Pages
 └── supabase/             # Database migrations & schemas
 ```
 
@@ -122,6 +124,19 @@ Includes `netlify.toml` configuration.
 2. Set Build Command: `npm run build`.
 3. Set Publish Directory: `.next`.
 4. Add Environment Variables in Site Settings.
+
+## 🌐 Praha Subsite
+
+The site **[praha.akhcr.cz](https://praha.akhcr.cz)** is a standalone static
+page hosted on **GitHub Pages**, separate from the main Next.js application.
+
+- **Location**: `sites/praha/`
+- **Deployment**: Automatic via GitHub Actions (`.github/workflows/deploy-praha.yml`)
+- **Trigger**: Any push to `main` that changes files in `sites/praha/`
+- **DNS**: CNAME record `praha` → `akh-cr.github.io`
+
+The page shares the same visual design (Inter font, color scheme, dark mode) as
+the main site but is a plain HTML/CSS file with no build step.
 
 ## 🗄 Database & Maintenance
 
