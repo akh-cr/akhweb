@@ -38,11 +38,14 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
       <FeedSection items={feedItems} />
 
       {/* Gallery Section */}
+      {galleryImages && galleryImages.length > 0 && (
       <Gallery 
         title="Galerie ze života AKH"
         images={galleryImages}
        />
+      )}
       {/* Video Section */}
+      {videoData && (
       <section className="w-full py-24 bg-black text-white px-5">
         <div className="max-w-4xl mx-auto text-center">
              <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-8">{videoData.title}</h2>
@@ -54,6 +57,7 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
              </p>
         </div>
       </section>
+      )}
 
       {/* Quote Section */}
       <section className="w-full py-12 bg-primary/5 px-5">
