@@ -48,6 +48,7 @@ scripts/*.js
 
 # agent skills and mcp
 .agent/
+.mcp.json
 MCP_README.md
 
 # Local Netlify folder
