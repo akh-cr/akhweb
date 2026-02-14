@@ -107,9 +107,9 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
                  </Link>
                  )}
              </div>
+             {aboutData.image && (
              <div className="order-1 md:order-2 relative">
                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-2xl blur-3xl"></div>
-                 {aboutData.image && (
                  <div className="relative h-[400px] w-full bg-zinc-800 rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center">
                      <Image 
                         src={aboutData.image} 
@@ -120,8 +120,8 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
                         quality={80}
                      />
                  </div>
-                 )}
              </div>
+             )}
           </div>
       </section>
       )}
