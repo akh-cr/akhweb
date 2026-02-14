@@ -19,36 +19,13 @@ const VideoPlayer = dynamic(() => import("@/components/video-player").then(mod =
 });
 
 export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayoutProps & { design?: string }) {
-  const heroImages = content?.['home.hero']?.images || [
-    "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
-    "/images/gallery/MB_2025_08_14.11.40.58_09844.jpg",
-    "/images/gallery/MB_2025_08_14.17.15.34_09845.jpg",
-    "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg"
-  ];
+  const heroImages = content?.['home.hero']?.images || [];
 
-  const galleryImages = content?.['home.gallery']?.images || [
-    "/images/gallery/MB_2025_08_14.11.28.15_09834.jpg",
-    "/images/gallery/MB_2025_08_14.11.40.58_09844.jpg",
-    "/images/gallery/MB_2025_08_14.17.15.34_09845.jpg",
-    "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg",
-    "/images/gallery/MB_2025_08_14.21.23.40_09896.jpg",
-    "/images/gallery/MB_2025_08_14.21.23.51_.jpg"
-  ];
+  const galleryImages = content?.['home.gallery']?.images || [];
 
-  const videoData = content?.['home.video'] || {
-    videoId: "Oz9jz9g3b7U",
-    title: "O nás",
-    description: "Podívejte se na krátké představení Absolventského křesťanského hnutí a zjistěte, kdo jsme a co děláme."
-  };
+  const videoData = content?.['home.video'];
 
-  const aboutData = content?.['home.about'] || {
-    text: "Studentský život mají již za sebou, ale do rodinných společenství ještě nezapadají. Na skupinu mladých pracujících, kteří ještě nemají vlastní rodiny, se nejenom v církvi často zapomíná. AKH ČR si klade za cíl vyplnit tuto mezeru v pastorační péči, kterou mnozí absolventi cítí během hledání svého místa ve světě.",
-    items: [
-        "Spolupracovat a sdílet zkušenosti napříč regiony",
-        "Poskytnout vzájemnou podporu a sdílení",
-        "Zajišťovat podporu pro formování absolventských společenství v jednotlivých městech a regionech"
-    ]
-  };
+  const aboutData = content?.['home.about'];
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)]">
@@ -96,13 +73,15 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
       </section>
 
       {/* Why Absolventi - Split Section */}
+      {aboutData && (
       <section className="w-full py-24 bg-zinc-900 text-white px-5 overflow-hidden">
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
              <div className="order-2 md:order-1">
-                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">Proč absolventi?</h2>
+                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">{aboutData.title}</h2>
                  <p className="text-zinc-400 text-lg leading-relaxed mb-6">
                     {aboutData.text}
                  </p>
+                 {aboutData.items && aboutData.items.length > 0 && (
                  <ul className="space-y-4 mb-8">
                     {aboutData.items.map((item: string, i: number) => (
                         <li key={i} className="flex items-center gap-3 text-zinc-300">
@@ -113,27 +92,33 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
                         </li>
                     ))}
                  </ul>
-                 <Link href="/o-nas">
+                 )}
+                 {aboutData.ctaLink && aboutData.ctaText && (
+                 <Link href={aboutData.ctaLink}>
                     <Button variant="secondary" className="rounded-full px-8">
-                        Více o naší vizi <ArrowRight className="ml-2 h-4 w-4" />
+                        {aboutData.ctaText} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                  </Link>
+                 )}
              </div>
              <div className="order-1 md:order-2 relative">
                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-2xl blur-3xl"></div>
+                 {aboutData.image && (
                  <div className="relative h-[400px] w-full bg-zinc-800 rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center">
                      <Image 
-                        src="/images/gallery/MB_2025_08_17.00.58.34_.jpg" 
-                        alt="Foto: Život společenství" 
+                        src={aboutData.image} 
+                        alt={aboutData.title || "Foto"} 
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 50vw"
                         quality={80}
                      />
                  </div>
+                 )}
              </div>
           </div>
       </section>
+      )}
 
       <Footer />
     </main>
