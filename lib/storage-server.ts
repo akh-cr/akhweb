@@ -1,19 +1,19 @@
 import { SupabaseClient } from "@supabase/supabase-js"
+import { createStorageServerClient } from "@/lib/supabase/storage-server-client"
+import { STORAGE_SUPABASE_URL } from "@/lib/supabase/storage-config"
 
 /**
  * Deletes a single image from Supabase Storage given its public URL.
- * Silently ignores errors if file doesn't exist or URL is invalid.
- * Requires a SupabaseClient instance (usually with admin/service role or auth context).
+ * Automatically detects whether the URL belongs to the storage instance
+ * (commercial) or the main instance and uses the appropriate client.
  */
 export async function deleteImage(supabase: SupabaseClient, url: string | null | undefined) {
     if (!url) return
 
     try {
-        // Extract bucket and path from URL
-        // Expected format: .../storage/v1/object/public/[bucket]/[path]
         const urlObj = new URL(url)
         const pathParts = urlObj.pathname.split('/storage/v1/object/public/')
-        
+
         if (pathParts.length !== 2) {
             console.warn("Invalid Supabase storage URL format:", url)
             return
@@ -28,7 +28,11 @@ export async function deleteImage(supabase: SupabaseClient, url: string | null |
              return
         }
 
-        const { error } = await supabase.storage
+        // Use storage client if URL points to the storage instance
+        const isStorageInstance = url.startsWith(STORAGE_SUPABASE_URL)
+        const client = isStorageInstance ? createStorageServerClient() : supabase
+
+        const { error } = await client.storage
             .from(bucket)
             .remove([filePath])
 

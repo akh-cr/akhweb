@@ -7,7 +7,7 @@ import React from 'react'
 const mockUpload = vi.fn()
 const mockGetPublicUrl = vi.fn()
 
-// Mock Supabase
+// Mock Supabase storage client
 const mockSupabase = {
   storage: {
     from: vi.fn((bucket) => ({
@@ -17,8 +17,12 @@ const mockSupabase = {
   }
 }
 
-vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => mockSupabase
+vi.mock('@/lib/supabase/storage-client', () => ({
+  createStorageClient: () => mockSupabase
+}))
+
+vi.mock('@/lib/supabase/storage-config', () => ({
+  STORAGE_BUCKET: 'akhweb'
 }))
 
 // Mock image compression
@@ -65,8 +69,8 @@ describe('Tiptap Editor Image Upload', () => {
       expect(mockUpload).toHaveBeenCalled()
     })
 
-    // Verify it used the CORRECT bucket 'images' (not 'blog-images')
-    expect(mockSupabase.storage.from).toHaveBeenCalledWith('images')
+    // Verify it used the unified storage bucket 'akhweb'
+    expect(mockSupabase.storage.from).toHaveBeenCalledWith('akhweb')
 
     // 6. Verify public URL retrieval
     expect(mockGetPublicUrl).toHaveBeenCalled()
