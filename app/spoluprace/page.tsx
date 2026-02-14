@@ -80,12 +80,14 @@ export default async function SpolupracePage() {
                      </div>
                  </div>
                  <div className="flex-1 relative aspect-square md:aspect-[4/3] w-full bg-muted rounded-2xl overflow-hidden">
+                     {zapojSe.image && (
                      <Image
-                        src={zapojSe.image || "/images/gallery/MB_2025_08_14.21.08.35_09887.jpg"}
+                        src={zapojSe.image}
                         alt="Dobrovolníci"
                         fill
                         className="object-cover"
                      />
+                     )}
                  </div>
              </div>
         </div>
