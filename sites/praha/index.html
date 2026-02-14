@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AKH Praha</title>
+
+    <!-- Meta description -->
+    <meta
+      name="description"
+      content="AKH Praha - Rozcestník AKH v Praze. Kalendář akcí, rozpis služeb, finance a kontakty."
+    />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://praha.akhcr.cz/" />
+    <meta property="og:title" content="AKH Praha - Absolventské křesťanské hnutí v Praze" />
+    <meta
+      property="og:description"
+      content="Oficiální stránka AKH Praha - Absolventské křesťanské hnutí v Praze. Kalendář akcí, rozpis služeb, finance a kontakty."
+    />
+    <meta property="og:image" content="https://praha.akhcr.cz/images/logo_Praha_barevne.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://praha.akhcr.cz/" />
+    <meta property="twitter:title" content="AKH Praha - Absolventské křesťanské hnutí v Praze" />
+    <meta
+      property="twitter:description"
+      content="Oficiální stránka AKH Praha - Absolventské křesťanské hnutí v Praze. Kalendář akcí, rozpis služeb, finance a kontakty."
+    />
+    <meta property="twitter:image" content="https://praha.akhcr.cz/images/logo_Praha_barevne.jpg" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://praha.akhcr.cz/" />
+
+    <!-- Inter font (same as main site) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome for social icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+
+    <style>
+      :root {
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --foreground: #0a0a0a;
+        --muted: #737373;
+        --border: #e5e5e5;
+        --card-bg: #ffffff;
+        --background: #ffffff;
+        --section-bg: #fafafa;
+        --radius: 0.75rem;
+      }
+
+      html.dark {
+        --primary: #60a5fa;
+        --primary-hover: #93bbfd;
+        --foreground: #fafafa;
+        --muted: #a3a3a3;
+        --border: #2a2a2a;
+        --card-bg: #171717;
+        --background: #0a0a0a;
+        --section-bg: #1a1a1a;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.6;
+        color: var(--foreground);
+        background: var(--background);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Navbar */
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        width: 100%;
+        height: 4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+        background: var(--background);
+      }
+
+      .navbar-inner {
+        width: 100%;
+        max-width: 72rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 1.25rem;
+      }
+
+      .navbar-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--foreground);
+      }
+
+      .navbar-logo img {
+        height: 3rem;
+        width: auto;
+        object-fit: contain;
+      }
+
+      .navbar-logo span {
+        font-weight: 700;
+        font-size: 1.25rem;
+        letter-spacing: -0.05em;
+      }
+
+      .navbar-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+      }
+
+      .navbar-links a {
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        text-decoration: none;
+        transition: color 0.2s;
+        white-space: nowrap;
+      }
+
+      .navbar-links a:hover {
+        color: var(--primary);
+      }
+
+      /* Container */
+      .container {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+      }
+
+      /* Hero */
+      .hero {
+        padding: 4rem 0 2rem;
+        text-align: center;
+      }
+
+      .hero img {
+        max-width: 320px;
+        height: auto;
+        margin-bottom: 1.5rem;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: var(--foreground);
+        margin-bottom: 0.5rem;
+      }
+
+      .hero p {
+        color: var(--muted);
+        font-size: 1.125rem;
+        max-width: 32rem;
+        margin: 0 auto;
+      }
+
+      /* Section */
+      .section {
+        padding: 4rem 0;
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--foreground);
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+
+      /* Card */
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        padding: 2rem;
+        transition: box-shadow 0.2s;
+      }
+
+      .card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      }
+
+      .card + .card {
+        margin-top: 1.5rem;
+      }
+
+      .card p {
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .card p + p {
+        margin-top: 0.75rem;
+      }
+
+      .card a {
+        color: var(--primary);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-decoration-thickness: 2px;
+        transition: color 0.2s;
+      }
+
+      .card a:hover {
+        color: var(--primary-hover);
+      }
+
+      /* Iframe wrapper */
+      .iframe-wrapper {
+        margin-top: 1rem;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .iframe-wrapper iframe {
+        display: block;
+        width: 100%;
+        border: none;
+      }
+
+      .iframe-note {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      /* Finance */
+      .finance-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: start;
+      }
+
+      .finance-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .finance-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: var(--radius);
+      }
+
+      .account-number {
+        font-family: 'Inter', monospace;
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: var(--foreground);
+        background: var(--section-bg);
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+      }
+
+      /* Social links */
+      .social-grid {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .social-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        text-decoration: none !important;
+        color: var(--foreground) !important;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      .social-link:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(59,130,246,0.1);
+      }
+
+      .social-link i {
+        font-size: 1.25rem;
+        color: var(--primary);
+      }
+
+      /* Forms */
+      .form-wrapper {
+        display: flex;
+        justify-content: center;
+      }
+
+      .form-wrapper iframe {
+        border: none;
+        border-radius: var(--radius);
+        max-width: 100%;
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 3rem;
+        padding: 3rem 0;
+        border-top: 1px solid var(--border);
+        text-align: center;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        text-align: left;
+        margin-bottom: 2rem;
+      }
+
+      .footer h4 {
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: var(--foreground);
+      }
+
+      .footer p,
+      .footer a {
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+
+      .footer a {
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .footer a:hover {
+        color: var(--primary);
+        text-decoration: underline;
+      }
+
+      .footer-copy {
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+
+      /* Footer theme toggle */
+      .footer-theme-toggle {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      /* Dark mode: invert iframes (calendar, spreadsheet, form) */
+      html.dark .iframe-wrapper iframe,
+      html.dark .form-wrapper iframe {
+        filter: invert(0.88) hue-rotate(180deg);
+      }
+
+      /* Theme switcher */
+      .theme-toggle {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.4rem 0.5rem;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 1.1rem;
+        line-height: 1;
+        transition: color 0.2s, border-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .theme-toggle:hover {
+        color: var(--primary);
+        border-color: var(--primary);
+      }
+
+      html.dark .theme-toggle .icon-moon { display: none; }
+      html.dark .theme-toggle .icon-sun { display: inline; }
+      html:not(.dark) .theme-toggle .icon-sun { display: none; }
+      html:not(.dark) .theme-toggle .icon-moon { display: inline; }
+
+      body {
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .card, .navbar, .footer, .social-link, .account-number {
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.2s;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 1.75rem;
+        }
+
+        .hero img {
+          max-width: 240px;
+        }
+
+        .finance-grid {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+
+        .finance-img {
+          max-width: 280px;
+          margin: 0 auto;
+        }
+
+        .footer-grid {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+
+        .navbar-links {
+          display: none;
+        }
+
+        .section {
+          padding: 2.5rem 0;
+        }
+
+        .card {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-inner">
+        <a href="/" class="navbar-logo">
+          <img src="images/logo_Praha_barevne.jpg" alt="AKH Praha Logo" />
+          <span>AKH Praha</span>
+        </a>
+        <div class="navbar-links">
+          <a href="#kalendar">Kalendář</a>
+          <a href="#finance">Finance</a>
+          <a href="#site">Sítě</a>
+          <a href="#formular">Formulář</a>
+          <a href="https://akhcr.cz/" target="_blank">AKH ČR</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- Hero -->
+      <div class="hero">
+        <img src="images/logo_Praha_barevne.jpg" alt="AKH Praha Logo" />
+        <h1>AKH Praha</h1>
+        <p>Absolventské křesťanské hnutí v Praze</p>
+      </div>
+
+      <!-- Kalendář a rozpis služeb -->
+      <section class="section" id="kalendar">
+        <h2 class="section-title">Kalendář a rozpis služeb</h2>
+        <div class="card">
+          <div class="iframe-wrapper">
+            <iframe
+              src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Europe%2FPrague&bgcolor=%23039BE5&mode=AGENDA&showTz=0&showPrint=0&showNav=0&showDate=0&showTabs=0&showCalendars=0&src=Y19kODFmN2ZlNWI0MTFmNDQ5YjI1YzllMDUzNTA2NjZkODI2Njc0MWJiM2U3ZDNjNDRkMDgyNDMyNzBlNmMwYWQ1QGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20&src=Y182NGMyZmEwNDkyM2U4MzNjNjNlMTVlOTI2ZDkyYWU0Y2Y0ZGI2YTI5YzM2YjQ4MjQ0NjMwOGI1ZmQ2NWFiNzI4QGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20&color=%23D81B60&color=%23F09300"
+              width="100%"
+              height="400"
+              scrolling="no"
+            ></iframe>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="iframe-wrapper">
+            <iframe
+              src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQOBrC1KoIjeth6ci6W3I74XgdfW9OEUmIfvlZxSRN-ZbSuxMtMo6dAGriujxwuMGgO_Nb1c71Biu8n/pubhtml?gid=713853960&amp;single=true&amp;widget=true&amp;headers=false"
+              width="100%"
+              height="400"
+            ></iframe>
+          </div>
+          <p class="iframe-note">
+            Chceš-li se zapsat do některé buňky, jdi na
+            <a href="https://docs.google.com/spreadsheets/d/1L7wE6UGGDvx54JGNk_FZ_0psWJEx42Zj8SLJsOuFEGA/" target="_blank">bit.ly/AKHPraha</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- Finance -->
+      <section class="section" id="finance">
+        <h2 class="section-title">Finance</h2>
+        <div class="card">
+          <div class="finance-grid">
+            <div class="finance-details">
+              <p>
+                <strong>Doporučená výše příspěvku:</strong> 500–800 Kč/pololetí.
+              </p>
+              <p>
+                Vybrané peníze používáme na příspěvek dominikánům za poskytnuté prostory,
+                občerstvení na našich čtvrtečních setkáních a propagační materiály.
+              </p>
+              <p><strong>Číslo účtu AKH Praha:</strong></p>
+              <span class="account-number">2402808175/2010</span>
+              <p>
+                Jestli potřebuješ potvrzení o daru pro daňové účely, napiš si o něj na
+                <a href="mailto:finance.praha@akhcr.cz">finance.praha@akhcr.cz</a>.
+              </p>
+            </div>
+            <div style="text-align: center;">
+              <img src="images/finance.jpeg" alt="Finance QR kód" class="finance-img" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sociální sítě -->
+      <section class="section" id="site">
+        <h2 class="section-title">Sociální sítě</h2>
+        <div class="social-grid">
+          <a href="https://www.facebook.com/AKHPraha" target="_blank" class="social-link">
+            <i class="fab fa-facebook"></i> AKH Praha
+          </a>
+          <a href="https://www.instagram.com/akh_praha/" target="_blank" class="social-link">
+            <i class="fab fa-instagram"></i> AKH Praha
+          </a>
+          <a href="https://www.facebook.com/akhcr.cz" target="_blank" class="social-link">
+            <i class="fab fa-facebook"></i> AKH ČR
+          </a>
+          <a href="https://www.instagram.com/akh_cr/" target="_blank" class="social-link">
+            <i class="fab fa-instagram"></i> AKH ČR
+          </a>
+        </div>
+      </section>
+
+      <!-- Formuláře -->
+      <section class="section" id="formular">
+        <h2 class="section-title">Formuláře</h2>
+        <div class="card">
+          <div class="form-wrapper">
+            <iframe
+              src="https://docs.google.com/forms/d/e/1FAIpQLSc5sOto0oYc5e7n1q-lFo-42g9RiA1s1kdMzJDlfjcePETLhw/viewform?embedded=true"
+              width="640"
+              height="500"
+            >Načítání…</iframe>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <h4>Kontakt</h4>
+            <p><a href="mailto:praha@akhcr.cz">praha@akhcr.cz</a></p>
+          </div>
+          <div>
+            <h4>Odkazy</h4>
+            <p><a href="https://akhcr.cz/" target="_blank">Web AKH ČR</a></p>
+          </div>
+        </div>
+        <p class="footer-copy">&copy; 2025 AKH Praha. Všechna práva vyhrazena.</p>
+
+        <div class="footer-theme-toggle">
+          <button class="theme-toggle" onclick="toggleTheme()" aria-label="Přepnout tmavý/světlý režim">
+            <span class="icon-moon">&#9789;</span>
+            <span class="icon-sun">&#9788;</span>
+          </button>
+        </div>
+      </div>
+    </footer>
+    <script>
+      function toggleTheme() {
+        const html = document.documentElement;
+        const isDark = html.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      }
+
+      // Apply saved theme or system preference
+      (function() {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </body>
+</html>
