@@ -168,35 +168,21 @@ export async function deletePost(id: string) {
 }
 
 export async function uploadBlogImage(formData: FormData) {
-    const { createStorageServerClient } = await import("@/lib/supabase/storage-server-client");
-    const { STORAGE_BUCKET } = await import("@/lib/supabase/storage-config");
-    const storageClient = createStorageServerClient();
+    const { uploadImageAction } = await import("@/lib/actions/upload-image");
+
     const file = formData.get('file') as File;
-    const path = formData.get('path') as string; // e.g. 'blog-images' or just 'images'
+    const path = formData.get('path') as string;
 
     if (!file) {
         throw new Error('No file provided');
     }
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `blog/${path}/${fileName}`;
+    const edgeFormData = new FormData();
+    edgeFormData.append('file', file);
+    edgeFormData.append('prefix', 'blog');
+    if (path) edgeFormData.append('folder', path);
 
-    const { error } = await storageClient.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, file);
-
-    if (error) {
-        console.error('Error uploading image:', error);
-        throw new Error('Upload failed');
-    }
-
-    // Get public URL
-    const { data: { publicUrl } } = storageClient.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(filePath);
-
-    return { publicUrl };
+    return uploadImageAction(edgeFormData);
 }
 
 export async function togglePostVisibility(id: string, isHidden: boolean) {

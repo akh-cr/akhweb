@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Loader2, Upload, X } from 'lucide-react'
 import Image from 'next/image'
-import { uploadImage } from '@/lib/storage'
+import { uploadImageAction } from '@/lib/actions/upload-image'
+import imageCompression from 'browser-image-compression'
 
 interface ImageUploadProps {
     value?: string
@@ -25,10 +26,14 @@ export function ImageUpload({ value, onChange, disabled, compressionOptions }: I
 
         setIsLoading(true)
         try {
-            const publicUrl = await uploadImage(file, {
-                compression: compressionOptions
+            const compressed = await imageCompression(file, compressionOptions || {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true
             })
-
+            const formData = new FormData()
+            formData.append('file', compressed)
+            const { publicUrl } = await uploadImageAction(formData)
             onChange(publicUrl)
         } catch (error) {
             console.error('Upload failed:', error)

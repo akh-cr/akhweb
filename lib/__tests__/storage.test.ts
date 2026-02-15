@@ -1,106 +1,86 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { uploadImage } from '../storage';
-import { createStorageClient } from '@/lib/supabase/storage-client';
-import imageCompression from 'browser-image-compression';
-
-// Mock dependencies
-vi.mock('@/lib/supabase/storage-client', () => ({
-  createStorageClient: vi.fn(),
+// Mock requireAdmin
+vi.mock('@/lib/auth/guards', () => ({
+  requireAdmin: vi.fn().mockResolvedValue({ user: { id: 'test' }, supabase: {} }),
 }));
 
-vi.mock('@/lib/supabase/storage-config', () => ({
-  STORAGE_BUCKET: 'akhweb',
-}));
+// Mock fetch
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
 
-vi.mock('browser-image-compression', () => ({
-  default: vi.fn(),
-}));
+// Mock env
+vi.stubEnv('STORAGE_SUPABASE_URL', 'https://test.supabase.co');
+vi.stubEnv('UPLOAD_SECRET', 'test-secret');
 
-// Mock crypto.randomUUID
-Object.defineProperty(global, 'crypto', {
-  value: {
-    randomUUID: () => '1234-5678-90ab-cdef',
-  },
-});
-
-describe('uploadImage', () => {
-  const mockUpload = vi.fn();
-  const mockGetPublicUrl = vi.fn();
-  const mockFrom = vi.fn();
-
+describe('uploadImageAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
 
-    // Setup Supabase mock chain
-    (createStorageClient as unknown as Mock).mockReturnValue({
-      storage: {
-        from: mockFrom.mockReturnValue({
-          upload: mockUpload,
-          getPublicUrl: mockGetPublicUrl,
-        }),
-      },
+  it('should forward file to Edge Function with correct headers', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ publicUrl: 'https://test.supabase.co/storage/v1/object/public/akhweb/images/uploads/test.jpg' }),
     });
 
-    // Default mock responses
-    mockUpload.mockResolvedValue({ data: { path: 'test/path' }, error: null });
-    mockGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://example.com/image.jpg' } });
-    (imageCompression as unknown as Mock).mockImplementation((file) => Promise.resolve(file));
+    // Dynamic import to pick up env stubs
+    const { uploadImageAction } = await import('../actions/upload-image');
+
+    const formData = new FormData();
+    formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
+
+    const result = await uploadImageAction(formData);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://test.supabase.co/functions/v1/upload-image',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'x-upload-secret': 'test-secret' },
+      })
+    );
+    expect(result.publicUrl).toContain('test.supabase.co');
   });
 
-  it('should compress and upload image with default settings', async () => {
-    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+  it('should throw on missing file', async () => {
+    const { uploadImageAction } = await import('../actions/upload-image');
 
-    const url = await uploadImage(file);
+    const formData = new FormData();
 
-    expect(imageCompression).toHaveBeenCalledWith(file, {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 1920,
-      useWebWorker: true,
+    await expect(uploadImageAction(formData)).rejects.toThrow('No file provided');
+  });
+
+  it('should throw on Edge Function error', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Unauthorized: Invalid upload secret' }),
     });
 
-    expect(mockFrom).toHaveBeenCalledWith('akhweb');
-    expect(mockUpload).toHaveBeenCalledWith(
-      expect.stringMatching(/^images\/uploads\/.*\.jpg$/),
-      expect.any(File)
-    );
-    expect(url).toBe('https://example.com/image.jpg');
+    const { uploadImageAction } = await import('../actions/upload-image');
+
+    const formData = new FormData();
+    formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
+
+    await expect(uploadImageAction(formData)).rejects.toThrow('Unauthorized: Invalid upload secret');
   });
 
-  it('should respect custom options', async () => {
-    const file = new File(['test'], 'test.png', { type: 'image/png' });
-    const options = {
-      bucket: 'custom-bucket',
-      folder: 'custom-folder',
-      compression: { maxSizeMB: 0.5 }
-    };
+  it('should pass prefix and folder to Edge Function', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ publicUrl: 'https://test.supabase.co/image.jpg' }),
+    });
 
-    await uploadImage(file, options);
+    const { uploadImageAction } = await import('../actions/upload-image');
 
-    expect(imageCompression).toHaveBeenCalledWith(file, { maxSizeMB: 0.5 });
-    expect(mockFrom).toHaveBeenCalledWith('akhweb');
-    expect(mockUpload).toHaveBeenCalledWith(
-      expect.stringMatching(/^custom-bucket\/custom-folder\/.*\.png$/),
-      expect.any(File)
-    );
-  });
+    const formData = new FormData();
+    formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
+    formData.append('prefix', 'blog');
+    formData.append('folder', 'images');
 
-  it('should clean folder path', async () => {
-    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    await uploadImageAction(formData);
 
-    await uploadImage(file, { folder: 'trailing/slash/' });
-
-    expect(mockUpload).toHaveBeenCalledWith(
-      expect.stringMatching(/^images\/trailing\/slash\/.*\.jpg$/),
-      expect.any(File)
-    );
-  });
-
-  it('should throw error on upload failure', async () => {
-    const error = { message: 'Upload failed' };
-    mockUpload.mockResolvedValue({ data: null, error });
-    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
-
-    await expect(uploadImage(file)).rejects.toEqual(error);
+    const sentFormData = mockFetch.mock.calls[0][1].body as FormData;
+    expect(sentFormData.get('prefix')).toBe('blog');
+    expect(sentFormData.get('folder')).toBe('images');
   });
 });

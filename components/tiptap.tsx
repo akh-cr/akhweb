@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 // import { createClient } from "@/lib/supabase/client" // Unused
 import { toast } from "sonner"
-import { uploadImage } from '@/lib/storage'
+import { uploadImageAction } from '@/lib/actions/upload-image'
+import imageCompression from 'browser-image-compression'
 
 export default function Tiptap({ content, onChange }: { content: string, onChange: (html: string) => void }) {
   const [isSourceMode, setIsSourceMode] = useState(false)
@@ -46,14 +47,15 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
     currentEditor?.chain().focus().setImage({ src: blobUrl }).run()
 
     try {
-        const publicUrl = await uploadImage(file, {
-            bucket: 'images',
-            compression: {
-                maxSizeMB: 1, 
-                maxWidthOrHeight: 1920,
-                useWebWorker: true
-            }
+        const compressed = await imageCompression(file, {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true
         })
+        const formData = new FormData()
+        formData.append('file', compressed)
+        formData.append('prefix', 'images')
+        const { publicUrl } = await uploadImageAction(formData)
         
         console.log("Upload successful:", { publicUrl });
 

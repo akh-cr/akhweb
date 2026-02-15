@@ -79,20 +79,48 @@ export function Lightbox({ images, index, onClose, onNext, onPrev }: LightboxPro
     setTouchStart(null)
   }
 
-  // Preload adjacent images
-  const prevIndex = (index - 1 + images.length) % images.length
-  const nextIndex = (index + 1) % images.length
+  // Prefetch ahead: once current image loads, progressively prefetch upcoming images
+  const [prefetched, setPrefetched] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (!isLoaded) return
+
+    // Prefetch 1 back + 3 forward from current index
+    const offsets = [-1, 1, 2, 3]
+    let cancelled = false
+
+    const prefetchSequentially = async () => {
+      for (const offset of offsets) {
+        if (cancelled) break
+        const i = ((index + offset) % images.length + images.length) % images.length
+        const src = images[i]
+        if (prefetched.has(src)) continue
+
+        // Build the Next.js optimized URL to warm the cache
+        const url = `/_next/image?url=${encodeURIComponent(src)}&w=3840&q=100`
+        try {
+          await new Promise<void>((resolve) => {
+            const img = new window.Image()
+            img.onload = () => resolve()
+            img.onerror = () => resolve()
+            img.src = url
+          })
+          if (!cancelled) {
+            setPrefetched(prev => new Set(prev).add(src))
+          }
+        } catch { /* ignore */ }
+      }
+    }
+
+    prefetchSequentially()
+    return () => { cancelled = true }
+  }, [isLoaded, index, images, prefetched])
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-in fade-in duration-300 touch-none"
       onClick={onClose}
     >
-        {/* Preloaders (Hidden) */}
-        <div className="hidden">
-            <Image src={images[prevIndex]} alt="preload" width={1} height={1} priority />
-            <Image src={images[nextIndex]} alt="preload" width={1} height={1} priority />
-        </div>
 
       {/* Controls */}
       <Button 

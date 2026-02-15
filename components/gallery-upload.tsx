@@ -5,7 +5,8 @@ import { Loader2, Upload, X, Image as ImageIcon, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { uploadImage } from '@/lib/storage'
+import { uploadImageAction } from '@/lib/actions/upload-image'
+import imageCompression from 'browser-image-compression'
 
 export interface GalleryUploadProps {
     value?: string[]
@@ -29,16 +30,16 @@ export function GalleryUpload({ value = [], onChange, disabled, bucket = 'images
             // Process files sequentially to maintain order or parallel for speed?
             // Parallel is better for UX.
             const uploadPromises = files.map(async (file) => {
-                const publicUrl = await uploadImage(file, {
-                    bucket: bucket,
-                    folder: folder,
-                    compression: {
-                        maxSizeMB: 1, 
-                        maxWidthOrHeight: 1920,
-                        useWebWorker: true
-                    }
+                const compressed = await imageCompression(file, {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true
                 })
-                
+                const formData = new FormData()
+                formData.append('file', compressed)
+                formData.append('prefix', bucket)
+                formData.append('folder', folder)
+                const { publicUrl } = await uploadImageAction(formData)
                 return publicUrl
             })
 

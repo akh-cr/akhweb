@@ -62,5 +62,8 @@ clean_deploy/
 # Deployment Artifacts
 deploy-*.zip
 
+# Supabase local config
+supabase/.temp/
+
 # Storage migration backup
 /backup/
