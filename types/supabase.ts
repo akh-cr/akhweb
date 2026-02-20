@@ -18,6 +18,7 @@ export interface Event {
   image_url: string | null
   slug: string
   city_id: string | null
+  organizer_id: string | null
   is_hidden: boolean
   registration_link: string | null
   facebook_event_link: string | null
@@ -30,9 +31,19 @@ export interface City {
   slug: string
 }
 
+export interface EventOrganizer {
+  id: string
+  name: string
+  color_hex: string
+}
+
 export interface EventWithCity extends Event {
   cities: {
     name: string
+  } | null
+  event_organizers?: {
+    name: string
+    color_hex: string
   } | null
 }
 
@@ -43,6 +54,11 @@ export interface Database {
         Row: Event
         Insert: Partial<Event>
         Update: Partial<Event>
+      }
+      event_organizers: {
+        Row: EventOrganizer
+        Insert: Partial<EventOrganizer>
+        Update: Partial<EventOrganizer>
       }
       cities: {
         Row: City

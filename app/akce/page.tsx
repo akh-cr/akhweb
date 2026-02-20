@@ -2,7 +2,6 @@ import { Navbar } from "@/components/navbar";
 import Image from "next/image";
 import { VideoPlayer } from "@/components/video-player";
 import Link from "next/link";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
@@ -20,6 +19,7 @@ import {
 
 import { getContentBlocks, HeaderBlock } from "@/lib/content";
 import { EventWithCity } from "@/types/supabase";
+import { AKH_ORGANIZER_SETTINGS_ID, getOrganizerTagPresentation, resolveAkhOrganizerColor } from "@/lib/event-organizer-colors";
 
 export default async function EventsPage({
   searchParams,
@@ -28,12 +28,13 @@ export default async function EventsPage({
 }) {
   const supabase = await createClient();
   const now = new Date().toISOString();
-  const contentMap = await getContentBlocks(['akce.header']);
+  const contentMap = await getContentBlocks(['akce.header', AKH_ORGANIZER_SETTINGS_ID]);
   const header = (contentMap['akce.header'] || {
     title: "Akce",
     subtitle: "Přehled všech akcí, které pro tebe chystáme. Duchovní, zábavné i vzdělávací.",
     image: "/images/backgrounds/akce-new-3.jpg"
   }) as HeaderBlock['content'];
+  const akhOrganizerColor = resolveAkhOrganizerColor(contentMap[AKH_ORGANIZER_SETTINGS_ID]);
   
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
@@ -44,7 +45,7 @@ export default async function EventsPage({
   // Fetch upcoming events (no pagination needed usually, as there are few)
   const { data: upcomingEvents } = await supabase
     .from('events')
-    .select('*, cities(name)')
+    .select('*, cities(name), event_organizers(name, color_hex)')
     .eq('is_hidden', false)
     .gte('start_time', now)
     .order('start_time', { ascending: true })
@@ -53,7 +54,7 @@ export default async function EventsPage({
   // Fetch past events with pagination
   const { data: pastEvents, count } = await supabase
     .from('events')
-    .select('*, cities(name)', { count: 'exact' })
+    .select('*, cities(name), event_organizers(name, color_hex)', { count: 'exact' })
     .eq('is_hidden', false)
     .lt('start_time', now)
     .order('start_time', { ascending: false })
@@ -61,6 +62,68 @@ export default async function EventsPage({
     .returns<EventWithCity[]>();
 
   const totalPages = count ? Math.ceil(count / pageSize) : 0;
+
+  const renderEventCard = (event: EventWithCity) => {
+    const isAkhEvent = !event.organizer_id
+    const organizerLabel = event.event_organizers?.name || (isAkhEvent ? "AKH" : "Pořadatel")
+    const organizerTag = getOrganizerTagPresentation(event.event_organizers?.color_hex, isAkhEvent, akhOrganizerColor)
+
+    return (
+      <Link
+        key={event.id}
+        href={`/akce/${event.slug || '#'}`}
+        className={`flex flex-col h-full bg-card rounded-xl border overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
+      >
+        {event.image_url ? (
+          <div className="relative aspect-video w-full overflow-hidden">
+            <Image
+              src={event.image_url}
+              alt={event.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </div>
+        ) : (
+          <div className="aspect-video w-full bg-muted/50 flex items-center justify-center border-b">
+            <MapPin className="h-10 w-10 text-muted-foreground/20" />
+          </div>
+        )}
+
+        <div className="p-5 flex flex-col flex-1">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs font-bold text-primary uppercase tracking-wider">
+              {new Date(event.start_time).toLocaleDateString('cs-CZ')}
+            </span>
+            <span
+              className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${organizerTag.className}`}
+              style={organizerTag.style}
+            >
+              {organizerLabel}
+            </span>
+          </div>
+
+          <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+            {event.title}
+          </h3>
+
+          {event.location && (
+            <div className="flex items-center text-xs text-muted-foreground mb-2">
+              <MapPin className="h-3 w-3 mr-1 shrink-0" />
+              <span className="truncate">{event.location}</span>
+            </div>
+          )}
+
+          <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
+            {event.description || ''}
+          </p>
+
+          <div className="flex items-center text-primary font-medium text-sm mt-auto group-hover:underline underline-offset-4 decoration-primary/30">
+            {event.gallery_images && event.gallery_images.length > 0 ? "Prohlédnout fotky" : "Zobrazit podrobnosti"} <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
+          </div>
+        </div>
+      </Link>
+    )
+  }
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-muted/30">
@@ -96,64 +159,7 @@ export default async function EventsPage({
                     <p className="text-muted-foreground">Zatím žádné naplánované akce.</p>
                 </div>
             ) : (
-                upcomingEvents.map((event) => (
-                    <Link 
-                        key={event.id} 
-                        href={`/akce/${event.slug || '#'}`}
-                        className={`flex flex-col h-full bg-card rounded-xl border overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
-                    >
-                        {/* Image Caption/Cover */}
-                        {event.image_url ? (
-                            <div className="relative aspect-video w-full overflow-hidden">
-                                 <Image 
-                                    src={event.image_url} 
-                                    alt={event.title} 
-                                    fill 
-                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                 />
-                            </div>
-                        ) : (
-                            <div className="aspect-video w-full bg-muted/50 flex items-center justify-center border-b">
-                                <MapPin className="h-10 w-10 text-muted-foreground/20" />
-                            </div>
-                        )}
-
-                        <div className="p-5 flex flex-col flex-1">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="text-xs font-bold text-primary uppercase tracking-wider">
-                                    {new Date(event.start_time).toLocaleDateString('cs-CZ')}
-                                </span>
-                                
-                                {/* Smart Location: If city exists, show it. If not, try to parse city from location or show full location */}
-                                {(event.cities?.name || (event.location && event.location)) && (
-                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[150px]">
-                                        {event.cities?.name || (event.location ? event.location.split(',')[0] : '')}
-                                    </span>
-                                )}
-                            </div>
-
-                            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                                {event.title}
-                            </h3>
-
-                            {/* Venue Line: Always show full location if available, with MapPin */}
-                            {event.location && (
-                                <div className="flex items-center text-xs text-muted-foreground mb-2">
-                                    <MapPin className="h-3 w-3 mr-1 shrink-0" />
-                                    <span className="truncate">{event.location}</span>
-                                </div>
-                            )}
-
-                            <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
-                                {event.description || ''}
-                            </p>
-
-                            <div className="flex items-center text-primary font-medium text-sm mt-auto group-hover:underline underline-offset-4 decoration-primary/30">
-                                {event.gallery_images && event.gallery_images.length > 0 ? "Prohlédnout fotky" : "Zobrazit podrobnosti"} <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
-                            </div>
-                        </div>
-                    </Link>
-                ))
+                upcomingEvents.map((event) => renderEventCard(event))
             )}
          </div>
       </section>
@@ -166,61 +172,7 @@ export default async function EventsPage({
                 {!pastEvents || pastEvents.length === 0 ? (
                     <p className="text-muted-foreground col-span-full text-center py-12">Žádné proběhlé akce k zobrazení.</p>
                 ) : (
-                    pastEvents.map((event) => (
-                        <Link 
-                            key={event.id} 
-                            href={`/akce/${event.slug || '#'}`}
-                            className={`flex flex-col h-full bg-card rounded-xl border overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all group ${!event.slug ? "pointer-events-none opacity-80" : ""}`}
-                        >
-                            {/* Image Caption/Cover */}
-                            {event.image_url ? (
-                                <div className="relative aspect-video w-full overflow-hidden">
-                                     <Image 
-                                        src={event.image_url} 
-                                        alt={event.title} 
-                                        fill 
-                                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                     />
-                                </div>
-                            ) : (
-                                <div className="aspect-video w-full bg-muted/50 flex items-center justify-center border-b">
-                                    <MapPin className="h-10 w-10 text-muted-foreground/20" />
-                                </div>
-                            )}
-
-                            <div className="p-5 flex flex-col flex-1">
-                                <div className="flex items-center gap-2 mb-3">
-                                <span className="text-xs font-bold text-primary uppercase tracking-wider">
-                                    {new Date(event.start_time).toLocaleDateString('cs-CZ')}
-                                </span>
-                                {(event.cities?.name || event.location) && (
-                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[150px]">
-                                        {event.cities?.name || (event.location ? event.location.split(',')[0] : '')}
-                                    </span>
-                                )}
-                            </div>
-
-                            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                                {event.title}
-                            </h3>
-
-                            {event.location && (
-                                <div className="flex items-center text-xs text-muted-foreground mb-2">
-                                    <MapPin className="h-3 w-3 mr-1 shrink-0" />
-                                    <span className="truncate">{event.location}</span>
-                                </div>
-                            )}
-
-                                <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
-                                    {event.description}
-                                </p>
-
-                                <div className="flex items-center text-primary font-medium text-sm mt-auto group-hover:underline underline-offset-4 decoration-primary/30">
-                                    {event.gallery_images && event.gallery_images.length > 0 ? "Prohlédnout fotky" : "Zobrazit podrobnosti"} <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
-                                </div>
-                            </div>
-                        </Link>
-                    ))
+                    pastEvents.map((event) => renderEventCard(event))
                 )}
              </div>
 

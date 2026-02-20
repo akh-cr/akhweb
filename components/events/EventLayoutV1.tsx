@@ -7,8 +7,12 @@ import { Calendar, Clock, MapPin, ArrowLeft, Facebook } from "lucide-react";
 import Link from "next/link";
 
 import { TextWithLinks } from "@/components/ui/text-with-links";
+import { getOrganizerTagPresentation } from "@/lib/event-organizer-colors";
 
-export function EventLayoutV1({ event }: EventLayoutProps) {
+export function EventLayoutV1({ event, akhOrganizerColorHex }: EventLayoutProps) {
+    const isAkhEvent = !event.organizer
+    const organizerName = event.organizer?.name || (isAkhEvent ? "AKH" : "Pořadatel")
+    const organizerTag = getOrganizerTagPresentation(event.organizer?.color_hex, isAkhEvent, akhOrganizerColorHex)
     return (
         <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-background">
 
@@ -22,6 +26,12 @@ export function EventLayoutV1({ event }: EventLayoutProps) {
                         <span className="bg-secondary px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             {event.city?.name || "Akce"}
                         </span>
+                        <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${organizerTag.className}`}
+                            style={organizerTag.style}
+                        >
+                            {organizerName}
+                        </span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-tight text-foreground">
                         {event.title}
@@ -32,6 +42,9 @@ export function EventLayoutV1({ event }: EventLayoutProps) {
                             className="text-xl text-muted-foreground leading-relaxed" 
                          />
                      )}
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        Pořadatel: {organizerName}
+                    </p>
 
                     <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-muted-foreground border-y py-4">
                         <div className="flex items-center gap-2">

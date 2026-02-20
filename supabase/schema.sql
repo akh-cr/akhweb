@@ -33,7 +33,19 @@ ALTER TABLE public.cities ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read cities" ON public.cities FOR SELECT USING (true);
 CREATE POLICY "Admins update cities" ON public.cities FOR ALL USING (public.is_admin_or_editor());
 
--- 2. Events
+-- 2. Event Organizers
+CREATE TABLE IF NOT EXISTS public.event_organizers (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL UNIQUE,
+  color_hex text NOT NULL DEFAULT '#7dd3fc',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.event_organizers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read event organizers" ON public.event_organizers FOR SELECT USING (true);
+CREATE POLICY "Admins manage event organizers" ON public.event_organizers FOR ALL USING (public.is_admin_or_editor());
+
+-- 3. Events
 CREATE TABLE IF NOT EXISTS public.events (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   title text NOT NULL,
@@ -41,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.events (
   start_time timestamptz NOT NULL,
   end_time timestamptz,
   city_id uuid REFERENCES public.cities(id),
+  organizer_id uuid REFERENCES public.event_organizers(id),
   image_url text,
   gallery_images text[] DEFAULT '{}',
   created_at timestamptz DEFAULT now()
@@ -50,7 +63,7 @@ ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read events" ON public.events FOR SELECT USING (true);
 CREATE POLICY "Admins manage events" ON public.events FOR ALL USING (public.is_admin_or_editor());
 
--- 3. Pages (Dynamic Content)
+-- 4. Pages (Dynamic Content)
 CREATE TABLE IF NOT EXISTS public.pages (
   slug text PRIMARY KEY,
   title text NOT NULL,
@@ -62,7 +75,7 @@ ALTER TABLE public.pages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read pages" ON public.pages FOR SELECT USING (true);
 CREATE POLICY "Admins manage pages" ON public.pages FOR ALL USING (public.is_admin_or_editor());
 
--- 4. Posts (Blog)
+-- 5. Posts (Blog)
 CREATE TABLE IF NOT EXISTS public.posts (
   slug text PRIMARY KEY,
   title text NOT NULL,
@@ -77,7 +90,7 @@ ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public read posts" ON public.posts FOR SELECT USING (true);
 CREATE POLICY "Admins manage posts" ON public.posts FOR ALL USING (public.is_admin_or_editor());
 
--- 5. User Roles (RBAC)
+-- 6. User Roles (RBAC)
 CREATE TABLE IF NOT EXISTS public.user_roles (
   user_id uuid REFERENCES auth.users(id) NOT NULL,
   role text NOT NULL CHECK (role IN ('admin', 'editor', 'user')),

@@ -18,7 +18,12 @@ const VideoPlayer = dynamic(() => import("@/components/video-player").then(mod =
   loading: () => <div className="w-full h-full bg-zinc-900 animate-pulse rounded-2xl" />
 });
 
-export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayoutProps & { design?: string }) {
+export function HomeLayoutV1({
+  feedItems,
+  design = "clean",
+  content,
+  akhOrganizerColorHex,
+}: HomeLayoutProps & { design?: string; akhOrganizerColorHex?: string | null }) {
   const heroImages = content?.['home.hero']?.images || [];
 
   const galleryImages = content?.['home.gallery']?.images || [];
@@ -35,7 +40,7 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
       <HeroSection variant={design} images={heroImages} />
 
       {/* Feed Section - Replaces FeaturesGallery */}
-      <FeedSection items={feedItems} />
+      <FeedSection items={feedItems} akhOrganizerColorHex={akhOrganizerColorHex} />
 
       {/* Gallery Section */}
       {galleryImages && galleryImages.length > 0 && (
@@ -68,7 +73,7 @@ export function HomeLayoutV1({ feedItems, design = "clean", content }: HomeLayou
                 </svg>
              </div>
              <blockquote className="text-lg md:text-2xl font-serif font-medium leading-relaxed mb-6 italic">
-                "Tak jako tělo je jedno, ale má mnoho údů, a jako všecky údy těla jsou jedno tělo, ač je jich mnoho, tak je to i s Kristem."
+                &quot;Tak jako tělo je jedno, ale má mnoho údů, a jako všecky údy těla jsou jedno tělo, ač je jich mnoho, tak je to i s Kristem.&quot;
              </blockquote>
              <cite className="not-italic text-base font-semibold text-muted-foreground block">
                 — 1. Korintským 12, 12-14

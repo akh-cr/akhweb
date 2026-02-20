@@ -15,6 +15,7 @@ import {
 
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
+import { AKH_ORGANIZER_SETTINGS_ID, resolveAkhOrganizerColor } from "@/lib/event-organizer-colors";
 
 export const dynamic = 'force-dynamic';
 
@@ -51,11 +52,19 @@ export default async function BlogPage({
   const totalPages = Math.ceil(Number(totalItems) / pageSize);
 
   // Fetch blog hero content
-  const { data: heroBlock } = await supabase
-    .from('content_blocks')
-    .select('content')
-    .eq('id', 'blog.header')
-    .single();
+  const [{ data: heroBlock }, { data: akhSettings }] = await Promise.all([
+    supabase
+      .from('content_blocks')
+      .select('content')
+      .eq('id', 'blog.header')
+      .single(),
+    supabase
+      .from('content_blocks')
+      .select('content')
+      .eq('id', AKH_ORGANIZER_SETTINGS_ID)
+      .maybeSingle(),
+  ]);
+  const akhOrganizerColor = resolveAkhOrganizerColor(akhSettings?.content);
 
   const heroContent = heroBlock?.content || {
       title: "Aktuality",
@@ -73,7 +82,9 @@ export default async function BlogPage({
       location: item.location,
       city: item.city_name,
       image_url: item.image_url,
-      gallery_images: null
+      gallery_images: null,
+      organizer_name: item.organizer_name ?? null,
+      organizer_color_hex: item.organizer_color_hex ?? null,
   }));
 
   return (
@@ -106,7 +117,7 @@ export default async function BlogPage({
 
       {/* Posts Grid */}
       <div className="flex-1">
-        <FeedSection items={feedItems} showHeader={false} />
+        <FeedSection items={feedItems} showHeader={false} akhOrganizerColorHex={akhOrganizerColor} />
         
         {/* Pagination Controls */}
         {totalPages > 1 && (

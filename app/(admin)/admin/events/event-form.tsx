@@ -1,9 +1,10 @@
 "use client"
 
-import { cn, slugify } from "@/lib/utils"
+import { slugify } from "@/lib/utils"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { useState } from "react"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,12 +19,20 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { createEvent, updateEvent, Event } from "./actions"
+import { createEventOrganizer, deleteEventOrganizer, updateAkhOrganizerColor, updateEventOrganizerColor } from "./actions"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import dynamic from "next/dynamic"
-import { MapPin, Calendar as CalendarIcon, Settings, Megaphone, Globe } from "lucide-react"
+import { MapPin, Megaphone, Globe, Plus, Trash2 } from "lucide-react"
 import { FormActions } from "@/components/admin/form-actions"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX,
+  getOrganizerTagPresentation,
+  ORGANIZER_COLOR_OPTIONS,
+  type OrganizerColorHex,
+} from "@/lib/event-organizer-colors"
 
 // Import Tiptap dynamically to avoid SSR issues
 const Tiptap = dynamic(() => import("@/components/tiptap"), { ssr: false })
@@ -50,6 +59,7 @@ const formSchema = z.object({
     message: "Platné datum a čas začátku jsou vyžadovány.",
   }),
   city_id: z.string().optional().nullable(),
+  organizer_id: z.string().optional().nullable(),
   location: z.string().min(2, {
     message: "Místo konání musí mít alespoň 2 znaky.",
   }),
@@ -66,13 +76,27 @@ interface City {
   name: string
 }
 
+interface Organizer {
+  id: string
+  name: string
+  color_hex: string
+}
+
 interface EventFormProps {
   initialData?: Event
   cities: City[]
+  organizers: Organizer[]
+  akhOrganizerColor: OrganizerColorHex
 }
 
-export function EventForm({ initialData, cities }: EventFormProps) {
+export function EventForm({ initialData, cities, organizers, akhOrganizerColor }: EventFormProps) {
   const router = useRouter()
+  const [organizerOptions, setOrganizerOptions] = useState<Organizer[]>(organizers)
+  const [newOrganizerName, setNewOrganizerName] = useState("")
+  const [newOrganizerColor, setNewOrganizerColor] = useState<OrganizerColorHex>(DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX)
+  const [akhColor, setAkhColor] = useState<OrganizerColorHex>(akhOrganizerColor)
+  const [isOrganizerSubmitting, setIsOrganizerSubmitting] = useState(false)
+  const [showOrganizerManager, setShowOrganizerManager] = useState(false)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,6 +107,7 @@ export function EventForm({ initialData, cities }: EventFormProps) {
       // Convert ISO date to datetime-local format if initialData exists
       start_time: initialData?.start_time ? new Date(initialData.start_time).toISOString().slice(0, 16) : "",
       city_id: initialData?.city_id || "",
+      organizer_id: initialData?.organizer_id || "null_option",
       location: initialData?.location || "",
       image_url: initialData?.image_url || "",
       gallery_images: initialData?.gallery_images || [],
@@ -116,6 +141,7 @@ export function EventForm({ initialData, cities }: EventFormProps) {
         content: values.content || null,
         start_time: isoDate,
         city_id: values.city_id === "null_option" ? null : (values.city_id || null),
+        organizer_id: values.organizer_id === "null_option" ? null : (values.organizer_id || null),
         location: values.location,
         image_url: values.image_url || null,
         gallery_images: values.gallery_images || [],
@@ -169,7 +195,7 @@ export function EventForm({ initialData, cities }: EventFormProps) {
                             Ovládání viditelnosti a propagace obsahu.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="px-0 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <CardContent className="px-0 grid grid-cols-1 md:grid-cols-3 gap-8">
                         <FormField
                             control={form.control}
                             name="is_hidden"
@@ -214,6 +240,249 @@ export function EventForm({ initialData, cities }: EventFormProps) {
                                 </FormDescription>
                                 <FormMessage />
                                 </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="organizer_id"
+                            render={({ field }) => (
+                                (() => {
+                                    const isAkhSelected = !field.value || field.value === "null_option"
+                                    const selectedOrganizer = organizerOptions.find((organizer) => organizer.id === field.value)
+                                    const selectedLabel = selectedOrganizer?.name || "AKH"
+                                    const selectedTag = getOrganizerTagPresentation(
+                                        selectedOrganizer?.color_hex || null,
+                                        isAkhSelected,
+                                        akhColor,
+                                    )
+
+                                    return (
+                                <FormItem className="flex flex-col justify-center p-4 border rounded-lg bg-card shadow-sm">
+                                    <FormLabel className="font-semibold mb-2">Pořadatel</FormLabel>
+                                    <FormControl>
+                                        <Select onValueChange={field.onChange} value={field.value || "null_option"}>
+                                            <SelectTrigger className="bg-background">
+                                                <SelectValue placeholder="Vyberte pořadatele" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="null_option">AKH (výchozí)</SelectItem>
+                                                {organizerOptions.map((organizer) => (
+                                                    <SelectItem key={organizer.id} value={organizer.id}>
+                                                        {organizer.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormDescription className="mt-1">
+                                        Pokud nevyberete pořadatele, použije se automaticky AKH.
+                                    </FormDescription>
+                                    <div className="mt-2">
+                                        <span
+                                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${selectedTag.className}`}
+                                            style={selectedTag.style}
+                                        >
+                                            {selectedLabel}
+                                        </span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="px-0 w-full justify-start text-left whitespace-normal h-auto"
+                                            onClick={() => setShowOrganizerManager(true)}
+                                        >
+                                            Správa pořadatelů
+                                        </Button>
+                                    </div>
+                                    <Dialog open={showOrganizerManager} onOpenChange={setShowOrganizerManager}>
+                                        <DialogContent className="sm:max-w-[560px]">
+                                            <DialogHeader>
+                                                <DialogTitle>Správa pořadatelů</DialogTitle>
+                                                <DialogDescription>
+                                                    Přidávejte nebo mažte pořadatele. Smazat lze jen pořadatele bez přiřazených akcí.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Input
+                                                        placeholder="Nový pořadatel"
+                                                        value={newOrganizerName}
+                                                        onChange={(e) => setNewOrganizerName(e.target.value)}
+                                                        className="bg-background"
+                                                    />
+                                                    <Select
+                                                        value={newOrganizerColor}
+                                                        onValueChange={(value) => setNewOrganizerColor(value as OrganizerColorHex)}
+                                                    >
+                                                        <SelectTrigger className="w-[170px] bg-background">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {ORGANIZER_COLOR_OPTIONS.map((option) => (
+                                                                <SelectItem key={option.hex} value={option.hex}>
+                                                                    <span className="inline-flex items-center gap-2">
+                                                                        <span className="h-2.5 w-2.5 rounded-full border" style={{ backgroundColor: option.hex, borderColor: option.hex }} />
+                                                                        {option.label}
+                                                                    </span>
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        disabled={isOrganizerSubmitting || !newOrganizerName.trim()}
+                                                        onClick={async () => {
+                                                            try {
+                                                                setIsOrganizerSubmitting(true)
+                                                                const created = await createEventOrganizer(newOrganizerName, newOrganizerColor)
+                                                                setOrganizerOptions((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name, 'cs')))
+                                                                setNewOrganizerName("")
+                                                                setNewOrganizerColor(DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX)
+                                                                form.setValue("organizer_id", created.id)
+                                                                toast.success("Pořadatel vytvořen")
+                                                            } catch (error) {
+                                                                toast.error((error as Error).message)
+                                                            } finally {
+                                                                setIsOrganizerSubmitting(false)
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Plus className="h-4 w-4 mr-1" />
+                                                        Přidat
+                                                    </Button>
+                                                </div>
+                                                {organizerOptions.length > 0 ? (
+                                                    <div className="space-y-1 max-h-64 overflow-auto border rounded-md p-2 bg-background">
+                                                        {organizerOptions.map((organizer) => (
+                                                            <div key={organizer.id} className="flex items-center justify-between gap-2 text-sm">
+                                                                <span
+                                                                    className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${getOrganizerTagPresentation(organizer.color_hex, false).className}`}
+                                                                    style={getOrganizerTagPresentation(organizer.color_hex, false).style}
+                                                                >
+                                                                    {organizer.name}
+                                                                </span>
+                                                                <div className="ml-auto flex items-center gap-2">
+                                                                    <Select
+                                                                        value={organizer.color_hex || ORGANIZER_COLOR_OPTIONS[0].hex}
+                                                                        onValueChange={async (value) => {
+                                                                            const nextColor = value as OrganizerColorHex
+                                                                            try {
+                                                                                setIsOrganizerSubmitting(true)
+                                                                                await updateEventOrganizerColor(organizer.id, nextColor)
+                                                                                setOrganizerOptions((prev) =>
+                                                                                    prev.map((o) => (o.id === organizer.id ? { ...o, color_hex: nextColor } : o)),
+                                                                                )
+                                                                            } catch (error) {
+                                                                                toast.error((error as Error).message)
+                                                                            } finally {
+                                                                                setIsOrganizerSubmitting(false)
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <SelectTrigger className="h-8 w-[150px] bg-background">
+                                                                            <SelectValue />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {ORGANIZER_COLOR_OPTIONS.map((option) => (
+                                                                                <SelectItem key={option.hex} value={option.hex}>
+                                                                                    <span className="inline-flex items-center gap-2">
+                                                                                        <span className="h-2.5 w-2.5 rounded-full border" style={{ backgroundColor: option.hex, borderColor: option.hex }} />
+                                                                                        {option.label}
+                                                                                    </span>
+                                                                                </SelectItem>
+                                                                            ))}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="icon"
+                                                                        variant="ghost"
+                                                                        className="h-7 w-7 text-destructive"
+                                                                        disabled={isOrganizerSubmitting}
+                                                                        onClick={async () => {
+                                                                            try {
+                                                                                setIsOrganizerSubmitting(true)
+                                                                                await deleteEventOrganizer(organizer.id)
+                                                                                setOrganizerOptions((prev) => prev.filter((o) => o.id !== organizer.id))
+                                                                                if (form.getValues("organizer_id") === organizer.id) {
+                                                                                    form.setValue("organizer_id", "null_option")
+                                                                                }
+                                                                                toast.success("Pořadatel smazán")
+                                                                            } catch (error) {
+                                                                                toast.error((error as Error).message)
+                                                                            } finally {
+                                                                                setIsOrganizerSubmitting(false)
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-muted-foreground px-1">Žádní další pořadatelé nejsou vytvořeni.</p>
+                                                )}
+                                                <div className="border rounded-md p-3 bg-background space-y-2">
+                                                    <div className="text-sm font-medium">AKH (výchozí pořadatel)</div>
+                                                    <span
+                                                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${getOrganizerTagPresentation(null, true, akhColor).className}`}
+                                                        style={getOrganizerTagPresentation(null, true, akhColor).style}
+                                                    >
+                                                        AKH
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <Select
+                                                            value={akhColor}
+                                                            onValueChange={(value) => setAkhColor(value as OrganizerColorHex)}
+                                                        >
+                                                            <SelectTrigger className="h-8 w-[170px] bg-background">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {ORGANIZER_COLOR_OPTIONS.map((option) => (
+                                                                    <SelectItem key={option.hex} value={option.hex}>
+                                                                        <span className="inline-flex items-center gap-2">
+                                                                            <span className="h-2.5 w-2.5 rounded-full border" style={{ backgroundColor: option.hex, borderColor: option.hex }} />
+                                                                            {option.label}
+                                                                        </span>
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={isOrganizerSubmitting}
+                                                            onClick={async () => {
+                                                                try {
+                                                                    setIsOrganizerSubmitting(true)
+                                                                    await updateAkhOrganizerColor(akhColor)
+                                                                    toast.success("Barva AKH uložena")
+                                                                    router.refresh()
+                                                                } catch (error) {
+                                                                    toast.error((error as Error).message)
+                                                                } finally {
+                                                                    setIsOrganizerSubmitting(false)
+                                                                }
+                                                            }}
+                                                        >
+                                                            Uložit AKH
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </FormItem>
+                                    )
+                                })()
                             )}
                         />
                     </CardContent>

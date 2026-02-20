@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getOrganizerTagPresentation } from "@/lib/event-organizer-colors"
 
 interface FeedItem {
   id: string
@@ -16,9 +17,19 @@ interface FeedItem {
   city?: string           // City name from relation (e.g. "Praha")
   image_url?: string | null
   gallery_images?: string[] | null
+  organizer_name?: string | null
+  organizer_color_hex?: string | null
 }
 
-export function FeedSection({ items, showHeader = true }: { items: FeedItem[], showHeader?: boolean }) {
+export function FeedSection({
+  items,
+  showHeader = true,
+  akhOrganizerColorHex,
+}: {
+  items: FeedItem[]
+  showHeader?: boolean
+  akhOrganizerColorHex?: string | null
+}) {
   // Filter for events only if mixed content is passed, or just map them.
   // The current Home page passes only 'event' items with the new structure.
   
@@ -42,7 +53,15 @@ export function FeedSection({ items, showHeader = true }: { items: FeedItem[], s
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
+          {items.map((item) => {
+            const isEvent = item.type === "event"
+            const isAkhEvent = isEvent && !item.organizer_name
+            const organizerLabel = isEvent ? (item.organizer_name || "AKH") : null
+            const organizerTag = isEvent
+              ? getOrganizerTagPresentation(item.organizer_color_hex, isAkhEvent, akhOrganizerColorHex)
+              : null
+
+            return (
             <Link 
                 key={`${item.type}-${item.id}`} 
                 href={
@@ -73,12 +92,13 @@ export function FeedSection({ items, showHeader = true }: { items: FeedItem[], s
                         <span className="text-xs font-bold text-primary uppercase tracking-wider">
                             {new Date(item.date).toLocaleDateString('cs-CZ')}
                         </span>
-                        
-                        {/* Smart Location Logic */}
-                        {(item.city || item.location) && (
-                            <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full truncate max-w-[150px]">
-                                {item.city || (item.location ? item.location.split(',')[0] : '')}
-                            </span>
+                        {isEvent && organizerLabel && (
+                          <span
+                            className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${organizerTag?.className || ""}`}
+                            style={organizerTag?.style}
+                          >
+                            {organizerLabel}
+                          </span>
                         )}
                     </div>
 
@@ -103,7 +123,8 @@ export function FeedSection({ items, showHeader = true }: { items: FeedItem[], s
                     </div>
                 </div>
             </Link>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

@@ -17,6 +17,7 @@ import {
 import { deleteEvent } from "./actions"
 import { toggleEventVisibility } from "./actions"
 import { toast } from "sonner"
+import { getOrganizerTagPresentation } from "@/lib/event-organizer-colors"
 
 // This type definition matches your Supabase table
 export type Event = {
@@ -24,10 +25,16 @@ export type Event = {
   title: string
   start_time: string
   city_id: string | null
+  organizer_id: string | null
   location: string | null
   slug: string
   created_at: string
   is_hidden: boolean
+  akh_organizer_color_hex?: string | null
+  event_organizers?: {
+    name: string
+    color_hex: string | null
+  } | null
 }
 
 export const columns: ColumnDef<Event>[] = [
@@ -46,6 +53,13 @@ export const columns: ColumnDef<Event>[] = [
     },
     cell: ({ row }) => {
         const event = row.original
+        const isAkh = !event.organizer_id
+        const organizerLabel = event.event_organizers?.name || (isAkh ? "AKH" : "Pořadatel")
+        const organizerTag = getOrganizerTagPresentation(
+          event.event_organizers?.color_hex,
+          isAkh,
+          event.akh_organizer_color_hex,
+        )
         return (
             <div className="flex items-center justify-between gap-3 w-full max-w-[300px] sm:max-w-none">
                 <div className="flex items-center gap-3 min-w-0">
@@ -63,7 +77,13 @@ export const columns: ColumnDef<Event>[] = [
                         aria-label="Skrýt akci"
                     />
                     <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                         <span className={event.is_hidden ? "text-muted-foreground truncate opacity-60" : "truncate"}>{event.title}</span>
+                     <span className={event.is_hidden ? "text-muted-foreground truncate opacity-60" : "truncate"}>{event.title}</span>
+                         <span
+                           className={`rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide shrink-0 ${organizerTag.className}`}
+                           style={organizerTag.style}
+                         >
+                           {organizerLabel}
+                         </span>
                          {event.is_hidden && (
                              <div className="flex items-center gap-1 rounded bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:text-amber-200 shrink-0">
                                  <EyeOff className="h-3 w-3" />
@@ -133,7 +153,7 @@ function ActionCell({ event }: { event: Event }) {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Opravdu smazat?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tato akce je nevratná. Akce "{event.title}" bude navždy odstraněna.
+                            Tato akce je nevratná. Akce &quot;{event.title}&quot; bude navždy odstraněna.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -13,6 +13,7 @@ import { HomeLayoutContent } from "@/components/home/types";
 
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
+import { AKH_ORGANIZER_SETTINGS_ID, resolveAkhOrganizerColor } from "@/lib/event-organizer-colors";
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getPageSeo('home');
@@ -43,7 +44,7 @@ export default async function Home() {
         supabase
           .from('content_blocks')
           .select('*')
-          .in('id', ['home.gallery', 'home.video', 'home.about', 'home.hero'])
+          .in('id', ['home.gallery', 'home.video', 'home.about', 'home.hero', AKH_ORGANIZER_SETTINGS_ID])
       ])
   ]);
   
@@ -51,6 +52,7 @@ export default async function Home() {
     acc[block.id] = block.content;
     return acc;
   }, {});
+  const akhOrganizerColor = resolveAkhOrganizerColor((contentMap as Record<string, unknown>)[AKH_ORGANIZER_SETTINGS_ID]);
 
   const feedItems = (feedData || []).map((item: any) => ({
       id: item.id,
@@ -62,9 +64,11 @@ export default async function Home() {
       location: item.location,
       city: item.city_name,
       image_url: item.image_url,
-      gallery_images: null // RPC doesn't return gallery images to keep payload light
+      gallery_images: null, // RPC doesn't return gallery images to keep payload light
+      organizer_name: item.organizer_name ?? null,
+      organizer_color_hex: item.organizer_color_hex ?? null,
   }));
 
   // Always use HomeLayoutV1 with clean design
-  return <HomeLayoutV1 feedItems={feedItems} design="clean" content={contentMap} />;
+  return <HomeLayoutV1 feedItems={feedItems} design="clean" content={contentMap} akhOrganizerColorHex={akhOrganizerColor} />;
 }

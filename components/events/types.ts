@@ -10,6 +10,10 @@ export interface EventData {
     image_url: string | null;
     gallery_images: string[] | null;
     facebook_event_link: string | null;
+    organizer?: {
+        name: string;
+        color_hex?: string | null;
+    } | null;
     city: {
         name: string;
         image_url?: string | null;
@@ -18,4 +22,5 @@ export interface EventData {
 
 export interface EventLayoutProps {
     event: EventData;
+    akhOrganizerColorHex?: string | null;
 }

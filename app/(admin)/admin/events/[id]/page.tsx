@@ -5,6 +5,7 @@ import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { AKH_ORGANIZER_SETTINGS_ID, resolveAkhOrganizerColor } from "@/lib/event-organizer-colors"
 
 interface EditEventPageProps {
   params: Promise<{
@@ -18,11 +19,16 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
     
     const { data: event } = await supabase
       .from('events')
-      .select('*')
+      .select('*, event_organizers(name, color_hex)')
       .eq('id', id)
       .single()
 
-    const { data: cities } = await supabase.from('cities').select('id, name').order('name')
+    const [{ data: cities }, { data: organizers }, { data: akhSettings }] = await Promise.all([
+      supabase.from('cities').select('id, name').order('name'),
+      supabase.from('event_organizers').select('id, name, color_hex').order('name'),
+      supabase.from('content_blocks').select('content').eq('id', AKH_ORGANIZER_SETTINGS_ID).maybeSingle(),
+    ])
+    const akhOrganizerColor = resolveAkhOrganizerColor(akhSettings?.content)
   
     if (!event) {
       notFound()
@@ -41,7 +47,12 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
               </Link>
             )}
         </div>
-        <EventForm initialData={event} cities={cities || []} />
+        <EventForm
+          initialData={event}
+          cities={cities || []}
+          organizers={organizers || []}
+          akhOrganizerColor={akhOrganizerColor}
+        />
       </div>
     )
   }
