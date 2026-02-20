@@ -1,9 +1,21 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from 'npm:@supabase/supabase-js@2.42.0'
 import { sendEmail } from './mail.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+function formatExpiryInPrague(expiresAt: Date): string {
+  return new Intl.DateTimeFormat('cs-CZ', {
+    timeZone: 'Europe/Prague',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(expiresAt)
 }
 
 Deno.serve(async (req) => {
@@ -132,12 +144,20 @@ Deno.serve(async (req) => {
     const title = isRecovery ? 'Obnova přístupu' : 'Byli jste pozváni do administrace AKH webu';
     const buttonText = isRecovery ? 'Obnovit heslo' : 'Přijmout pozvánku';
 
+    const inviteLinkExpirySeconds = Number(Deno.env.get('INVITE_LINK_EXPIRY_SECONDS') ?? '86400');
+    const safeInviteLinkExpirySeconds = Number.isFinite(inviteLinkExpirySeconds) && inviteLinkExpirySeconds > 0
+      ? inviteLinkExpirySeconds
+      : 86400;
+    const expiresAt = new Date(Date.now() + safeInviteLinkExpirySeconds * 1000);
+    const expiresAtLabel = formatExpiryInPrague(expiresAt);
+
     const htmlContent = `
             <h2>${title}</h2>
             <p>Kliknutím na odkaz níže ${isRecovery ? 'obnovíte své heslo' : 'přijmete pozvánku a nastavíte si heslo'}:</p>
             <p><a href="${inviteLink}">${buttonText}</a></p>
             <p>Nebo zkopírujte tento odkaz do prohlížeče:</p>
             <p>${inviteLink}</p>
+            <p><strong>Odkaz je platný do ${expiresAtLabel} (Europe/Prague).</strong></p>
             <p><small>Cíl odkazu: ${redirectTo}</small></p>
         `;
 

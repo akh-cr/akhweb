@@ -19,22 +19,31 @@ export interface GalleryUploadProps {
 export function GalleryUpload({ value = [], onChange, disabled, bucket = 'images', folder = 'uploads' }: GalleryUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     const processFiles = async (files: File[]) => {
         if (!files || files.length === 0) return
 
         setIsUploading(true)
+        setErrorMessage(null)
         try {
-            const uploadedUrls: string[] = []
-
             // Process files sequentially to maintain order or parallel for speed?
             // Parallel is better for UX.
             const uploadPromises = files.map(async (file) => {
-                const compressed = await imageCompression(file, {
+                const options = {
                     maxSizeMB: 1,
                     maxWidthOrHeight: 1920,
                     useWebWorker: true
-                })
+                }
+
+                let compressed: File
+                try {
+                    compressed = await imageCompression(file, options)
+                } catch (compressionError) {
+                    // Some browsers/devices fail with WebWorker compression; retry without worker.
+                    compressed = await imageCompression(file, { ...options, useWebWorker: false })
+                }
+
                 const formData = new FormData()
                 formData.append('file', compressed)
                 formData.append('prefix', bucket)
@@ -48,14 +57,16 @@ export function GalleryUpload({ value = [], onChange, disabled, bucket = 'images
 
         } catch (error) {
             console.error('Upload failed:', error)
-            alert('Nahrávání selhalo. Zkuste to prosím znovu.')
+            const message = error instanceof Error ? error.message : 'Neznámá chyba'
+            setErrorMessage(message)
         } finally {
             setIsUploading(false)
         }
     }
 
     const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || [])
+        const files = Array.from(e.currentTarget.files || [])
+        e.currentTarget.value = ''
         if (files.length > 0) processFiles(files)
     }
 
@@ -150,6 +161,15 @@ export function GalleryUpload({ value = [], onChange, disabled, bucket = 'images
                     />
                 </label>
             </div>
+            {errorMessage && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                    <p className="font-medium text-destructive">Nahrávání selhalo. Zkuste to prosím znovu.</p>
+                    <details className="mt-2">
+                        <summary className="cursor-pointer text-muted-foreground">Zobrazit detail chyby</summary>
+                        <pre className="mt-2 whitespace-pre-wrap break-words text-xs text-muted-foreground">{errorMessage}</pre>
+                    </details>
+                </div>
+            )}
         </div>
     )
 }

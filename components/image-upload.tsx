@@ -20,31 +20,43 @@ interface ImageUploadProps {
 export function ImageUpload({ value, onChange, disabled, compressionOptions }: ImageUploadProps) {
     const [isLoading, setIsLoading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     const processFile = async (file: File) => {
         if (!file) return
 
         setIsLoading(true)
+        setErrorMessage(null)
         try {
-            const compressed = await imageCompression(file, compressionOptions || {
+            const options = compressionOptions || {
                 maxSizeMB: 1,
                 maxWidthOrHeight: 1920,
                 useWebWorker: true
-            })
+            }
+
+            let compressed: File
+            try {
+                compressed = await imageCompression(file, options)
+            } catch (compressionError) {
+                // Some browsers/devices fail with WebWorker compression; retry without worker.
+                compressed = await imageCompression(file, { ...options, useWebWorker: false })
+            }
             const formData = new FormData()
             formData.append('file', compressed)
             const { publicUrl } = await uploadImageAction(formData)
             onChange(publicUrl)
         } catch (error) {
             console.error('Upload failed:', error)
-            alert('Nahrávání selhalo. Zkuste to prosím znovu.')
+            const message = error instanceof Error ? error.message : 'Neznámá chyba'
+            setErrorMessage(message)
         } finally {
             setIsLoading(false)
         }
     }
 
     const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
+        const file = e.currentTarget.files?.[0]
+        e.currentTarget.value = ''
         if (file) processFile(file)
     }
 
@@ -87,7 +99,7 @@ export function ImageUpload({ value, onChange, disabled, compressionOptions }: I
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full space-y-3">
             <label 
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
@@ -123,6 +135,15 @@ export function ImageUpload({ value, onChange, disabled, compressionOptions }: I
                     disabled={isLoading || disabled} 
                 />
             </label>
+            {errorMessage && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                    <p className="font-medium text-destructive">Nahrávání selhalo. Zkuste to prosím znovu.</p>
+                    <details className="mt-2">
+                        <summary className="cursor-pointer text-muted-foreground">Zobrazit detail chyby</summary>
+                        <pre className="mt-2 whitespace-pre-wrap break-words text-xs text-muted-foreground">{errorMessage}</pre>
+                    </details>
+                </div>
+            )}
         </div>
     )
 }
