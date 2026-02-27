@@ -43,8 +43,11 @@ export function ImageUpload({ value, onChange, disabled, compressionOptions }: I
             }
             const formData = new FormData()
             formData.append('file', compressed)
-            const { publicUrl } = await uploadImageAction(formData)
-            onChange(publicUrl)
+            const result = await uploadImageAction(formData)
+            if (!result.success) {
+                throw new Error(result.error)
+            }
+            onChange(result.publicUrl)
         } catch (error) {
             console.error('Upload failed:', error)
             const message = error instanceof Error ? error.message : 'Neznámá chyba'

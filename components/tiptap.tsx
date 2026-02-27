@@ -55,7 +55,11 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
         const formData = new FormData()
         formData.append('file', compressed)
         formData.append('prefix', 'images')
-        const { publicUrl } = await uploadImageAction(formData)
+        const result = await uploadImageAction(formData)
+        if (!result.success) {
+            throw new Error(result.error)
+        }
+        const { publicUrl } = result
         
         console.log("Upload successful:", { publicUrl });
 
@@ -356,4 +360,3 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
     </div>
   )
 }
-

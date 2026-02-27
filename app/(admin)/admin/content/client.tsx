@@ -70,6 +70,9 @@ export function ContentEditor({ initialBlocks, councilMembers = [] }: { initialB
 
     try {
          const result = await uploadContentImage(formData);
+         if (!result.success) {
+            throw new Error(result.error);
+         }
          return result.publicUrl;
     } catch (e) {
         console.error(e);

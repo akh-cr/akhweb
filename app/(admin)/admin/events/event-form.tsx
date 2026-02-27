@@ -338,7 +338,11 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
                                                         onClick={async () => {
                                                             try {
                                                                 setIsOrganizerSubmitting(true)
-                                                                const created = await createEventOrganizer(newOrganizerName, newOrganizerColor)
+                                                                const result = await createEventOrganizer(newOrganizerName, newOrganizerColor)
+                                                                if (!result.success) {
+                                                                    throw new Error(result.error)
+                                                                }
+                                                                const created = result.organizer
                                                                 setOrganizerOptions((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name, 'cs')))
                                                                 setNewOrganizerName("")
                                                                 setNewOrganizerColor(DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX)

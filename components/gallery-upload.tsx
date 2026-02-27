@@ -48,8 +48,11 @@ export function GalleryUpload({ value = [], onChange, disabled, bucket = 'images
                 formData.append('file', compressed)
                 formData.append('prefix', bucket)
                 formData.append('folder', folder)
-                const { publicUrl } = await uploadImageAction(formData)
-                return publicUrl
+                const result = await uploadImageAction(formData)
+                if (!result.success) {
+                    throw new Error(result.error)
+                }
+                return result.publicUrl
             })
 
             const results = await Promise.all(uploadPromises)

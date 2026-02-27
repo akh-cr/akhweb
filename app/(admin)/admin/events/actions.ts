@@ -29,6 +29,9 @@ export interface Event {
 
 export type EventCreate = Omit<Event, 'id'>
 export type EventUpdate = Partial<EventCreate>
+export type CreateEventOrganizerResult =
+  | { success: true; organizer: { id: string; name: string; color_hex: string } }
+  | { success: false; error: string }
 
 export async function createEvent(data: EventCreate) {
   const { supabase } = await requireAdmin()
@@ -132,35 +135,46 @@ export async function toggleEventVisibility(id: string, isHidden: boolean) {
     revalidatePath('/')
 }
 
-export async function createEventOrganizer(name: string, colorHex: OrganizerColorHex = DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX) {
-  const { supabase } = await requireAdmin()
+export async function createEventOrganizer(
+  name: string,
+  colorHex: OrganizerColorHex = DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX,
+): Promise<CreateEventOrganizerResult> {
+  try {
+    const { supabase } = await requireAdmin()
 
-  const trimmedName = name.trim()
-  if (!trimmedName) {
-    throw new Error('Název pořadatele je povinný')
-  }
-
-  if (!isOrganizerColorHex(colorHex)) {
-    throw new Error('Neplatná barva pořadatele')
-  }
-
-  const { data, error } = await supabase
-    .from('event_organizers')
-    .insert({ name: trimmedName, color_hex: colorHex })
-    .select('id, name, color_hex')
-    .single()
-
-  if (error) {
-    if (error.code === '23505') {
-      throw new Error('Pořadatel s tímto názvem už existuje')
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      return { success: false, error: 'Název pořadatele je povinný' }
     }
-    throw new Error(error.message)
-  }
 
-  revalidatePath('/admin/events')
-  revalidatePath('/admin/events/create')
-  revalidatePath('/admin/events/[id]', 'page')
-  return data
+    if (!isOrganizerColorHex(colorHex)) {
+      return { success: false, error: 'Neplatná barva pořadatele' }
+    }
+
+    const { data, error } = await supabase
+      .from('event_organizers')
+      .insert({ name: trimmedName, color_hex: colorHex })
+      .select('id, name, color_hex')
+      .single()
+
+    if (error) {
+      if (error.code === '23505') {
+        return { success: false, error: 'Pořadatel s tímto názvem už existuje' }
+      }
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/admin/events')
+    revalidatePath('/admin/events/create')
+    revalidatePath('/admin/events/[id]', 'page')
+    return { success: true, organizer: data }
+  } catch (error) {
+    console.error('createEventOrganizer failed:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Nepodařilo se vytvořit pořadatele.',
+    }
+  }
 }
 
 export async function deleteEventOrganizer(id: string) {

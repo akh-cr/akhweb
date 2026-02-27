@@ -39,18 +39,22 @@ describe('uploadImageAction', () => {
         headers: { 'x-upload-secret': 'test-secret' },
       })
     );
+    expect(result).toMatchObject({ success: true });
+    if (!result.success) {
+      throw new Error('Expected successful upload result');
+    }
     expect(result.publicUrl).toContain('test.supabase.co');
   });
 
-  it('should throw on missing file', async () => {
+  it('should return an error on missing file', async () => {
     const { uploadImageAction } = await import('../actions/upload-image');
 
     const formData = new FormData();
 
-    await expect(uploadImageAction(formData)).rejects.toThrow('No file provided');
+    await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'No file provided' });
   });
 
-  it('should throw on Edge Function error', async () => {
+  it('should return an error on Edge Function error', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       json: () => Promise.resolve({ error: 'Unauthorized: Invalid upload secret' }),
@@ -61,7 +65,7 @@ describe('uploadImageAction', () => {
     const formData = new FormData();
     formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
 
-    await expect(uploadImageAction(formData)).rejects.toThrow('Unauthorized: Invalid upload secret');
+    await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'Unauthorized: Invalid upload secret' });
   });
 
   it('should pass prefix and folder to Edge Function', async () => {
