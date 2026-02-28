@@ -7,7 +7,8 @@
     "lint": "eslint .",
     "mcp:db": "./scripts/start-mcp-db.sh",
     "mcp:supabase": "./scripts/start-mcp-supabase.sh",
-    "test": "vitest"
+    "test": "vitest",
+    "test:prod-upload": "node scripts/prod-upload-smoke.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
