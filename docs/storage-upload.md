@@ -51,14 +51,11 @@ Supabase Storage (commercial instance)
 
 | Variable | Description | Exposed to browser? |
 |---|---|---|
-| `STORAGE_SUPABASE_ANON_KEY` | Anon key for storage instance (used for delete operations) | No |
-
 ### Supabase Edge Function (main AKH instance secrets)
 
 | Variable | Description | How to set |
 |---|---|---|
 | `UPLOAD_SECRET` | Shared secret used only for proxying to the storage function | Supabase Dashboard > Edge Functions > Secrets |
-| `STORAGE_SUPABASE_URL` | Optional override for the storage Supabase URL | Supabase Dashboard > Edge Functions > Secrets |
 | `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided by Supabase | Automatic |
 | `SUPABASE_URL` | Auto-provided by Supabase | Automatic |
 
@@ -74,7 +71,7 @@ Supabase Storage (commercial instance)
 
 Add these environment variables in Netlify dashboard (Site settings > Environment variables):
 
-- `STORAGE_SUPABASE_ANON_KEY`
+No upload-specific variables are required.
 
 ## File Structure
 
@@ -82,12 +79,13 @@ Add these environment variables in Netlify dashboard (Site settings > Environmen
 lib/
   actions/
     upload-image.ts          # Server action — auth check + forward to main AKH Edge Function
-  supabase/
-    storage-config.ts        # Storage instance URL, anon key, bucket name
-    storage-server-client.ts # Server-side Supabase client for storage (delete operations)
 
 supabase/
   functions/
+    delete-image/
+      index.ts               # Storage Edge Function — verify shared secret, delete from storage
+    delete-image-proxy/
+      index.ts               # Main AKH Edge Function — verify JWT + role, forward deletes to storage
     upload-image/
       index.ts               # Storage Edge Function — verify shared secret, upload via service_role
     upload-image-proxy/
@@ -129,8 +127,7 @@ npx supabase functions deploy upload-image --project-ref <storage-project-ref>
 
 ## Security Notes
 
-- Netlify does not need `UPLOAD_SECRET` or `STORAGE_SUPABASE_URL`; it only calls the main AKH Supabase function
-- Storage env vars (`STORAGE_SUPABASE_URL`, `STORAGE_SUPABASE_ANON_KEY`) are server-side only (no `NEXT_PUBLIC_` prefix)
+- Netlify does not need upload or delete storage-specific configuration; it only calls the main AKH Supabase functions
 - The main AKH proxy function keeps `verify_jwt = false` and validates the user token explicitly before forwarding
-- The storage Edge Function accepts traffic only from the AKH proxy function via `UPLOAD_SECRET`
+- The storage Edge Functions accept traffic only from the AKH proxy functions via `UPLOAD_SECRET`
 - The shared secret and `service_role` key never leave Supabase infrastructure

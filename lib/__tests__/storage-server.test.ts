@@ -2,25 +2,34 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { deleteImage, deleteImages } from '../storage-server'
 
 describe('Storage Server Utils', () => {
-    const mockRemove = vi.fn()
-    const mockFrom = vi.fn()
+    const mockGetSession = vi.fn()
+    const mockFetch = vi.fn()
     
     const mockSupabase = {
-        storage: {
-            from: mockFrom
+        auth: {
+            getSession: mockGetSession
         }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any
 
+    vi.stubGlobal('fetch', mockFetch)
+
     beforeEach(() => {
         vi.clearAllMocks()
-        mockFrom.mockReturnValue({
-            remove: mockRemove
+        vi.unstubAllEnvs()
+        vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://main.supabase.co')
+        mockGetSession.mockResolvedValue({
+            data: {
+                session: {
+                    access_token: 'test-access-token'
+                }
+            }
         })
-        mockRemove.mockResolvedValue({ error: null })
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ success: true })
+        })
         
-        // Spy on console to avoid pollution
-        vi.spyOn(console, 'warn').mockImplementation(() => {})
         vi.spyOn(console, 'error').mockImplementation(() => {})
     })
     
@@ -29,49 +38,43 @@ describe('Storage Server Utils', () => {
     })
 
     describe('deleteImage', () => {
-        it('should extract bucket and path correctly from valid URL', async () => {
+        it('should forward a single image URL to the delete proxy', async () => {
             const url = 'https://PROJECT_ID.supabase.co/storage/v1/object/public/images/folder/image.jpg'
             
             await deleteImage(mockSupabase, url)
             
-            expect(mockFrom).toHaveBeenCalledWith('images')
-            expect(mockRemove).toHaveBeenCalledWith(['folder/image.jpg'])
-        })
-
-        it('should handle URLs without folders', async () => {
-             const url = 'https://PROJECT_ID.supabase.co/storage/v1/object/public/avatars/user.png'
-             
-             await deleteImage(mockSupabase, url)
-             
-             expect(mockFrom).toHaveBeenCalledWith('avatars')
-             expect(mockRemove).toHaveBeenCalledWith(['user.png'])
+            expect(mockFetch).toHaveBeenCalledWith(
+                'https://iinvsjtnbyxfrdygsfpo.supabase.co/functions/v1/delete-image-proxy',
+                expect.objectContaining({
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Bearer test-access-token',
+                        'Content-Type': 'application/json',
+                    },
+                })
+            )
+            expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({ urls: [url] })
         })
 
         it('should ignore null/undefined URLs', async () => {
             await deleteImage(mockSupabase, null)
             await deleteImage(mockSupabase, undefined)
             
-            expect(mockFrom).not.toHaveBeenCalled()
+            expect(mockFetch).not.toHaveBeenCalled()
         })
 
-        it('should warn on invalid URL format', async () => {
-            // Missing /storage/v1/object/public/
-            const url = 'https://example.com/images/test.jpg'
-            
-            await deleteImage(mockSupabase, url)
-            
-            expect(mockFrom).not.toHaveBeenCalled()
-            expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('Invalid Supabase storage URL'), url)
-        })
+        it('should log error when the delete proxy fails', async () => {
+            mockFetch.mockResolvedValue({
+                ok: false,
+                json: () => Promise.resolve({ error: 'Delete failed' })
+            })
 
-        it('should log error when storage remove fails', async () => {
-            mockRemove.mockResolvedValue({ error: { message: 'Storage Error' } })
             const url = 'https://sb.co/storage/v1/object/public/b/f.jpg'
             
             await deleteImage(mockSupabase, url)
             
             expect(console.error).toHaveBeenCalledWith(
-                expect.stringContaining("Failed to delete"),
+                'Edge Function delete error:',
                 expect.anything()
             )
         })
@@ -87,9 +90,13 @@ describe('Storage Server Utils', () => {
             
             await deleteImages(mockSupabase, urls)
             
-            expect(mockFrom).toHaveBeenCalledTimes(2)
-            expect(mockFrom).toHaveBeenCalledWith('b1')
-            expect(mockFrom).toHaveBeenCalledWith('b2')
+            expect(mockFetch).toHaveBeenCalledTimes(1)
+            expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+                urls: [
+                    'https://sb.co/storage/v1/object/public/b1/f1.jpg',
+                    'https://sb.co/storage/v1/object/public/b2/f2.jpg'
+                ]
+            })
         })
     })
 })

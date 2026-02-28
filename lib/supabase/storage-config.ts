@@ -1,5 +1,0 @@
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config";
-
-export const STORAGE_SUPABASE_URL = process.env.STORAGE_SUPABASE_URL || SUPABASE_URL;
-export const STORAGE_SUPABASE_ANON_KEY = process.env.STORAGE_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
-export const STORAGE_BUCKET = 'akhweb';

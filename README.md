@@ -113,7 +113,7 @@ npm run dev
 ### Cloudflare
 
 1. Connect the repository to Cloudflare Pages.
-2. Set the production environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `UPLOAD_SECRET`, `STORAGE_SUPABASE_URL`, `STORAGE_SUPABASE_ANON_KEY`).
+2. Set the production environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
 3. Build and deploy the Next.js app from Cloudflare.
 
 ## 🌐 Praha Subsite

@@ -1,55 +1,46 @@
 import { SupabaseClient } from "@supabase/supabase-js"
-import { createStorageServerClient } from "@/lib/supabase/storage-server-client"
-import { STORAGE_SUPABASE_URL } from "@/lib/supabase/storage-config"
+import { SUPABASE_URL } from "@/lib/supabase/config"
 
 /**
- * Deletes a single image from Supabase Storage given its public URL.
- * Automatically detects whether the URL belongs to the storage instance
- * (commercial) or the main instance and uses the appropriate client.
+ * Deletes a single image via the main AKH proxy function.
  */
 export async function deleteImage(supabase: SupabaseClient, url: string | null | undefined) {
     if (!url) return
 
-    try {
-        const urlObj = new URL(url)
-        const pathParts = urlObj.pathname.split('/storage/v1/object/public/')
-
-        if (pathParts.length !== 2) {
-            console.warn("Invalid Supabase storage URL format:", url)
-            return
-        }
-
-        const fullPath = pathParts[1]
-        const [bucket, ...rest] = fullPath.split('/')
-        const filePath = rest.join('/')
-
-        if (!bucket || !filePath) {
-             console.warn("Could not extract bucket or path from URL:", url)
-             return
-        }
-
-        // Use storage client if URL points to the storage instance
-        const isStorageInstance = url.startsWith(STORAGE_SUPABASE_URL)
-        const client = isStorageInstance ? createStorageServerClient() : supabase
-
-        const { error } = await client.storage
-            .from(bucket)
-            .remove([filePath])
-
-        if (error) {
-            console.error(`Failed to delete image ${url}:`, error)
-        }
-    } catch (error) {
-        console.error(`Error processing delete for ${url}:`, error)
-    }
+    await deleteImages(supabase, [url])
 }
 
 /**
- * Deletes multiple images from Supabase Storage.
+ * Deletes multiple images via the main AKH proxy function.
  */
 export async function deleteImages(supabase: SupabaseClient, urls: (string | null | undefined)[]) {
     const validUrls = urls.filter((url): url is string => !!url)
     if (validUrls.length === 0) return
 
-    await Promise.all(validUrls.map(url => deleteImage(supabase, url)))
+    try {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+            console.error('Missing session when deleting images')
+            return
+        }
+
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-image-proxy`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ urls: validUrls }),
+        })
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ error: 'Delete failed' }))
+            console.error('Edge Function delete error:', error)
+        }
+    } catch (error) {
+        console.error('Error deleting images:', error)
+    }
 }

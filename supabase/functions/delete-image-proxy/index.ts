@@ -49,33 +49,24 @@ Deno.serve(async (req) => {
       throw new Error('Forbidden: Insufficient permissions')
     }
 
-    const formData = await req.formData()
-    const file = formData.get('file') as File | null
-
-    if (!file) {
-      throw new Error('No file provided')
+    const { urls } = await req.json()
+    if (!Array.isArray(urls) || urls.length === 0) {
+      throw new Error('No image URLs provided')
     }
 
-    const storageFormData = new FormData()
-    storageFormData.append('file', file)
-
-    const prefix = formData.get('prefix') as string | null
-    const folder = formData.get('folder') as string | null
-    if (prefix) storageFormData.append('prefix', prefix)
-    if (folder) storageFormData.append('folder', folder)
-
-    const response = await fetch(`${STORAGE_FUNCTIONS_BASE_URL}/functions/v1/upload-image`, {
+    const response = await fetch(`${STORAGE_FUNCTIONS_BASE_URL}/functions/v1/delete-image`, {
       method: 'POST',
       headers: {
         'x-upload-secret': uploadSecret,
+        'Content-Type': 'application/json',
       },
-      body: storageFormData,
+      body: JSON.stringify({ urls }),
     })
 
     const responseText = await response.text()
 
     if (!response.ok) {
-      throw new Error(responseText || 'Upload failed')
+      throw new Error(responseText || 'Delete failed')
     }
 
     return new Response(responseText, {
@@ -83,7 +74,7 @@ Deno.serve(async (req) => {
       status: 200,
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Upload failed' }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Delete failed' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })
