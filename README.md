@@ -110,20 +110,11 @@ npm run dev
 
 ## 📦 Deployment
 
-### Vercel (Recommended)
+### Cloudflare
 
-1. Import the project to Vercel.
-2. Add Environment Variables (`NEXT_PUBLIC_SUPABASE_URL`, etc.).
-3. Deploy. Vercel automatically detects the Next.js configuration.
-
-### Netlify
-
-Includes `netlify.toml` configuration.
-
-1. Import project.
-2. Set Build Command: `npm run build`.
-3. Set Publish Directory: `.next`.
-4. Add Environment Variables in Site Settings.
+1. Connect the repository to Cloudflare Pages.
+2. Set the production environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `UPLOAD_SECRET`, `STORAGE_SUPABASE_URL`, `STORAGE_SUPABASE_ANON_KEY`).
+3. Build and deploy the Next.js app from Cloudflare.
 
 ## 🌐 Praha Subsite
 
