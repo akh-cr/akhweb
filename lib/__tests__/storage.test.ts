@@ -9,13 +9,13 @@ vi.mock('@/lib/auth/guards', () => ({
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-// Mock env
-vi.stubEnv('STORAGE_SUPABASE_URL', 'https://test.supabase.co');
-vi.stubEnv('UPLOAD_SECRET', 'test-secret');
-
 describe('uploadImageAction', () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
+    vi.stubEnv('STORAGE_SUPABASE_URL', 'https://test.supabase.co');
+    vi.stubEnv('UPLOAD_SECRET', 'test-secret');
   });
 
   it('should forward file to Edge Function with correct headers', async () => {
@@ -86,5 +86,33 @@ describe('uploadImageAction', () => {
     const sentFormData = mockFetch.mock.calls[0][1].body as FormData;
     expect(sentFormData.get('prefix')).toBe('blog');
     expect(sentFormData.get('folder')).toBe('images');
+  });
+
+  it('should fall back to NEXT_PUBLIC_SUPABASE_URL when STORAGE_SUPABASE_URL is missing', async () => {
+    vi.unstubAllEnvs();
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://main.supabase.co');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key');
+    vi.stubEnv('UPLOAD_SECRET', 'test-secret');
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ publicUrl: 'https://main.supabase.co/image.jpg' }),
+    });
+
+    const { uploadImageAction } = await import('../actions/upload-image');
+
+    const formData = new FormData();
+    formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
+
+    const result = await uploadImageAction(formData);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://main.supabase.co/functions/v1/upload-image',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'x-upload-secret': 'test-secret' },
+      })
+    );
+    expect(result).toMatchObject({ success: true });
   });
 });

@@ -1,8 +1,8 @@
 'use server'
 
 import { requireAdmin } from '@/lib/auth/guards'
+import { STORAGE_SUPABASE_URL } from '@/lib/supabase/storage-config'
 
-const EDGE_FUNCTION_URL = `${process.env.STORAGE_SUPABASE_URL}/functions/v1/upload-image`
 const UPLOAD_SECRET = process.env.UPLOAD_SECRET
 
 export type UploadImageActionResult =
@@ -18,8 +18,8 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
             return { success: false, error: 'No file provided' }
         }
 
-        if (!process.env.STORAGE_SUPABASE_URL) {
-            return { success: false, error: 'Chybí STORAGE_SUPABASE_URL v produkční konfiguraci.' }
+        if (!STORAGE_SUPABASE_URL) {
+            return { success: false, error: 'Chybí konfigurace Supabase URL pro upload obrázků.' }
         }
 
         if (!UPLOAD_SECRET) {
@@ -34,7 +34,7 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
         if (prefix) edgeFormData.append('prefix', prefix)
         if (folder) edgeFormData.append('folder', folder)
 
-        const response = await fetch(EDGE_FUNCTION_URL, {
+        const response = await fetch(`${STORAGE_SUPABASE_URL}/functions/v1/upload-image`, {
             method: 'POST',
             headers: {
                 'x-upload-secret': UPLOAD_SECRET,

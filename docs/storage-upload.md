@@ -43,7 +43,7 @@ Supabase Storage (commercial instance)
 
 | Variable | Description | Exposed to browser? |
 |---|---|---|
-| `STORAGE_SUPABASE_URL` | URL of the storage Supabase instance | No |
+| `STORAGE_SUPABASE_URL` | URL of the storage Supabase instance (optional; falls back to `NEXT_PUBLIC_SUPABASE_URL`) | No |
 | `STORAGE_SUPABASE_ANON_KEY` | Anon key for storage instance (used for delete operations) | No |
 | `UPLOAD_SECRET` | Shared secret between Next.js and Edge Function | No |
 
@@ -59,9 +59,10 @@ Supabase Storage (commercial instance)
 
 Add these environment variables in Netlify dashboard (Site settings > Environment variables):
 
-- `STORAGE_SUPABASE_URL`
 - `STORAGE_SUPABASE_ANON_KEY`
 - `UPLOAD_SECRET`
+
+`STORAGE_SUPABASE_URL` is only required when uploads should target a different Supabase project than the main app. If it is omitted, the app falls back to `NEXT_PUBLIC_SUPABASE_URL`.
 
 ## File Structure
 
@@ -124,6 +125,8 @@ openssl rand -base64 32
 Update in both places:
 1. `.env.local` (and Netlify env vars)
 2. Supabase Edge Function secrets (storage instance)
+
+If you use a separate storage instance, update `STORAGE_SUPABASE_URL` there as well.
 
 ## Security Notes
 
