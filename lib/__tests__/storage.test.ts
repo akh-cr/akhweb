@@ -2,7 +2,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock requireAdmin
 vi.mock('@/lib/auth/guards', () => ({
-  requireAdmin: vi.fn().mockResolvedValue({ user: { id: 'test' }, supabase: {} }),
+  requireAdmin: vi.fn().mockResolvedValue({
+    user: { id: 'test' },
+    supabase: {
+      auth: {
+        getSession: vi.fn().mockResolvedValue({
+          data: {
+            session: {
+              access_token: 'test-access-token',
+            },
+          },
+        }),
+      },
+    },
+  }),
 }));
 
 // Mock fetch
@@ -15,7 +28,6 @@ describe('uploadImageAction', () => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
     vi.stubEnv('STORAGE_SUPABASE_URL', 'https://test.supabase.co');
-    vi.stubEnv('UPLOAD_SECRET', 'test-secret');
   });
 
   it('should forward file to Edge Function with correct headers', async () => {
@@ -36,7 +48,7 @@ describe('uploadImageAction', () => {
       'https://test.supabase.co/functions/v1/upload-image',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'x-upload-secret': 'test-secret' },
+        headers: { Authorization: 'Bearer test-access-token' },
       })
     );
     expect(result).toMatchObject({ success: true });
@@ -57,7 +69,7 @@ describe('uploadImageAction', () => {
   it('should return an error on Edge Function error', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ error: 'Unauthorized: Invalid upload secret' }),
+      json: () => Promise.resolve({ error: 'Unauthorized: Invalid access token' }),
     });
 
     const { uploadImageAction } = await import('../actions/upload-image');
@@ -65,7 +77,7 @@ describe('uploadImageAction', () => {
     const formData = new FormData();
     formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
 
-    await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'Unauthorized: Invalid upload secret' });
+    await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'Unauthorized: Invalid access token' });
   });
 
   it('should pass prefix and folder to Edge Function', async () => {
@@ -92,7 +104,6 @@ describe('uploadImageAction', () => {
     vi.unstubAllEnvs();
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://main.supabase.co');
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key');
-    vi.stubEnv('UPLOAD_SECRET', 'test-secret');
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -110,9 +121,34 @@ describe('uploadImageAction', () => {
       'https://main.supabase.co/functions/v1/upload-image',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'x-upload-secret': 'test-secret' },
+        headers: { Authorization: 'Bearer test-access-token' },
       })
     );
     expect(result).toMatchObject({ success: true });
+  });
+
+  it('should return an error when the user session is missing', async () => {
+    vi.doMock('@/lib/auth/guards', () => ({
+      requireAdmin: vi.fn().mockResolvedValue({
+        user: { id: 'test' },
+        supabase: {
+          auth: {
+            getSession: vi.fn().mockResolvedValue({
+              data: { session: null },
+            }),
+          },
+        },
+      }),
+    }));
+
+    const { uploadImageAction } = await import('../actions/upload-image');
+
+    const formData = new FormData();
+    formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
+
+    await expect(uploadImageAction(formData)).resolves.toEqual({
+      success: false,
+      error: 'Chybí přihlašovací relace pro autorizaci uploadu.',
+    });
   });
 });

@@ -9,8 +9,8 @@ Image uploads use a two-instance Supabase architecture:
 
 Uploads are secured through a chain:
 1. Next.js **server action** verifies user is admin/editor (via main instance auth)
-2. Server action forwards the file to a Supabase **Edge Function** on the storage instance
-3. Edge Function verifies a shared secret header and uploads via `service_role` key
+2. Server action forwards the file to a Supabase **Edge Function** on the storage instance with the user's access token
+3. Edge Function re-validates the user's JWT and role against the main AKH Supabase instance, then uploads via `service_role` key
 4. The `service_role` key never leaves the Supabase infrastructure
 
 ## Architecture Diagram
@@ -24,12 +24,13 @@ Browser (client-side compression)
 Next.js Server Action (lib/actions/upload-image.ts)
   │
   ├─ requireAdmin() — checks auth on main Supabase instance
-  ├─ x-upload-secret header — shared secret
+  ├─ Authorization: Bearer <user access token>
   │
   ▼
 Supabase Edge Function (supabase/functions/upload-image/index.ts)
   │
-  ├─ Verifies x-upload-secret matches UPLOAD_SECRET env var
+  ├─ Validates the JWT against the main AKH Supabase instance
+  ├─ Confirms the user has role admin/editor
   ├─ Uploads to bucket 'akhweb' via SUPABASE_SERVICE_ROLE_KEY
   │
   ▼
@@ -45,22 +46,21 @@ Supabase Storage (commercial instance)
 |---|---|---|
 | `STORAGE_SUPABASE_URL` | URL of the storage Supabase instance (optional; falls back to `NEXT_PUBLIC_SUPABASE_URL`) | No |
 | `STORAGE_SUPABASE_ANON_KEY` | Anon key for storage instance (used for delete operations) | No |
-| `UPLOAD_SECRET` | Shared secret between Next.js and Edge Function | No |
 
 ### Supabase Edge Function (storage instance secrets)
 
 | Variable | Description | How to set |
 |---|---|---|
-| `UPLOAD_SECRET` | Must match the value in `.env.local` | Supabase Dashboard > Edge Functions > Secrets |
 | `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided by Supabase | Automatic |
 | `SUPABASE_URL` | Auto-provided by Supabase | Automatic |
+| `AKH_SUPABASE_URL` | Optional override for the main AKH Supabase URL | Supabase Dashboard > Edge Functions > Secrets |
+| `AKH_SUPABASE_ANON_KEY` | Optional override for the main AKH Supabase anon key | Supabase Dashboard > Edge Functions > Secrets |
 
 ### Netlify (production)
 
 Add these environment variables in Netlify dashboard (Site settings > Environment variables):
 
 - `STORAGE_SUPABASE_ANON_KEY`
-- `UPLOAD_SECRET`
 
 `STORAGE_SUPABASE_URL` is only required when uploads should target a different Supabase project than the main app. If it is omitted, the app falls back to `NEXT_PUBLIC_SUPABASE_URL`.
 
@@ -77,7 +77,7 @@ lib/
 supabase/
   functions/
     upload-image/
-      index.ts               # Edge Function — verify secret, upload via service_role
+      index.ts               # Edge Function — verify JWT + role, upload via service_role
       deno.json               # Import map
   config.toml                # Function config (verify_jwt = false for upload-image)
 ```
@@ -108,30 +108,12 @@ akhweb/
 ```bash
 # Deploy to storage instance
 npx supabase functions deploy upload-image --project-ref <storage-project-ref>
-
-# Set the shared secret (via CLI or Dashboard)
-npx supabase secrets set UPLOAD_SECRET='<your-secret>' --project-ref <storage-project-ref>
 ```
-
-If the CLI lacks permissions for secrets, set `UPLOAD_SECRET` manually:
-Supabase Dashboard > Project > Edge Functions > Secrets
-
-## Generating a New Upload Secret
-
-```bash
-openssl rand -base64 32
-```
-
-Update in both places:
-1. `.env.local` (and Netlify env vars)
-2. Supabase Edge Function secrets (storage instance)
-
-If you use a separate storage instance, update `STORAGE_SUPABASE_URL` there as well.
 
 ## Security Notes
 
-- `UPLOAD_SECRET` is a symmetric shared secret — rotate it periodically
+- Netlify does not need a shared upload secret; authorization is derived from the logged-in user's JWT
 - Storage env vars (`STORAGE_SUPABASE_URL`, `STORAGE_SUPABASE_ANON_KEY`) are server-side only (no `NEXT_PUBLIC_` prefix)
-- The Edge Function has `verify_jwt = false` because the JWT comes from a different Supabase instance
-- Authentication is handled by the Next.js server action (`requireAdmin()`) before reaching the Edge Function
+- The Edge Function keeps `verify_jwt = false` because the JWT comes from a different Supabase instance, so it validates the token explicitly in userland
+- Authentication is checked twice: once in the Next.js server action and again inside the storage Edge Function
 - The `service_role` key never leaves the Supabase infrastructure

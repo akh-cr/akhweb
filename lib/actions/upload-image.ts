@@ -3,15 +3,13 @@
 import { requireAdmin } from '@/lib/auth/guards'
 import { STORAGE_SUPABASE_URL } from '@/lib/supabase/storage-config'
 
-const UPLOAD_SECRET = process.env.UPLOAD_SECRET
-
 export type UploadImageActionResult =
     | { success: true; publicUrl: string }
     | { success: false; error: string }
 
 export async function uploadImageAction(formData: FormData): Promise<UploadImageActionResult> {
     try {
-        await requireAdmin()
+        const { supabase } = await requireAdmin()
 
         const file = formData.get('file') as File | null
         if (!file) {
@@ -22,8 +20,12 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
             return { success: false, error: 'Chybí konfigurace Supabase URL pro upload obrázků.' }
         }
 
-        if (!UPLOAD_SECRET) {
-            return { success: false, error: 'Chybí UPLOAD_SECRET v produkční konfiguraci.' }
+        const {
+            data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+            return { success: false, error: 'Chybí přihlašovací relace pro autorizaci uploadu.' }
         }
 
         const edgeFormData = new FormData()
@@ -37,7 +39,7 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
         const response = await fetch(`${STORAGE_SUPABASE_URL}/functions/v1/upload-image`, {
             method: 'POST',
             headers: {
-                'x-upload-secret': UPLOAD_SECRET,
+                Authorization: `Bearer ${session.access_token}`,
             },
             body: edgeFormData,
         })
