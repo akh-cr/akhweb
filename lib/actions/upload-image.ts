@@ -1,7 +1,7 @@
 'use server'
 
 import { requireAdmin } from '@/lib/auth/guards'
-import { STORAGE_SUPABASE_URL } from '@/lib/supabase/storage-config'
+import { SUPABASE_URL } from '@/lib/supabase/config'
 
 export type UploadImageActionResult =
     | { success: true; publicUrl: string }
@@ -14,10 +14,6 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
         const file = formData.get('file') as File | null
         if (!file) {
             return { success: false, error: 'No file provided' }
-        }
-
-        if (!STORAGE_SUPABASE_URL) {
-            return { success: false, error: 'Chybí konfigurace Supabase URL pro upload obrázků.' }
         }
 
         const {
@@ -36,7 +32,7 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
         if (prefix) edgeFormData.append('prefix', prefix)
         if (folder) edgeFormData.append('folder', folder)
 
-        const response = await fetch(`${STORAGE_SUPABASE_URL}/functions/v1/upload-image`, {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/upload-image-proxy`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${session.access_token}`,

@@ -27,7 +27,7 @@ describe('uploadImageAction', () => {
     vi.resetModules();
     vi.clearAllMocks();
     vi.unstubAllEnvs();
-    vi.stubEnv('STORAGE_SUPABASE_URL', 'https://test.supabase.co');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test.supabase.co');
   });
 
   it('should forward file to Edge Function with correct headers', async () => {
@@ -45,7 +45,7 @@ describe('uploadImageAction', () => {
     const result = await uploadImageAction(formData);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://test.supabase.co/functions/v1/upload-image',
+      'https://test.supabase.co/functions/v1/upload-image-proxy',
       expect.objectContaining({
         method: 'POST',
         headers: { Authorization: 'Bearer test-access-token' },
@@ -69,7 +69,7 @@ describe('uploadImageAction', () => {
   it('should return an error on Edge Function error', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: () => Promise.resolve({ error: 'Unauthorized: Invalid access token' }),
+      json: () => Promise.resolve({ error: 'Unauthorized: Invalid upload secret' }),
     });
 
     const { uploadImageAction } = await import('../actions/upload-image');
@@ -77,7 +77,7 @@ describe('uploadImageAction', () => {
     const formData = new FormData();
     formData.append('file', new File(['test'], 'test.jpg', { type: 'image/jpeg' }));
 
-    await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'Unauthorized: Invalid access token' });
+    await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'Unauthorized: Invalid upload secret' });
   });
 
   it('should pass prefix and folder to Edge Function', async () => {
@@ -100,7 +100,7 @@ describe('uploadImageAction', () => {
     expect(sentFormData.get('folder')).toBe('images');
   });
 
-  it('should fall back to NEXT_PUBLIC_SUPABASE_URL when STORAGE_SUPABASE_URL is missing', async () => {
+  it('should use the main Supabase function URL for uploads', async () => {
     vi.unstubAllEnvs();
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://main.supabase.co');
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key');
@@ -118,7 +118,7 @@ describe('uploadImageAction', () => {
     const result = await uploadImageAction(formData);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://main.supabase.co/functions/v1/upload-image',
+      'https://main.supabase.co/functions/v1/upload-image-proxy',
       expect.objectContaining({
         method: 'POST',
         headers: { Authorization: 'Bearer test-access-token' },
