@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.42.0'
 import { sendEmail } from './mail.ts'
+import { ASSIGNABLE_ROLES, isAssignableRole } from '../_shared/roles.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,9 +64,8 @@ Deno.serve(async (req) => {
       throw new Error('Email is required')
     }
 
-    const validRoles = ['admin', 'editor', 'user', 'organizer']
-    if (!validRoles.includes(role)) {
-      throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`)
+    if (!isAssignableRole(role)) {
+      throw new Error(`Invalid role. Must be one of: ${ASSIGNABLE_ROLES.join(', ')}`)
     }
     if (role === 'organizer' && !organizerId) {
       throw new Error('Organizace je povinná pro roli organizer')

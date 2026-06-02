@@ -1,6 +1,6 @@
 'use server'
 
-import { requireAdmin } from '@/lib/auth/guards'
+import { requireEventAccess } from '@/lib/auth/guards'
 import { SUPABASE_URL } from '@/lib/supabase/config'
 
 export type UploadImageActionResult =
@@ -9,7 +9,8 @@ export type UploadImageActionResult =
 
 export async function uploadImageAction(formData: FormData): Promise<UploadImageActionResult> {
     try {
-        const { supabase } = await requireAdmin()
+        // Anyone who can manage events (admin, editor, organizer) may upload images.
+        const { supabase } = await requireEventAccess()
 
         const file = formData.get('file') as File | null
         if (!file) {

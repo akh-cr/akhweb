@@ -1,4 +1,4 @@
-export type EventManagerRole = 'admin' | 'editor' | 'organizer'
+import type { EventManagerRole } from "@/lib/auth/roles"
 
 /**
  * Resolves the organizer_id that may actually be written for an event, given the

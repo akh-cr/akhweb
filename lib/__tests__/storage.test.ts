@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock requireAdmin
+// Mock event-management guard used by the upload action
 vi.mock('@/lib/auth/guards', () => ({
-  requireAdmin: vi.fn().mockResolvedValue({
+  requireEventAccess: vi.fn().mockResolvedValue({
     user: { id: 'test' },
+    role: 'admin',
+    organizerId: null,
     supabase: {
       auth: {
         getSession: vi.fn().mockResolvedValue({
@@ -129,8 +131,10 @@ describe('uploadImageAction', () => {
 
   it('should return an error when the user session is missing', async () => {
     vi.doMock('@/lib/auth/guards', () => ({
-      requireAdmin: vi.fn().mockResolvedValue({
+      requireEventAccess: vi.fn().mockResolvedValue({
         user: { id: 'test' },
+        role: 'admin',
+        organizerId: null,
         supabase: {
           auth: {
             getSession: vi.fn().mockResolvedValue({

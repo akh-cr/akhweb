@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { isEventManager } from '../_shared/roles.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,7 +46,7 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id)
       .single()
 
-    if (roleError || !roleRow || !['admin', 'editor'].includes(roleRow.role)) {
+    if (roleError || !isEventManager(roleRow?.role)) {
       throw new Error('Forbidden: Insufficient permissions')
     }
 

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import type { EventManagerRole } from "@/lib/events/scope"
+import { isStaff, isEventManager, type EventManagerRole } from "@/lib/auth/roles"
 
 
 export async function requireAdmin() {
@@ -14,7 +14,7 @@ export async function requireAdmin() {
     .eq('user_id', user.id)
     .single()
     
-  if (!role || !['admin', 'editor'].includes(role.role)) {
+  if (!isStaff(role?.role)) {
     throw new Error("Forbidden: Insufficient permissions")
   }
 
@@ -39,7 +39,7 @@ export async function requireEventAccess() {
     .eq('user_id', user.id)
     .single()
 
-  if (!role || !['admin', 'editor', 'organizer'].includes(role.role)) {
+  if (!isEventManager(role?.role)) {
     throw new Error("Forbidden: Insufficient permissions")
   }
 

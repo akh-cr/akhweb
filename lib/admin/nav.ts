@@ -1,6 +1,8 @@
 import { Calendar, Users, FileText, MapPin, Newspaper, Mail, type LucideIcon } from "lucide-react"
+import type { EventManagerRole } from "@/lib/auth/roles"
 
-export type AdminRole = 'admin' | 'editor' | 'organizer'
+/** Roles that can sign into the admin area (alias of the event-manager set). */
+export type AdminRole = EventManagerRole
 
 export interface AdminNavItem {
   title: string

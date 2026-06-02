@@ -1,5 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { ASSIGNABLE_ROLES, isAssignableRole } from '../_shared/roles.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,9 +53,8 @@ Deno.serve(async (req) => {
     }
 
     // Validate role
-    const validRoles = ['admin', 'editor', 'user', 'organizer']
-    if (!validRoles.includes(role)) {
-        throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`)
+    if (!isAssignableRole(role)) {
+        throw new Error(`Invalid role. Must be one of: ${ASSIGNABLE_ROLES.join(', ')}`)
     }
     if (role === 'organizer' && !organizerId) {
         throw new Error('Organizace je povinná pro roli organizer')

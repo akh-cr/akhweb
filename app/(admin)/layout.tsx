@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { AdminAccessDenied } from "@/components/admin-access-denied"
-import type { AdminRole } from "@/lib/admin/nav"
+import { isEventManager } from "@/lib/auth/roles"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -21,7 +21,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     .single()
 
   const role = roleData?.role
-  if (!role || !['admin', 'editor', 'organizer'].includes(role)) {
+  if (!isEventManager(role)) {
      return <AdminAccessDenied email={user.email} />
   }
 
@@ -35,7 +35,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
   return (
     <SidebarProvider>
-      <AppSidebar user={user} role={role as AdminRole} />
+      <AppSidebar user={user} role={role} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1 md:hidden" />
