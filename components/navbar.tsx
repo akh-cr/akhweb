@@ -35,6 +35,7 @@ export function Navbar() {
                 <Link href="/o-nas" className={linkClass("/o-nas")}>O AKH</Link>
                 <Link href="/blog" className={linkClass("/blog")}>Aktuality</Link>
                 <Link href="/akce" className={linkClass("/akce")}>Akce</Link>
+                <Link href="/pozvanky" className={linkClass("/pozvanky")}>Pozvánky</Link>
                 <Link href="/spolecenstvi" className={linkClass("/spolecenstvi")}>Společenství</Link>
                 <a href="https://absolventskyvelehrad.cz" target="_blank" className="hover:text-primary transition-colors whitespace-nowrap flex items-center gap-1">
                     Absolventský Velehrad <ExternalLink className="h-3 w-3" />
@@ -61,6 +62,7 @@ export function Navbar() {
                                 <Link href="/o-nas" className={mobileLinkClass("/o-nas")}>O AKH</Link>
                                 <Link href="/blog" className={mobileLinkClass("/blog")}>Aktuality</Link>
                                 <Link href="/akce" className={mobileLinkClass("/akce")}>Akce</Link>
+                                <Link href="/pozvanky" className={mobileLinkClass("/pozvanky")}>Pozvánky</Link>
                                 <Link href="/spolecenstvi" className={mobileLinkClass("/spolecenstvi")}>Společenství</Link>
                                 <a href="https://absolventskyvelehrad.cz" target="_blank" className="hover:text-primary flex items-center gap-2">
                                     Absolventský Velehrad <ExternalLink className="h-4 w-4" />

@@ -32,19 +32,22 @@ interface InviteUserDialogProps {
     iconOnly?: boolean
     defaultEmail?: string
     title?: string
+    organizers?: { id: string; name: string }[]
 }
 
-export function InviteUserDialog({ 
-    variant = "default", 
-    size = "default", 
+export function InviteUserDialog({
+    variant = "default",
+    size = "default",
     className,
     iconOnly = false,
     defaultEmail = "",
-    title = "Pozvat uživatele"
+    title = "Pozvat uživatele",
+    organizers = [],
 }: InviteUserDialogProps = {}) {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState(defaultEmail)
   const [role, setRole] = useState("editor")
+  const [organizerId, setOrganizerId] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -64,13 +67,17 @@ export function InviteUserDialog({
         toast.error("Zadejte email")
         return
     }
+    if (role === "organizer" && !organizerId) {
+        toast.error("Vyberte organizaci")
+        return
+    }
 
     setLoading(true)
     const supabase = createClient()
 
     try {
       const { data, error } = await supabase.functions.invoke('invite-user', {
-        body: { email, role }
+        body: { email, role, organizerId: role === "organizer" ? organizerId : null }
       })
 
       if (error) throw error
@@ -134,10 +141,30 @@ export function InviteUserDialog({
                 <SelectContent>
                     <SelectItem value="user">Uživatel</SelectItem>
                     <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="organizer">Organizace</SelectItem>
                     <SelectItem value="admin">Administrátor</SelectItem>
                 </SelectContent>
             </Select>
           </div>
+          {role === "organizer" && (
+            <div className="grid items-center gap-4">
+              <Label htmlFor="organizer">Organizace</Label>
+              <Select value={organizerId} onValueChange={setOrganizerId}>
+                  <SelectTrigger>
+                      <SelectValue placeholder="Vyberte organizaci" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {organizers.length === 0 ? (
+                          <div className="px-2 py-1.5 text-sm text-muted-foreground">Nejprve vytvořte pořadatele v sekci Pozvánky.</div>
+                      ) : (
+                          organizers.map((o) => (
+                              <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                          ))
+                      )}
+                  </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleInvite} disabled={loading}>

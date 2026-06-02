@@ -46,11 +46,17 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve(mockSupabase)),
 }));
 
-// Mock requireAdmin for Events
+// Mock guards for Events
 vi.mock('@/lib/auth/guards', () => ({
-  requireAdmin: vi.fn(() => Promise.resolve({ 
-      supabase: mockSupabase, 
-      user: { id: 'admin-user-id' } 
+  requireAdmin: vi.fn(() => Promise.resolve({
+      supabase: mockSupabase,
+      user: { id: 'admin-user-id' }
+  })),
+  requireEventAccess: vi.fn(() => Promise.resolve({
+      supabase: mockSupabase,
+      user: { id: 'admin-user-id' },
+      role: 'admin',
+      organizerId: null,
   })),
 }));
 
@@ -135,7 +141,8 @@ describe('Admin Creation Actions', () => {
       await createEvent(eventData);
 
       expect(mockFrom).toHaveBeenCalledWith('events');
-      expect(mockInsert).toHaveBeenCalledWith(eventData);
+      // Admin without an explicit organizer creates an AKH event (organizer_id null).
+      expect(mockInsert).toHaveBeenCalledWith({ ...eventData, organizer_id: null });
       const { revalidatePath } = await import('next/cache');
       expect(revalidatePath).toHaveBeenCalledWith('/admin/events');
     });

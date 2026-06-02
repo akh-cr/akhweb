@@ -2,7 +2,9 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 import { AdminAccessDenied } from "@/components/admin-access-denied"
+import type { AdminRole } from "@/lib/admin/nav"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -12,19 +14,28 @@ export default async function Layout({ children }: { children: React.ReactNode }
     redirect("/login")
   }
 
-  const { data: roleData, error } = await supabase
+  const { data: roleData } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
     .single()
 
-  if (!roleData || !['admin', 'editor'].includes(roleData.role)) {
+  const role = roleData?.role
+  if (!role || !['admin', 'editor', 'organizer'].includes(role)) {
      return <AdminAccessDenied email={user.email} />
+  }
+
+  // Organization users are confined to their own invitations section.
+  if (role === 'organizer') {
+    const pathname = (await headers()).get('x-pathname') || ''
+    if (!pathname.startsWith('/admin/pozvanky')) {
+      redirect('/admin/pozvanky')
+    }
   }
 
   return (
     <SidebarProvider>
-      <AppSidebar user={user} />
+      <AppSidebar user={user} role={role as AdminRole} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1 md:hidden" />

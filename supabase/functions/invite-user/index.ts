@@ -57,10 +57,18 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { email, role = 'editor' } = await req.json()
+    const { email, role = 'editor', organizerId = null } = await req.json()
 
     if (!email) {
       throw new Error('Email is required')
+    }
+
+    const validRoles = ['admin', 'editor', 'user', 'organizer']
+    if (!validRoles.includes(role)) {
+      throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`)
+    }
+    if (role === 'organizer' && !organizerId) {
+      throw new Error('Organizace je povinná pro roli organizer')
     }
 
     // Check if user already exists
@@ -167,18 +175,22 @@ Deno.serve(async (req) => {
         html: htmlContent
     });
 
-    // 6. Assign the role in public.user_roles (User is created by generateLink)
+    // 6. Assign the role in public.user_roles (User is created by generateLink).
+    //    organizer_id is set only for the 'organizer' role and cleared otherwise.
     const { error: insertError } = await supabaseAdmin
       .from('user_roles')
-      .insert({ user_id: linkData.user.id, role: role })
+      .upsert(
+        {
+          user_id: linkData.user.id,
+          role: role,
+          organizer_id: role === 'organizer' ? organizerId : null,
+        },
+        { onConflict: 'user_id' },
+      )
 
     if (insertError) {
-        if (insertError.code === '23505') {
-            console.log('User already has this role, ignoring duplicate key error.');
-        } else {
-             console.error('Failed to assign role:', insertError);
-             throw insertError;
-        }
+        console.error('Failed to assign role:', insertError);
+        throw insertError;
     }
 
     return new Response(

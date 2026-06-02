@@ -1,13 +1,24 @@
 "use server"
 
-import { requireAdmin } from "@/lib/auth/guards"
+import { requireAdmin, requireEventAccess } from "@/lib/auth/guards"
 import { revalidatePath } from "next/cache"
+import { scopeOrganizerId } from "@/lib/events/scope"
 import {
   AKH_ORGANIZER_SETTINGS_ID,
   DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX,
   isOrganizerColorHex,
   type OrganizerColorHex,
 } from "@/lib/event-organizer-colors"
+
+/** Revalidate every surface an event change can affect (AKH + external, public + admin). */
+function revalidateEventSurfaces() {
+  revalidatePath('/admin/events')
+  revalidatePath('/admin/pozvanky')
+  revalidatePath('/akce')
+  revalidatePath('/pozvanky')
+  revalidatePath('/akce/[slug]', 'page')
+  revalidatePath('/')
+}
 
 export interface Event {
   id: string
@@ -34,49 +45,53 @@ export type CreateEventOrganizerResult =
   | { success: false; error: string }
 
 export async function createEvent(data: EventCreate) {
-  const { supabase } = await requireAdmin()
-  
+  const { supabase, role, organizerId } = await requireEventAccess()
+
   // Ensure we have a slug
   if (!data.slug) {
       const { slugify } = await import("@/lib/utils")
       data.slug = slugify(data.title)
   }
 
+  // Pin organizers to their own organization; admins/editors keep their choice.
+  const payload = { ...data, organizer_id: scopeOrganizerId(role, organizerId, data.organizer_id) }
+
   const { error } = await supabase
     .from('events')
-    .insert(data)
+    .insert(payload)
 
   if (error) {
     throw new Error(error.message)
   }
 
-  revalidatePath('/admin/events')
-  revalidatePath('/akce')
-  revalidatePath('/')
+  revalidateEventSurfaces()
 }
 
 export async function updateEvent(id: string, data: EventUpdate) {
-  const { supabase } = await requireAdmin()
+  const { supabase, role, organizerId } = await requireEventAccess()
+
+  const payload = { ...data }
+  // An organizer can never reassign an event away from their organization.
+  if (role === 'organizer') {
+    payload.organizer_id = organizerId
+  }
 
   const { error } = await supabase
     .from('events')
-    .update(data)
+    .update(payload)
     .eq('id', id)
 
   if (error) {
     throw new Error(error.message)
   }
 
-  revalidatePath('/admin/events')
-  revalidatePath('/akce')
-  revalidatePath('/')
-  revalidatePath('/akce/[slug]', 'page')
+  revalidateEventSurfaces()
 }
 
 export async function deleteEvent(id: string) {
   console.log("Deleting event:", id)
-  
-  const { user, supabase } = await requireAdmin()
+
+  const { user, supabase } = await requireEventAccess()
   console.log("Current user:", user.id)
 
   // 1. Fetch images to delete
@@ -114,12 +129,12 @@ export async function deleteEvent(id: string) {
       throw new Error(`Nepodařilo se smazat záznam. User: ${user?.id || 'NONE'}, RLS blocked it.`)
   }
 
-  revalidatePath('/admin/events')
+  revalidateEventSurfaces()
 }
 
 export async function toggleEventVisibility(id: string, isHidden: boolean) {
-    const { supabase } = await requireAdmin()
-    
+    const { supabase } = await requireEventAccess()
+
     const { error } = await supabase
         .from('events')
         .update({ is_hidden: isHidden })
@@ -129,10 +144,7 @@ export async function toggleEventVisibility(id: string, isHidden: boolean) {
         throw new Error(error.message)
     }
 
-    revalidatePath('/admin/events')
-    revalidatePath('/akce')
-    revalidatePath('/akce/[slug]', 'page')
-    revalidatePath('/')
+    revalidateEventSurfaces()
 }
 
 export async function createEventOrganizer(

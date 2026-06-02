@@ -23,7 +23,8 @@ vi.mock('@/lib/storage-server', () => ({
 
 // Mock guards
 vi.mock('@/lib/auth/guards', () => ({
-  requireAdmin: vi.fn(() => Promise.resolve({ user: { id: 'test-user' }, supabase: mockSupabase }))
+  requireAdmin: vi.fn(() => Promise.resolve({ user: { id: 'test-user' }, supabase: mockSupabase })),
+  requireEventAccess: vi.fn(() => Promise.resolve({ user: { id: 'test-user' }, supabase: mockSupabase, role: 'admin', organizerId: null }))
 }))
 
 const mockDelete = vi.fn()

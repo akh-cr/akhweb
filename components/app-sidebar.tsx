@@ -1,8 +1,7 @@
 "use client"
 
-import { Calendar, LogOut, Users, FileText, MapPin, Newspaper } from "lucide-react"
+import { LogOut, Users } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
@@ -20,47 +19,14 @@ import {
 import { Button } from "./ui/button"
 import { toast } from "sonner"
 
-import { FEATURES } from "@/lib/features"
+import { getAdminNavItems, type AdminRole } from "@/lib/admin/nav"
 
-// Menu items.
-const items = [
-  {
-    title: "Aktuality",
-    url: "/admin/posts",
-    icon: Newspaper,
-  },
-  {
-    title: "Akce",
-    url: "/admin/events",
-    icon: Calendar,
-  },
-  {
-    title: "Společenství",
-    url: "/admin/cities",
-    icon: MapPin,
-  },
-
-  {
-    title: "Obsah webu",
-    url: "/admin/content",
-    icon: FileText,
-  },
-  {
-    title: "Rada AKH",
-    url: "/admin/council",
-    icon: Users,
-  },
-  {
-    title: "Uživatelé",
-    url: "/admin/users",
-    icon: Users,
-  },
-]
-
-export function AppSidebar({ user }: { user?: { email?: string } | null }) {
+export function AppSidebar({ user, role }: { user?: { email?: string } | null; role: AdminRole }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+
+  const items = getAdminNavItems(role)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()

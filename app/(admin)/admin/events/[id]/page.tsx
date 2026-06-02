@@ -52,6 +52,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
           cities={cities || []}
           organizers={organizers || []}
           akhOrganizerColor={akhOrganizerColor}
+          scope="akh"
         />
       </div>
     )

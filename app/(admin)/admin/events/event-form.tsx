@@ -87,10 +87,25 @@ interface EventFormProps {
   cities: City[]
   organizers: Organizer[]
   akhOrganizerColor: OrganizerColorHex
+  /** "akh" hides the organizer picker (AKH events); "external" requires an organizer. */
+  scope?: "akh" | "external"
+  /** Pre-selected organization for org-users; combined with lockOrganizer. */
+  lockedOrganizerId?: string | null
+  /** When true the organizer cannot be changed (organization users). */
+  lockOrganizer?: boolean
 }
 
-export function EventForm({ initialData, cities, organizers, akhOrganizerColor }: EventFormProps) {
+export function EventForm({
+  initialData,
+  cities,
+  organizers,
+  akhOrganizerColor,
+  scope = "akh",
+  lockedOrganizerId = null,
+  lockOrganizer = false,
+}: EventFormProps) {
   const router = useRouter()
+  const returnPath = scope === "external" ? "/admin/pozvanky" : "/admin/events"
   const [organizerOptions, setOrganizerOptions] = useState<Organizer[]>(organizers)
   const [newOrganizerName, setNewOrganizerName] = useState("")
   const [newOrganizerColor, setNewOrganizerColor] = useState<OrganizerColorHex>(DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX)
@@ -107,7 +122,7 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
       // Convert ISO date to datetime-local format if initialData exists
       start_time: initialData?.start_time ? new Date(initialData.start_time).toISOString().slice(0, 16) : "",
       city_id: initialData?.city_id || "",
-      organizer_id: initialData?.organizer_id || "null_option",
+      organizer_id: initialData?.organizer_id || (scope === "external" ? (lockedOrganizerId ?? "") : "null_option"),
       location: initialData?.location || "",
       image_url: initialData?.image_url || "",
       gallery_images: initialData?.gallery_images || [],
@@ -134,6 +149,19 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
         toast.info(`Slug byl automaticky vygenerován: ${slug}`)
     }
 
+    let organizerId: string | null
+    if (scope === "akh") {
+        organizerId = null
+    } else if (lockOrganizer) {
+        organizerId = lockedOrganizerId ?? null
+    } else {
+        organizerId = values.organizer_id && values.organizer_id !== "null_option" ? values.organizer_id : null
+        if (!organizerId) {
+            toast.error("Vyberte pořadatele (organizaci).")
+            return
+        }
+    }
+
     const dataToSave = {
         title: values.title,
         slug: slug,
@@ -141,7 +169,7 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
         content: values.content || null,
         start_time: isoDate,
         city_id: values.city_id === "null_option" ? null : (values.city_id || null),
-        organizer_id: values.organizer_id === "null_option" ? null : (values.organizer_id || null),
+        organizer_id: organizerId,
         location: values.location,
         image_url: values.image_url || null,
         gallery_images: values.gallery_images || [],
@@ -156,12 +184,12 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
             await updateEvent(initialData.id, dataToSave)
             toast.success("Akce byla upravena")
             form.reset(values)
-            router.push("/admin/events") // Redirect to overview
+            router.push(returnPath) // Redirect to overview
         } else {
             await createEvent(dataToSave)
             toast.success("Akce byla úspěšně vytvořena")
             form.reset(values)
-            router.push("/admin/events")
+            router.push(returnPath)
         }
         router.refresh()
     } catch (error) {
@@ -195,7 +223,7 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
                             Ovládání viditelnosti a propagace obsahu.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="px-0 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <CardContent className={`px-0 grid grid-cols-1 gap-8 ${scope === "external" ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
                         <FormField
                             control={form.control}
                             name="is_hidden"
@@ -242,30 +270,27 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
                                 </FormItem>
                             )}
                         />
+                        {scope === "external" && (
                         <FormField
                             control={form.control}
                             name="organizer_id"
                             render={({ field }) => (
                                 (() => {
-                                    const isAkhSelected = !field.value || field.value === "null_option"
                                     const selectedOrganizer = organizerOptions.find((organizer) => organizer.id === field.value)
-                                    const selectedLabel = selectedOrganizer?.name || "AKH"
-                                    const selectedTag = getOrganizerTagPresentation(
-                                        selectedOrganizer?.color_hex || null,
-                                        isAkhSelected,
-                                        akhColor,
-                                    )
+                                    const selectedLabel = selectedOrganizer?.name || "—"
+                                    const selectedTag = selectedOrganizer
+                                        ? getOrganizerTagPresentation(selectedOrganizer.color_hex, false)
+                                        : null
 
                                     return (
                                 <FormItem className="flex flex-col justify-center p-4 border rounded-lg bg-card shadow-sm">
-                                    <FormLabel className="font-semibold mb-2">Pořadatel</FormLabel>
+                                    <FormLabel className="font-semibold mb-2">Pořadatel (organizace)</FormLabel>
                                     <FormControl>
-                                        <Select onValueChange={field.onChange} value={field.value || "null_option"}>
+                                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={lockOrganizer}>
                                             <SelectTrigger className="bg-background">
                                                 <SelectValue placeholder="Vyberte pořadatele" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="null_option">AKH (výchozí)</SelectItem>
                                                 {organizerOptions.map((organizer) => (
                                                     <SelectItem key={organizer.id} value={organizer.id}>
                                                         {organizer.name}
@@ -275,8 +300,11 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
                                         </Select>
                                     </FormControl>
                                     <FormDescription className="mt-1">
-                                        Pokud nevyberete pořadatele, použije se automaticky AKH.
+                                        {lockOrganizer
+                                            ? "Akce se uloží pod vaši organizaci."
+                                            : "Vyberte organizaci, která akci pořádá."}
                                     </FormDescription>
+                                    {selectedTag && (
                                     <div className="mt-2">
                                         <span
                                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${selectedTag.className}`}
@@ -285,6 +313,8 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
                                             {selectedLabel}
                                         </span>
                                     </div>
+                                    )}
+                                    {!lockOrganizer && (<>
                                     <div className="mt-3">
                                         <Button
                                             type="button"
@@ -484,11 +514,13 @@ export function EventForm({ initialData, cities, organizers, akhOrganizerColor }
                                             </div>
                                         </DialogContent>
                                     </Dialog>
+                                    </>)}
                                 </FormItem>
                                     )
                                 })()
                             )}
                         />
+                        )}
                     </CardContent>
                 </Card>
 

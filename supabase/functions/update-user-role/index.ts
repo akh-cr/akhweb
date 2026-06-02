@@ -45,22 +45,28 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { userId, role } = await req.json()
+    const { userId, role, organizerId = null } = await req.json()
 
     if (!userId || !role) {
       throw new Error('User ID and Role are required')
     }
 
     // Validate role
-    const validRoles = ['admin', 'editor', 'user']
+    const validRoles = ['admin', 'editor', 'user', 'organizer']
     if (!validRoles.includes(role)) {
         throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`)
     }
+    if (role === 'organizer' && !organizerId) {
+        throw new Error('Organizace je povinná pro roli organizer')
+    }
 
-    // Upsert role
+    // Upsert role. organizer_id is set only for the 'organizer' role, cleared otherwise.
     const { error: upsertError } = await supabaseAdmin
       .from('user_roles')
-      .upsert({ user_id: userId, role: role }, { onConflict: 'user_id' })
+      .upsert(
+        { user_id: userId, role: role, organizer_id: role === 'organizer' ? organizerId : null },
+        { onConflict: 'user_id' },
+      )
 
     if (upsertError) {
       throw upsertError

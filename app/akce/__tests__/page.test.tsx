@@ -39,6 +39,8 @@ describe('EventsPage', () => {
     const mockQueryBuilder = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        is: vi.fn().mockReturnThis(),
+        not: vi.fn().mockReturnThis(),
         gte: vi.fn().mockReturnThis(),
         lt: vi.fn().mockReturnThis(),
         order: vi.fn().mockReturnThis(),
@@ -70,6 +72,9 @@ describe('EventsPage', () => {
     // Check Sections
     expect(screen.getByText('Nadcházející akce')).toBeDefined();
     expect(screen.getByText('Proběhlé akce')).toBeDefined();
+
+    // /akce shows ONLY AKH events (organizer_id IS NULL)
+    expect(mockQueryBuilder.is).toHaveBeenCalledWith('organizer_id', null);
     
     // Check hero image presence via alt text (Mocked content title is 'Akce Test')
     const heroImage = screen.getByAltText('Akce Test');

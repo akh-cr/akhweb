@@ -1,10 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import Image from "next/image";
-import { VideoPlayer } from "@/components/video-player";
-import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
-import { GoogleCalendar } from "@/components/google-calendar";
 import {
   Pagination,
   PaginationContent,
@@ -19,17 +16,17 @@ import { getContentBlocks, HeaderBlock } from "@/lib/content";
 import { EventWithCity } from "@/types/supabase";
 import { EventCard } from "@/components/events/EventCard";
 
-export default async function EventsPage({
+export default async function InvitationsPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const supabase = await createClient();
   const now = new Date().toISOString();
-  const contentMap = await getContentBlocks(['akce.header']);
-  const header = (contentMap['akce.header'] || {
-    title: "Akce",
-    subtitle: "Přehled všech akcí, které pro tebe chystáme. Duchovní, zábavné i vzdělávací.",
+  const contentMap = await getContentBlocks(['pozvanky.header']);
+  const header = (contentMap['pozvanky.header'] || {
+    title: "Pozvánky od jiných",
+    subtitle: "Akce dalších organizací a společenství, na které tě rádi pozveme.",
     image: "/images/backgrounds/akce-new-3.jpg"
   }) as HeaderBlock['content'];
 
@@ -39,22 +36,22 @@ export default async function EventsPage({
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  // Fetch upcoming AKH events (organizer_id IS NULL); external invitations live on /pozvanky.
+  // Upcoming external invitations (organizer_id IS NOT NULL); AKH events live on /akce.
   const { data: upcomingEvents } = await supabase
     .from('events')
     .select('*, cities(name), event_organizers(name, color_hex)')
     .eq('is_hidden', false)
-    .is('organizer_id', null)
+    .not('organizer_id', 'is', null)
     .gte('start_time', now)
     .order('start_time', { ascending: true })
     .returns<EventWithCity[]>();
 
-  // Fetch past AKH events with pagination
+  // Past external invitations with pagination
   const { data: pastEvents, count } = await supabase
     .from('events')
     .select('*, cities(name), event_organizers(name, color_hex)', { count: 'exact' })
     .eq('is_hidden', false)
-    .is('organizer_id', null)
+    .not('organizer_id', 'is', null)
     .lt('start_time', now)
     .order('start_time', { ascending: false })
     .range(from, to)
@@ -69,8 +66,8 @@ export default async function EventsPage({
       {/* Hero */}
       <section className="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden text-center px-5 border-b">
          <div className="absolute inset-0 z-0">
-             <Image 
-                 src={header.image || "/images/backgrounds/akce-new-3.jpg"} 
+             <Image
+                 src={header.image || "/images/backgrounds/akce-new-3.jpg"}
                  alt={header.title}
                  fill
                  priority
@@ -87,13 +84,13 @@ export default async function EventsPage({
          </div>
       </section>
 
-      {/* Upcoming Events List */}
+      {/* Upcoming invitations */}
       <section className="w-full py-20 max-w-4xl mx-auto px-5">
-         <h2 className="text-2xl font-bold mb-8">Nadcházející akce</h2>
+         <h2 className="text-2xl font-bold mb-8">Nadcházející pozvánky</h2>
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {!upcomingEvents || upcomingEvents.length === 0 ? (
                 <div className="text-center py-20 bg-card rounded-xl border col-span-full">
-                    <p className="text-muted-foreground">Zatím žádné naplánované akce.</p>
+                    <p className="text-muted-foreground">Zatím žádné pozvánky od jiných.</p>
                 </div>
             ) : (
                 upcomingEvents.map((event) => <EventCard key={event.id} event={event} />)
@@ -101,13 +98,13 @@ export default async function EventsPage({
          </div>
       </section>
 
-      {/* Past Events List */}
+      {/* Past invitations */}
       <section className="w-full py-16 bg-muted/30 border-t px-5" id="past-events">
          <div className="max-w-4xl mx-auto">
-             <h2 className="text-2xl font-bold mb-8 text-muted-foreground">Proběhlé akce</h2>
+             <h2 className="text-2xl font-bold mb-8 text-muted-foreground">Proběhlé pozvánky</h2>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 {!pastEvents || pastEvents.length === 0 ? (
-                    <p className="text-muted-foreground col-span-full text-center py-12">Žádné proběhlé akce k zobrazení.</p>
+                    <p className="text-muted-foreground col-span-full text-center py-12">Žádné proběhlé pozvánky k zobrazení.</p>
                 ) : (
                     pastEvents.map((event) => <EventCard key={event.id} event={event} />)
                 )}
@@ -119,16 +116,15 @@ export default async function EventsPage({
                      <PaginationContent>
                          {page > 1 && (
                              <PaginationItem>
-                                 <PaginationPrevious href={`/akce?page=${page - 1}#past-events`} />
+                                 <PaginationPrevious href={`/pozvanky?page=${page - 1}#past-events`} />
                              </PaginationItem>
                          )}
-                         
+
                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
-                             // Simple logic to show limited pages if too many (basic implementation for now)
                              if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
                                  return (
                                      <PaginationItem key={p}>
-                                         <PaginationLink href={`/akce?page=${p}#past-events`} isActive={page === p}>
+                                         <PaginationLink href={`/pozvanky?page=${p}#past-events`} isActive={page === p}>
                                              {p}
                                          </PaginationLink>
                                      </PaginationItem>
@@ -141,7 +137,7 @@ export default async function EventsPage({
 
                          {page < totalPages && (
                              <PaginationItem>
-                                 <PaginationNext href={`/akce?page=${page + 1}#past-events`} />
+                                 <PaginationNext href={`/pozvanky?page=${page + 1}#past-events`} />
                              </PaginationItem>
                          )}
                      </PaginationContent>
@@ -150,54 +146,6 @@ export default async function EventsPage({
          </div>
       </section>
 
-       {/* Video Section - Styled like HomeLayoutV1 */}
-       <section className="w-full py-24 bg-black text-white px-5">
-         <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-8">Ohlédnutí za minulými ročníky</h2>
-              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-900">
-                 <VideoPlayer videoId="YnE5zjv1XHY" />
-              </div>
-              <p className="mt-8 text-zinc-400 max-w-2xl mx-auto">
-                 Krátký sestřih toho nejlepšího z předchozích akcí a setkání.
-              </p>
-         </div>
-       </section>
-
-      {/* Google Calendar Section */}
-      <section className="w-full py-16 bg-white dark:bg-zinc-900 border-t flex flex-col items-center px-5">
-            <h2 className="text-3xl font-bold mb-8">Kalendář akcí</h2>
-            <div className="w-full max-w-4xl aspect-[4/3] md:aspect-[16/9] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-sm border border-border">
-                <GoogleCalendar />
-            </div>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-5 items-center justify-center">
-                 <a 
-                    href="https://calendar.google.com/calendar/ical/c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728%40group.calendar.google.com/public/basic.ics" 
-                    target="_blank" 
-                    className="w-full sm:w-auto"
-                 >
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V9H19V20ZM19 7H5V6H19V7ZM12 13H17V18H12V13Z" />
-                        </svg>
-                        Stáhnout iCal
-                    </Button>
-                 </a>
-                 <a 
-                    href="https://calendar.google.com/calendar/render?cid=c_64c2fa04923e833c63e15e926d92ae4cf4db6a29c36b482446308b5fd65ab728@group.calendar.google.com" 
-                    target="_blank" 
-                    className="w-full sm:w-auto"
-                 >
-                    <Button variant="default" size="lg" className="w-full sm:w-auto shadow-md hover:shadow-lg transition-all dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-                        <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19 4H18V2H16V4H8V2H6V4H5C3.89 4 3.01 4.9 3.01 6L3 20C3 21.1 3.89 22 5 22H19C20.1 22 21 21.1 21 20V6C21 4.9 20.1 4 19 4ZM19 20H5V9H19V20ZM19 7H5V6H19V7ZM12 13H17V18H12V13Z" />
-                        </svg>
-                        Odebírat Google Kalendář
-                    </Button>
-                 </a>
-            </div>
-      </section>
-
-      {/* Footer */}
       <Footer />
     </main>
   );

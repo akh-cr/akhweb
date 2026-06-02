@@ -24,18 +24,23 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Edit } from "lucide-react"
 
-export function UserRoleDialog({ userId, currentRole, email, trigger }: { userId: string, currentRole: string, email: string, trigger?: React.ReactNode }) {
+export function UserRoleDialog({ userId, currentRole, currentOrganizerId = null, organizers = [], email, trigger }: { userId: string, currentRole: string, currentOrganizerId?: string | null, organizers?: { id: string; name: string }[], email: string, trigger?: React.ReactNode }) {
   const supabase = createClient()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [role, setRole] = useState(currentRole)
+  const [organizerId, setOrganizerId] = useState(currentOrganizerId ?? "")
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
+    if (role === "organizer" && !organizerId) {
+      toast.error("Vyberte organizaci")
+      return
+    }
     setLoading(true)
     try {
       const { error } = await supabase.functions.invoke('update-user-role', {
-        body: { userId, role }
+        body: { userId, role, organizerId: role === "organizer" ? organizerId : null }
       })
 
       if (error) throw error
@@ -79,10 +84,30 @@ export function UserRoleDialog({ userId, currentRole, email, trigger }: { userId
                 <SelectContent>
                     <SelectItem value="user">Uživatel</SelectItem>
                     <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="organizer">Organizace</SelectItem>
                     <SelectItem value="admin">Administrátor</SelectItem>
                 </SelectContent>
             </Select>
           </div>
+          {role === "organizer" && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="organizer" className="text-right">Organizace</Label>
+              <Select value={organizerId} onValueChange={setOrganizerId}>
+                  <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Vyberte organizaci" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {organizers.length === 0 ? (
+                          <div className="px-2 py-1.5 text-sm text-muted-foreground">Nejprve vytvořte pořadatele v sekci Pozvánky.</div>
+                      ) : (
+                          organizers.map((o) => (
+                              <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                          ))
+                      )}
+                  </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleSave} disabled={loading}>

@@ -26,12 +26,14 @@ export function EventLayoutV1({ event, akhOrganizerColorHex }: EventLayoutProps)
                         <span className="bg-secondary px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             {event.city?.name || "Akce"}
                         </span>
-                        <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${organizerTag.className}`}
-                            style={organizerTag.style}
-                        >
-                            {organizerName}
-                        </span>
+                        {!isAkhEvent && (
+                            <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${organizerTag.className}`}
+                                style={organizerTag.style}
+                            >
+                                {organizerName}
+                            </span>
+                        )}
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-tight text-foreground">
                         {event.title}
@@ -42,9 +44,11 @@ export function EventLayoutV1({ event, akhOrganizerColorHex }: EventLayoutProps)
                             className="text-xl text-muted-foreground leading-relaxed" 
                          />
                      )}
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        Pořadatel: {organizerName}
-                    </p>
+                    {!isAkhEvent && (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Pořadatel: {organizerName}
+                        </p>
+                    )}
 
                     <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-muted-foreground border-y py-4">
                         <div className="flex items-center gap-2">
