@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { DataTable } from "./data-table"
-import { getUserColumns } from "./columns"
+import { UsersTable } from "./users-table"
 import { InviteUserDialog } from "./invite-user-dialog"
 
 export default async function UsersPage() {
@@ -32,7 +31,7 @@ export default async function UsersPage() {
       </div>
 
       <div className="bg-card rounded-xl p-2 overflow-hidden">
-         <DataTable columns={getUserColumns(organizerList)} data={users || []} searchPlaceholder="Hledat podle emailu..." />
+         <UsersTable data={users || []} organizers={organizerList} />
       </div>
 
       <div className="mt-8 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">

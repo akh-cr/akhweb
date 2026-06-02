@@ -1,6 +1,6 @@
 import { requireEventAccess } from "@/lib/auth/guards";
-import { getEventColumns } from "../events/columns";
-import { DataTable } from "../events/data-table";
+import { EventsTable } from "../events/events-table";
+import type { Event } from "../events/columns";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -30,7 +30,7 @@ export default async function InvitationsAdminPage() {
         </Link>
       </div>
       <div className="rounded-md bg-card overflow-hidden">
-        <DataTable columns={getEventColumns({ basePath: '/admin/pozvanky', showOrganizer: true })} data={events || []} />
+        <EventsTable data={(events ?? []) as Event[]} basePath="/admin/pozvanky" showOrganizer={true} />
       </div>
     </div>
   );

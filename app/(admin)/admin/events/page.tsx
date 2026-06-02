@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { getEventColumns } from "./columns";
-import { DataTable } from "./data-table";
+import { EventsTable } from "./events-table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import type { Event } from "./columns";
 
 export default async function EventsPage() {
   const supabase = await createClient();
@@ -22,7 +22,7 @@ export default async function EventsPage() {
         </Link>
       </div>
       <div className="rounded-md bg-card overflow-hidden">
-        <DataTable columns={getEventColumns({ basePath: '/admin/events', showOrganizer: false })} data={events || []} />
+        <EventsTable data={(events ?? []) as Event[]} basePath="/admin/events" showOrganizer={false} />
       </div>
     </div>
   );
