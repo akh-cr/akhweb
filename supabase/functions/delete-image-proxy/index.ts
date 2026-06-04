@@ -1,12 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { isEventManager } from '../_shared/roles.ts'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-const STORAGE_FUNCTIONS_BASE_URL = 'https://lwfpdjxsdmkfyrzqbrlk.supabase.co'
+import {
+  corsHeaders,
+  getStorageFunctionsBaseUrl,
+  verifyEventManager,
+} from '../_shared/verify-event-manager.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -14,40 +11,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authorization = req.headers.get('authorization')
-    const accessToken = authorization?.replace(/^Bearer\s+/i, '').trim()
-    const uploadSecret = Deno.env.get('UPLOAD_SECRET')
+    const verified = await verifyEventManager(req, {
+      getEnv: (key) => Deno.env.get(key),
+      createAdminClient: (url, key) => createClient(url, key),
+    })
 
-    if (!accessToken) {
-      throw new Error('Unauthorized: Missing access token')
-    }
-
-    if (!uploadSecret) {
-      throw new Error('Server misconfigured: Missing UPLOAD_SECRET')
-    }
-
-    const mainSupabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const {
-      data: { user },
-      error: userError,
-    } = await mainSupabaseAdmin.auth.getUser(accessToken)
-
-    if (userError || !user) {
-      throw new Error('Unauthorized: Invalid access token')
-    }
-
-    const { data: roleRow, error: roleError } = await mainSupabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-
-    if (roleError || !isEventManager(roleRow?.role)) {
-      throw new Error('Forbidden: Insufficient permissions')
+    if (!verified.ok) {
+      throw new Error(verified.error)
     }
 
     const { urls } = await req.json()
@@ -55,10 +25,11 @@ Deno.serve(async (req) => {
       throw new Error('No image URLs provided')
     }
 
-    const response = await fetch(`${STORAGE_FUNCTIONS_BASE_URL}/functions/v1/delete-image`, {
+    const baseUrl = getStorageFunctionsBaseUrl((key) => Deno.env.get(key))
+    const response = await fetch(`${baseUrl}/functions/v1/delete-image`, {
       method: 'POST',
       headers: {
-        'x-upload-secret': uploadSecret,
+        'x-upload-secret': verified.uploadSecret,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ urls }),

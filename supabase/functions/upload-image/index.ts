@@ -1,9 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-upload-secret',
-}
+import {
+  hasValidUploadSecret,
+  storageCorsHeaders as corsHeaders,
+  storageErrorResponse,
+} from '../_shared/storage-secret.ts'
 
 const BUCKET = 'akhweb'
 
@@ -14,10 +14,7 @@ Deno.serve(async (req) => {
 
   try {
     // 1. Verify shared secret from the main AKH proxy function
-    const uploadSecret = Deno.env.get('UPLOAD_SECRET')
-    const requestSecret = req.headers.get('x-upload-secret')
-
-    if (!uploadSecret || !requestSecret || requestSecret !== uploadSecret) {
+    if (!hasValidUploadSecret(req, (key) => Deno.env.get(key))) {
       throw new Error('Unauthorized: Invalid upload secret')
     }
 
@@ -67,9 +64,6 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    return storageErrorResponse(error, 'Upload failed')
   }
 })

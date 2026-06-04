@@ -1,9 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-upload-secret',
-}
+import {
+  hasValidUploadSecret,
+  storageCorsHeaders as corsHeaders,
+  storageErrorResponse,
+} from '../_shared/storage-secret.ts'
 
 function getStoragePath(url: string) {
   const urlObj = new URL(url)
@@ -30,10 +30,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const uploadSecret = Deno.env.get('UPLOAD_SECRET')
-    const requestSecret = req.headers.get('x-upload-secret')
-
-    if (!uploadSecret || !requestSecret || requestSecret !== uploadSecret) {
+    if (!hasValidUploadSecret(req, (key) => Deno.env.get(key))) {
       throw new Error('Unauthorized: Invalid upload secret')
     }
 
@@ -69,9 +66,6 @@ Deno.serve(async (req) => {
       status: 200,
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Delete failed' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    return storageErrorResponse(error, 'Delete failed')
   }
 })
