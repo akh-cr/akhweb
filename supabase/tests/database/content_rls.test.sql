@@ -5,11 +5,11 @@
 -- fails if any WRITE policy on content_blocks / posts is permissive — i.e. a
 -- `USING (true)` / `WITH CHECK (true)` that lets any authenticated user mutate.
 --
--- RED state: against today's loose policies ("Admins can manage posts" /
---   "Admins can update content blocks" with USING(true) WITH CHECK(true)), the
---   assertions below RAISE EXCEPTION.
--- GREEN state: after 20260604130105_tighten_content_rls.sql is applied, every
---   write policy checks public.is_staff(), so all assertions pass.
+-- NOTE: prod was already staff-gated (via is_admin_or_editor); 20260604130105 tidied the
+--   policies to the canonical public.is_staff() and collapsed posts' duplicate. This test
+--   asserts the end state: every content_blocks/posts write policy is role-based (references
+--   a role helper / user_roles), none is permissive `USING(true)`, and public read stays open.
+--   It RAISES if a permissive or non-role-based write policy ever reappears.
 --
 -- Run with: psql "$DATABASE_URL" -f supabase/tests/database/content_rls.test.sql
 -- (read-only: the whole test is wrapped in BEGIN/ROLLBACK).

@@ -1,123 +1,53 @@
--- Tighten RLS on the content tables (defense in depth — issue #09).
+-- Tidy content RLS to one clean, canonical staff-gated set (issue #09, corrected).
 --
--- The app-layer guards (#01/#02) are only the SECOND line of defense. The RLS
--- policies that shipped for `content_blocks` and `posts` are permissive:
--- `FOR UPDATE/INSERT/ALL TO authenticated USING (true) WITH CHECK (true)`, which
--- lets ANY authenticated user (e.g. an organizer or a plain `user`) mutate site
--- content. Postgres itself must enforce the same role tiers the app assumes.
+-- Reality check vs prod (2026-06-04): content_blocks/posts writes were ALREADY gated to
+-- staff via is_admin_or_editor(). There was NO "any authenticated can write" hole in prod
+-- (that existed only in a diverged local schema.sql). So this does NOT change the security
+-- posture; it tidies to one clean set:
+--   * canonical role helpers mirroring lib/auth/roles.ts: is_staff(), is_event_manager()
+--     (is_admin() already exists); legacy is_admin_or_editor() now delegates to is_staff()
+--     so cities/events/event_organizers policies share one source of truth.
+--   * collapses posts' two duplicate ALL policies into one.
+--   * content_blocks/posts write policies renamed to the canonical "Staff can manage ..." and
+--     point at is_staff(). Public read policies are left untouched.
 --
--- Tiers mirror lib/auth/roles.ts (and supabase/functions/_shared/roles.ts):
---   is_admin(uid)         -> role = 'admin'                         (admin-only)
---   is_staff(uid)         -> role IN ('admin','editor')             (content)
---   is_event_manager(uid) -> role IN ('admin','editor','organizer') (events)
---
--- This migration scopes ONLY the write (insert/update/delete) policies. Public
--- read access is left exactly as it is today. Tables whose writes are already
--- role-based (events, event_organizers, cities, pages, user_roles) are left
--- untouched here.
---
--- Idempotent-friendly: helpers use CREATE OR REPLACE; policies are dropped with
--- IF EXISTS before being recreated.
+-- Idempotent-friendly: helpers use CREATE OR REPLACE; policies are dropped with IF EXISTS.
 
--- ---------------------------------------------------------------------------
--- 1. Role helper functions (SQL mirror of lib/auth/roles.ts).
---    SECURITY DEFINER + a fixed search_path so they can read user_roles
---    regardless of the caller's own RLS view of that table.
--- ---------------------------------------------------------------------------
-
-CREATE OR REPLACE FUNCTION public.is_admin(uid uuid DEFAULT auth.uid())
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
+-- 1. Canonical role helpers (mirror lib/auth/roles.ts). SECURITY DEFINER + fixed search_path.
+CREATE OR REPLACE FUNCTION public.is_staff()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.user_roles
-    WHERE user_id = uid
-      AND role = 'admin'
+    WHERE user_id = auth.uid() AND role IN ('admin','editor')
   );
 $$;
 
-CREATE OR REPLACE FUNCTION public.is_staff(uid uuid DEFAULT auth.uid())
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
+CREATE OR REPLACE FUNCTION public.is_event_manager()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.user_roles
-    WHERE user_id = uid
-      AND role IN ('admin', 'editor')
+    WHERE user_id = auth.uid() AND role IN ('admin','editor','organizer')
   );
 $$;
 
-CREATE OR REPLACE FUNCTION public.is_event_manager(uid uuid DEFAULT auth.uid())
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = uid
-      AND role IN ('admin', 'editor', 'organizer')
-  );
+GRANT EXECUTE ON FUNCTION public.is_staff() TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION public.is_event_manager() TO authenticated, anon, service_role;
+
+-- Legacy alias kept for cities/events/event_organizers policies — now one source of truth.
+CREATE OR REPLACE FUNCTION public.is_admin_or_editor()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT public.is_staff();
 $$;
 
--- These predicates are safe to evaluate from any role context (they only read
--- the role table), so expose them to the relevant DB roles used by RLS.
-REVOKE EXECUTE ON FUNCTION public.is_admin(uuid) FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.is_staff(uuid) FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.is_event_manager(uuid) FROM PUBLIC;
-
-GRANT EXECUTE ON FUNCTION public.is_admin(uuid) TO authenticated, anon, service_role;
-GRANT EXECUTE ON FUNCTION public.is_staff(uuid) TO authenticated, anon, service_role;
-GRANT EXECUTE ON FUNCTION public.is_event_manager(uuid) TO authenticated, anon, service_role;
-
--- ---------------------------------------------------------------------------
--- 2. content_blocks — writes are STAFF only (admin/editor). Public read stays.
---    Replace the permissive update/insert policies and add an explicit delete.
--- ---------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "Admins can update content blocks" ON public.content_blocks;
-DROP POLICY IF EXISTS "Admins can insert content blocks" ON public.content_blocks;
-DROP POLICY IF EXISTS "Staff can update content blocks" ON public.content_blocks;
-DROP POLICY IF EXISTS "Staff can insert content blocks" ON public.content_blocks;
-DROP POLICY IF EXISTS "Staff can delete content blocks" ON public.content_blocks;
-
-CREATE POLICY "Staff can insert content blocks"
-  ON public.content_blocks
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (public.is_staff());
-
-CREATE POLICY "Staff can update content blocks"
-  ON public.content_blocks
-  FOR UPDATE
-  TO authenticated
-  USING (public.is_staff())
-  WITH CHECK (public.is_staff());
-
-CREATE POLICY "Staff can delete content blocks"
-  ON public.content_blocks
-  FOR DELETE
-  TO authenticated
-  USING (public.is_staff());
-
--- ---------------------------------------------------------------------------
--- 3. posts — writes are STAFF only (admin/editor). Public read stays.
---    Replace the single permissive FOR ALL policy.
--- ---------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "Admins can manage posts" ON public.posts;
+-- 2. posts — collapse the two duplicate ALL policies into one canonical staff policy.
+DROP POLICY IF EXISTS "Admins manage posts" ON public.posts;
+DROP POLICY IF EXISTS "Editors can manage posts" ON public.posts;
 DROP POLICY IF EXISTS "Staff can manage posts" ON public.posts;
+CREATE POLICY "Staff can manage posts" ON public.posts
+  FOR ALL USING (public.is_staff()) WITH CHECK (public.is_staff());
 
-CREATE POLICY "Staff can manage posts"
-  ON public.posts
-  FOR ALL
-  TO authenticated
-  USING (public.is_staff())
-  WITH CHECK (public.is_staff());
+-- 3. content_blocks — single canonical staff write policy (public read untouched).
+DROP POLICY IF EXISTS "Editors can manage content blocks" ON public.content_blocks;
+DROP POLICY IF EXISTS "Staff can manage content blocks" ON public.content_blocks;
+CREATE POLICY "Staff can manage content blocks" ON public.content_blocks
+  FOR ALL USING (public.is_staff()) WITH CHECK (public.is_staff());
