@@ -38,7 +38,22 @@ CREATE TABLE IF NOT EXISTS public.event_organizers (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL UNIQUE,
   color_hex text NOT NULL DEFAULT '#7dd3fc',
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  -- Must stay in sync with ORGANIZER_COLOR_OPTIONS in lib/event-organizer-colors.ts.
+  CONSTRAINT event_organizers_color_hex_check CHECK (color_hex IN (
+    '#ffd166', -- AKH zlatá
+    '#7dd3fc', -- Nebeská
+    '#fbbf24', -- Jantarová
+    '#34d399', -- Smaragdová
+    '#fb7185', -- Růžová
+    '#a78bfa', -- Fialová
+    '#94a3b8', -- Břidlicová
+    '#fb923c', -- Korálová
+    '#2dd4bf', -- Teal
+    '#f43f5e', -- Malinová
+    '#c4b5fd', -- Levandule
+    '#a3b18a'  -- Oliva
+  ))
 );
 
 ALTER TABLE public.event_organizers ENABLE ROW LEVEL SECURITY;
