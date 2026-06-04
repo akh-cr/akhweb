@@ -2,15 +2,32 @@
 
 import { requireAdmin } from "@/lib/auth/guards";
 import { guardedMutation, revalidate, type RevalidateSet } from "@/lib/admin/mutations";
+import { validateContent, type ContentBlockType } from "@/lib/content";
 
 /** Surfaces a content-block change can affect (home page + admin editor). */
 const CONTENT_SURFACES: RevalidateSet = ['/', '/admin/content'];
 
-export async function updateContentBlock(id: string, content: any) {
+export async function updateContentBlock(id: string, content: unknown) {
   return guardedMutation(requireAdmin, async ({ supabase }) => {
+    // Validate BEFORE the DB write: look up the block's declared type
+    // (authoritative server-side, never trusting a client-supplied type) and
+    // run the typed validator. Malformed content throws here and never reaches
+    // the database — no unvalidated `any` is persisted.
+    const { data: block, error: lookupError } = await supabase
+      .from('content_blocks')
+      .select('type')
+      .eq('id', id)
+      .single();
+
+    if (lookupError || !block) {
+      throw new Error(`Content block not found: ${id}`);
+    }
+
+    const validated = validateContent(block.type as ContentBlockType, content);
+
     const { error } = await supabase
       .from('content_blocks')
-      .update({ content, updated_at: new Date().toISOString() })
+      .update({ content: validated, updated_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) {

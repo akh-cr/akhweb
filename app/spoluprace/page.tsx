@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, HandHeart, Heart, Link as LinkIcon, Users, FileText } from "lucide-react";
 import Link from "next/link";
 
-import { getContentBlocks, HeaderBlock, TextImageBlock, PartnersBlock } from "@/lib/content";
+import { getContentBlocks, resolveContentBlock } from "@/lib/content";
 
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
@@ -23,9 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SpolupracePage() {
   const contentMap = await getContentBlocks(['spoluprace.header', 'spoluprace.zapoj_se', 'spoluprace.partners', 'kontakt.details']);
   
-  const header = contentMap['spoluprace.header'] as HeaderBlock['content'] || { title: 'Spolupráce', subtitle: 'Budujeme společenství společně.' };
-  const zapojSe = contentMap['spoluprace.zapoj_se'] as TextImageBlock['content'] || { title: 'Zapoj se', text: 'Přidej se k nám.', items: [] };
-  const partners = contentMap['spoluprace.partners'] as PartnersBlock['content'] || { links: [] };
+  const header = resolveContentBlock('header', contentMap['spoluprace.header'], { title: 'Spolupráce', subtitle: 'Budujeme společenství společně.' });
+  const zapojSe = resolveContentBlock('text_image', contentMap['spoluprace.zapoj_se'], { title: 'Zapoj se', text: 'Přidej se k nám.', items: [] });
+  const partners = resolveContentBlock('partners', contentMap['spoluprace.partners'], { links: [] });
   const contactDetails = contentMap['kontakt.details'] as any || {}; 
   const bankAccount = contactDetails?.bankAccount;
 

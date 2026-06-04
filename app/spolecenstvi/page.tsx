@@ -14,7 +14,7 @@ const CommunitiesMap = dynamic(() => import('@/components/communities-map').then
 });
 
 import { createClient } from "@/lib/supabase/server";
-import { getContentBlocks, HeaderBlock } from "@/lib/content";
+import { getContentBlocks, resolveContentBlock } from "@/lib/content";
 
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
@@ -104,11 +104,11 @@ export default async function CommunitiesPage() {
     getContentBlocks(['spolecenstvi.header', 'spolecenstvi.materials'])
   ]);
 
-  const header = (contentMap['spolecenstvi.header'] || {
+  const header = resolveContentBlock('header', contentMap['spolecenstvi.header'], {
     title: "Společenství",
     subtitle: "Podporujeme a sdružujeme lokální společenství absolventů a mladých pracujících. Vytváříme prostor pro sdílení, inspiraci a společný růst ve víře i v životě.",
     image: "/images/backgrounds/spolecenstvi-new.jpg"
-  }) as HeaderBlock['content'];
+  });
 
   return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-background">

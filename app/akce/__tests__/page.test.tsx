@@ -8,7 +8,10 @@ vi.mock('@/components/footer', () => ({ Footer: () => <div data-testid="footer">
 vi.mock('@/components/video-player', () => ({ VideoPlayer: () => <div data-testid="video-player">Video</div> }));
 vi.mock('@/components/google-calendar', () => ({ GoogleCalendar: () => <div data-testid="google-calendar">Calendar</div> }));
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }));
-vi.mock('@/lib/content', () => ({ getContentBlocks: vi.fn() }));
+vi.mock('@/lib/content', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/content')>()),
+  getContentBlocks: vi.fn(),
+}));
 
 import { createClient } from '@/lib/supabase/server';
 import { getContentBlocks } from '@/lib/content';

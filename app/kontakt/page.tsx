@@ -4,7 +4,7 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { FileText, Mail, Instagram, Facebook } from "lucide-react";
 import Image from "next/image";
-import { getContentBlocks, HeaderBlock } from "@/lib/content";
+import { getContentBlocks, resolveContentBlock, type ContactDetailsBlock } from "@/lib/content";
 import { Metadata } from "next";
 import { getPageSeo } from "@/lib/seo";
 
@@ -18,32 +18,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Define interface for details if not imported
-interface ContactDetails {
-    address: string[];
-    email: string;
-    bankAccount: string;
-    socials: {
-        facebook?: string;
-        instagram?: string;
-    };
-    people: Array<{
-        role: string;
-        name: string;
-        image: string; // emoji or char
-        phone?: string;
-    }>;
-}
+type ContactDetails = ContactDetailsBlock['content'];
 
 export default async function ContactPage() {
     // Parallel fetching
     const contentMap = await getContentBlocks(['kontakt.header', 'kontakt.details']);
 
-    const header = (contentMap['kontakt.header'] || {
+    const header = resolveContentBlock('header', contentMap['kontakt.header'], {
         title: "Kontakt",
         subtitle: "Jsme tu pro tebe. Ozvi se nám.",
         image: "/images/backgrounds/contact.jpg"
-    }) as HeaderBlock['content'];
+    });
 
     // Default details as fallback
     const defaultDetails: ContactDetails = {
@@ -59,7 +44,7 @@ export default async function ContactPage() {
         ]
     };
 
-    const details = (contentMap['kontakt.details'] || defaultDetails) as ContactDetails;
+    const details = resolveContentBlock('contact_details', contentMap['kontakt.details'], defaultDetails);
 
     return (
     <main className="min-h-screen flex flex-col font-[family-name:var(--font-inter)] bg-background">

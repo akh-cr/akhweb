@@ -4,7 +4,10 @@ import SpolupracePage from '../page';
 
 vi.mock('@/components/navbar', () => ({ Navbar: () => <div data-testid="navbar">Navbar</div> }));
 vi.mock('@/components/footer', () => ({ Footer: () => <div data-testid="footer">Footer</div> }));
-vi.mock('@/lib/content', () => ({ getContentBlocks: vi.fn() }));
+vi.mock('@/lib/content', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/content')>()),
+  getContentBlocks: vi.fn(),
+}));
 
 import { getContentBlocks } from '@/lib/content';
 

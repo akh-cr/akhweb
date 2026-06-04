@@ -24,8 +24,9 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn()
 }));
 
-vi.mock('@/lib/content', () => ({
-  getContentBlocks: vi.fn()
+vi.mock('@/lib/content', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/content')>()),
+  getContentBlocks: vi.fn(),
 }));
 
 import { createClient } from '@/lib/supabase/server';

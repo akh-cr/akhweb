@@ -12,7 +12,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-import { getContentBlocks, HeaderBlock } from "@/lib/content";
+import { getContentBlocks, resolveContentBlock } from "@/lib/content";
 import { getPublicEvents } from "@/lib/events/read";
 import { EventCard } from "@/components/events/EventCard";
 
@@ -24,11 +24,11 @@ export default async function InvitationsPage({
   const supabase = await createClient();
   const now = new Date().toISOString();
   const contentMap = await getContentBlocks(['pozvanky.header']);
-  const header = (contentMap['pozvanky.header'] || {
+  const header = resolveContentBlock('header', contentMap['pozvanky.header'], {
     title: "Pozvánky od jiných",
     subtitle: "Akce dalších organizací a společenství, na které tě rádi pozveme.",
     image: "/images/backgrounds/akce-new-3.jpg"
-  }) as HeaderBlock['content'];
+  });
 
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page) : 1;

@@ -15,7 +15,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-import { getContentBlocks, HeaderBlock } from "@/lib/content";
+import { getContentBlocks, resolveContentBlock } from "@/lib/content";
 import { getPublicEvents } from "@/lib/events/read";
 import { EventCard } from "@/components/events/EventCard";
 
@@ -27,11 +27,11 @@ export default async function EventsPage({
   const supabase = await createClient();
   const now = new Date().toISOString();
   const contentMap = await getContentBlocks(['akce.header']);
-  const header = (contentMap['akce.header'] || {
+  const header = resolveContentBlock('header', contentMap['akce.header'], {
     title: "Akce",
     subtitle: "Přehled všech akcí, které pro tebe chystáme. Duchovní, zábavné i vzdělávací.",
     image: "/images/backgrounds/akce-new-3.jpg"
-  }) as HeaderBlock['content'];
+  });
 
   const params = await searchParams;
   const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
