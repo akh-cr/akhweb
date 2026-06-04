@@ -94,6 +94,40 @@ describe('getPublicEvents', () => {
     expect(builder.range).toHaveBeenCalledWith(0, 8)
     expect(result.count).toBe(42)
   })
+
+  it('filters to external invitations (organizer_id IS NOT NULL) when audience=external, still excluding hidden', async () => {
+    const data = [{ id: '1', title: 'External', organizer_id: 'org-1' }]
+    const { client, builder } = makeClient({ data, count: null })
+
+    const result = await getPublicEvents(client as any, { audience: 'external' })
+
+    // External invitations have a NON-NULL organizer.
+    expect(builder.not).toHaveBeenCalledWith('organizer_id', 'is', null)
+    // It must NOT collapse to the AKH (IS NULL) filter.
+    expect(builder.is).not.toHaveBeenCalledWith('organizer_id', null)
+    // Hidden events stay excluded on the public surface.
+    expect(builder.eq).toHaveBeenCalledWith('is_hidden', false)
+    expect(result.data).toEqual(data)
+  })
+
+  it('keeps upcoming/past ordering + pagination for the external audience', async () => {
+    const now = '2026-06-04T00:00:00.000Z'
+    const { client, builder } = makeClient({ data: [], count: 7 })
+
+    const result = await getPublicEvents(client as any, {
+      audience: 'external',
+      scope: 'past',
+      now,
+      range: { from: 0, to: 8 },
+    })
+
+    expect(builder.not).toHaveBeenCalledWith('organizer_id', 'is', null)
+    expect(builder.select.mock.calls[0][1]).toEqual({ count: 'exact' })
+    expect(builder.lt).toHaveBeenCalledWith('start_time', now)
+    expect(builder.order).toHaveBeenCalledWith('start_time', { ascending: false })
+    expect(builder.range).toHaveBeenCalledWith(0, 8)
+    expect(result.count).toBe(7)
+  })
 })
 
 describe('getEventDetail', () => {
@@ -134,5 +168,32 @@ describe('getAdminEvents', () => {
 
     expect(builder.not).toHaveBeenCalledWith('organizer_id', 'is', null)
     expect(builder.is).not.toHaveBeenCalledWith('organizer_id', null)
+  })
+
+  it('scopes to a single organizer (organizer sees only their own events) when organizerId is set', async () => {
+    const { client, builder } = makeClient({ data: [], count: null })
+
+    await getAdminEvents(client as any, { audience: 'external', organizerId: 'org-1' })
+
+    // Organizer read-scoping: pinned to the acting organization.
+    expect(builder.eq).toHaveBeenCalledWith('organizer_id', 'org-1')
+    // Pinning to a concrete organizer already implies external; it must NOT
+    // fall through to the AKH (IS NULL) branch.
+    expect(builder.is).not.toHaveBeenCalledWith('organizer_id', null)
+    // Still admin: hidden events remain visible, newest-first ordering.
+    expect(builder.eq).not.toHaveBeenCalledWith('is_hidden', false)
+    expect(builder.order).toHaveBeenCalledWith('start_time', { ascending: false })
+  })
+
+  it('does NOT scope by organizer when organizerId is null (admin/editor sees the whole audience)', async () => {
+    const { client, builder } = makeClient({ data: [], count: null })
+
+    await getAdminEvents(client as any, { audience: 'external', organizerId: null })
+
+    // A null organizerId means "not an organizer" — no organizer_id eq filter.
+    expect(builder.eq).not.toHaveBeenCalledWith('organizer_id', null)
+    expect(builder.eq).not.toHaveBeenCalledWith('organizer_id', expect.any(String))
+    // Falls back to the external audience filter.
+    expect(builder.not).toHaveBeenCalledWith('organizer_id', 'is', null)
   })
 })

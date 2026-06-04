@@ -27,6 +27,12 @@ export type EventAudience = "akh" | "external"
 export type EventTimeScope = "upcoming" | "past"
 
 export interface PublicEventsOptions {
+  /**
+   * Which events to list. `akh` (default) = AKH events (organizer_id IS NULL),
+   * shown on `/akce`; `external` = external invitations (organizer_id IS NOT
+   * NULL), shown on `/pozvanky`. Both audiences exclude hidden events.
+   */
+  audience?: EventAudience
   /** Time window relative to `now`. Defaults to `upcoming`. */
   scope?: EventTimeScope
   /** ISO timestamp used as the upcoming/past boundary. Defaults to `new Date().toISOString()`. */
@@ -41,21 +47,27 @@ export interface PublicEventsResult {
 }
 
 /**
- * Reads public AKH events (organizer_id IS NULL), excluding hidden ones.
+ * Reads public events, excluding hidden ones. The `audience` picks the
+ * AKH-vs-external split (this filter lives here, never inline in a page):
+ *  - `akh` (default) → AKH events (organizer_id IS NULL), shown on `/akce`.
+ *  - `external` → external invitations (organizer_id IS NOT NULL), shown on
+ *    `/pozvanky`.
  *
- * - `scope: 'upcoming'` → start_time >= now, ordered ascending.
- * - `scope: 'past'` → start_time < now, ordered descending, with an exact count
- *   (so callers can paginate); pass `range` for the page window.
- *
- * External invitations are intentionally NOT returned here — they live on their
- * own surface and read via `getAdminEvents({ audience: 'external' })` /
- * future external-only helpers (issue 07).
+ * Within an audience the time window is chosen by `scope`:
+ *  - `scope: 'upcoming'` → start_time >= now, ordered ascending.
+ *  - `scope: 'past'` → start_time < now, ordered descending, with an exact count
+ *    (so callers can paginate); pass `range` for the page window.
  */
 export async function getPublicEvents(
   supabase: Client,
   options: PublicEventsOptions = {},
 ): Promise<PublicEventsResult> {
-  const { scope = "upcoming", now = new Date().toISOString(), range } = options
+  const {
+    audience = "akh",
+    scope = "upcoming",
+    now = new Date().toISOString(),
+    range,
+  } = options
 
   // Only the past list needs a total count (for pagination); the upcoming list
   // matches /akce's original query which did not request a count.
@@ -64,7 +76,15 @@ export async function getPublicEvents(
       ? supabase.from("events").select(EVENTS_SELECT, { count: "exact" })
       : supabase.from("events").select(EVENTS_SELECT)
 
-  query.eq("is_hidden", false).is("organizer_id", null)
+  query.eq("is_hidden", false)
+
+  // AKH-vs-external split. AKH events have a NULL organizer; everything else is
+  // an external invitation.
+  if (audience === "external") {
+    query.not("organizer_id", "is", null)
+  } else {
+    query.is("organizer_id", null)
+  }
 
   if (scope === "past") {
     query.lt("start_time", now).order("start_time", { ascending: false })

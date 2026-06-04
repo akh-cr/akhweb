@@ -18,10 +18,11 @@ export interface Event extends EventRow {
     name: string
     image_url?: string | null
   } | null
-  // Optional because external-invitation surfaces (issue 07) still produce the
-  // legacy `EventWithCity` shape where this join is optional; the read module
-  // always populates it, and every consumer guards with `?.`.
-  event_organizers?: {
+  // Required: every event read now flows through `EVENTS_SELECT`, which always
+  // joins the organizer (issue 07 migrated the last surfaces off inline selects).
+  // It is `null` for AKH events (organizer_id IS NULL); consumers still guard
+  // with `?.` for that null.
+  event_organizers: {
     name: string
     color_hex: string | null
   } | null

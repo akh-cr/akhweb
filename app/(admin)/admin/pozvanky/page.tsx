@@ -3,23 +3,18 @@ import { EventsTable } from "../events/events-table";
 import type { Event } from "../events/columns";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { getAdminEvents } from "@/lib/events/read";
 
 export default async function InvitationsAdminPage() {
   const { supabase, role, organizerId } = await requireEventAccess();
 
-  // External invitations only (organizer_id IS NOT NULL).
-  let query = supabase
-    .from('events')
-    .select('*, event_organizers(name, color_hex)')
-    .not('organizer_id', 'is', null)
-    .order('start_time', { ascending: false });
-
-  // Organizers see only their own organization's invitations.
-  if (role === 'organizer' && organizerId) {
-    query = query.eq('organizer_id', organizerId);
-  }
-
-  const { data: events } = await query;
+  // External invitations only (organizer_id IS NOT NULL). Organizers see only
+  // their own organization's invitations — the read-scoping lives in the module:
+  // a non-null organizerId pins the read to that organization.
+  const { data: events } = await getAdminEvents(supabase, {
+    audience: 'external',
+    organizerId: role === 'organizer' ? organizerId : null,
+  });
 
   return (
     <div className="p-1 sm:p-4 md:p-8 mx-auto w-full">

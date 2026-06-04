@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { EventLayoutV1 } from "@/components/events/EventLayoutV1";
+import { getEventDetail } from "@/lib/events/read";
 import { AKH_ORGANIZER_SETTINGS_ID, resolveAkhOrganizerColor } from "@/lib/event-organizer-colors";
 
 
@@ -17,7 +18,8 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const slug = decodeURIComponent((await params).slug)
   const supabase = await createClient();
-  const { data: event } = await supabase.from('events').select('title, description').eq('slug', slug).single();
+  // Read through the events module so the metadata can never drift from the page.
+  const { data: event } = await getEventDetail(supabase, slug);
 
   return {
     title: event?.title || 'Akce nenalezena',
@@ -36,11 +38,7 @@ export default async function EventDetailPage({
   const slug = decodeURIComponent(unwrappedParams.slug); // Ensure we decode before querying
 
   const [{ data: rawEvent }, { data: akhSettings }] = await Promise.all([
-    supabase
-      .from('events')
-      .select('*, cities(name, image_url), event_organizers(name, color_hex)') // Enhanced query
-      .eq('slug', slug)
-      .single(),
+    getEventDetail(supabase, slug),
     supabase.from('content_blocks').select('content').eq('id', AKH_ORGANIZER_SETTINGS_ID).maybeSingle(),
   ]);
 

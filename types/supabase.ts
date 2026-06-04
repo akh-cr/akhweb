@@ -37,16 +37,6 @@ export interface EventOrganizer {
   color_hex: string
 }
 
-export interface EventWithCity extends Event {
-  cities: {
-    name: string
-  } | null
-  event_organizers?: {
-    name: string
-    color_hex: string
-  } | null
-}
-
 export interface Database {
   public: {
     Tables: {

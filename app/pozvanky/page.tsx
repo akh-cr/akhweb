@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/pagination";
 
 import { getContentBlocks, HeaderBlock } from "@/lib/content";
-import { EventWithCity } from "@/types/supabase";
+import { getPublicEvents } from "@/lib/events/read";
 import { EventCard } from "@/components/events/EventCard";
 
 export default async function InvitationsPage({
@@ -36,26 +36,19 @@ export default async function InvitationsPage({
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  // Upcoming external invitations (organizer_id IS NOT NULL); AKH events live on /akce.
-  const { data: upcomingEvents } = await supabase
-    .from('events')
-    .select('*, cities(name), event_organizers(name, color_hex)')
-    .eq('is_hidden', false)
-    .not('organizer_id', 'is', null)
-    .gte('start_time', now)
-    .order('start_time', { ascending: true })
-    .returns<EventWithCity[]>();
-
-  // Past external invitations with pagination
-  const { data: pastEvents, count } = await supabase
-    .from('events')
-    .select('*, cities(name), event_organizers(name, color_hex)', { count: 'exact' })
-    .eq('is_hidden', false)
-    .not('organizer_id', 'is', null)
-    .lt('start_time', now)
-    .order('start_time', { ascending: false })
-    .range(from, to)
-    .returns<EventWithCity[]>();
+  // Upcoming + past external invitations (organizer_id IS NOT NULL); AKH events live on /akce.
+  // All event reads flow through the events read module so the organizer/city joins never drift.
+  const { data: upcomingEvents } = await getPublicEvents(supabase, {
+    audience: 'external',
+    scope: 'upcoming',
+    now,
+  });
+  const { data: pastEvents, count } = await getPublicEvents(supabase, {
+    audience: 'external',
+    scope: 'past',
+    now,
+    range: { from, to },
+  });
 
   const totalPages = count ? Math.ceil(count / pageSize) : 0;
 
