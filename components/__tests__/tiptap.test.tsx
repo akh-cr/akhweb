@@ -6,6 +6,7 @@ import React from 'react'
 // Mock the server action
 vi.mock('@/lib/actions/upload-image', () => ({
   uploadImageAction: vi.fn().mockResolvedValue({
+    success: true,
     publicUrl: 'https://fake.supabase/test.jpg'
   })
 }))
