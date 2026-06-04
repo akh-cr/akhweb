@@ -71,9 +71,11 @@ export async function updateEvent(id: string, data: EventUpdate) {
   const { supabase, role, organizerId } = await requireEventAccess()
 
   const payload = { ...data }
-  // An organizer can never reassign an event away from their organization.
-  if (role === 'organizer') {
-    payload.organizer_id = organizerId
+  // Route through the single scoping seam so update applies the SAME pin as create.
+  // Only touch organizer_id when the rule actually constrains it (organizer pin) or
+  // the caller sent the field — partial admin/editor updates must stay untouched.
+  if (role === 'organizer' || 'organizer_id' in data) {
+    payload.organizer_id = scopeOrganizerId(role, organizerId, data.organizer_id)
   }
 
   const { error } = await supabase

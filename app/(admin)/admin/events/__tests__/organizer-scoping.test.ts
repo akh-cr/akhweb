@@ -82,4 +82,51 @@ describe('event actions — organizer scoping', () => {
     await updateEvent('e1', { title: 'New', organizer_id: 'org-2' })
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ organizer_id: 'org-1' }))
   })
+
+  it('prevents an organizer from moving an event to AKH (null) on update', async () => {
+    mockAccess = { user: { id: 'u' }, supabase: mockSupabase, role: 'organizer', organizerId: 'org-1' }
+
+    await updateEvent('e1', { title: 'New', organizer_id: null })
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ organizer_id: 'org-1' }))
+  })
+
+  it('pins an organizer onto their own organization even when update omits organizer_id', async () => {
+    mockAccess = { user: { id: 'u' }, supabase: mockSupabase, role: 'organizer', organizerId: 'org-1' }
+
+    await updateEvent('e1', { title: 'New' })
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ organizer_id: 'org-1' }))
+  })
+
+  it('applies identical scoping on create and update for the same organizer', async () => {
+    mockAccess = { user: { id: 'u' }, supabase: mockSupabase, role: 'organizer', organizerId: 'org-1' }
+
+    // Same tampering attempt (target another org) via both write paths.
+    await createEvent(buildEvent({ organizer_id: 'org-2' }))
+    await updateEvent('e1', { title: 'New', organizer_id: 'org-2' })
+
+    const createdOrganizerId = mockInsert.mock.calls[0][0].organizer_id
+    const updatedOrganizerId = mockUpdate.mock.calls[0][0].organizer_id
+    expect(createdOrganizerId).toBe('org-1')
+    expect(updatedOrganizerId).toBe('org-1')
+    expect(updatedOrganizerId).toBe(createdOrganizerId)
+  })
+
+  it('leaves an admin update pass-through unchanged (keeps requested organizer and AKH null)', async () => {
+    mockAccess = { user: { id: 'u' }, supabase: mockSupabase, role: 'admin', organizerId: null }
+
+    await updateEvent('e1', { title: 'New', organizer_id: 'org-9' })
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ organizer_id: 'org-9' }))
+
+    mockUpdate.mockClear()
+    await updateEvent('e1', { title: 'New', organizer_id: null })
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ organizer_id: null }))
+  })
+
+  it('leaves an admin update without organizer_id untouched (no pinning, no null injection)', async () => {
+    mockAccess = { user: { id: 'u' }, supabase: mockSupabase, role: 'admin', organizerId: null }
+
+    await updateEvent('e1', { title: 'New' })
+    // Admin pass-through must not invent an organizer_id key when the caller didn't send one.
+    expect(mockUpdate.mock.calls[0][0]).not.toHaveProperty('organizer_id')
+  })
 })
