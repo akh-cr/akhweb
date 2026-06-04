@@ -1,64 +1,60 @@
 'use server'
 
 import { requireAdminRole } from "@/lib/auth/guards"
-import { revalidatePath } from "next/cache"
+import {
+  guardedMutation,
+  deleteWithImageCleanup,
+  revalidate,
+  type RevalidateSet,
+} from "@/lib/admin/mutations"
+
+/** Surfaces a council change can affect. */
+const COUNCIL_SURFACES: RevalidateSet = ['/admin/council']
 
 export async function createCouncilMember(data: any) {
-  const { supabase } = await requireAdminRole()
+  return guardedMutation(requireAdminRole, async ({ supabase }) => {
+    const { error } = await supabase
+      .from('council_members')
+      .insert(data)
 
-  const { error } = await supabase
-    .from('council_members')
-    .insert(data)
+    if (error) {
+      throw new Error(error.message)
+    }
 
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  revalidatePath('/admin/council')
-  return { success: true }
+    revalidate(COUNCIL_SURFACES)
+    return { success: true }
+  })
 }
 
 export async function updateCouncilMember(id: string, data: any) {
-  const { supabase } = await requireAdminRole()
+  return guardedMutation(requireAdminRole, async ({ supabase }) => {
+    const { error } = await supabase
+      .from('council_members')
+      .update(data)
+      .eq('id', id)
 
-  const { error } = await supabase
-    .from('council_members')
-    .update(data)
-    .eq('id', id)
+    if (error) {
+      throw new Error(error.message)
+    }
 
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  revalidatePath('/admin/council')
-  return { success: true }
+    revalidate(COUNCIL_SURFACES)
+    return { success: true }
+  })
 }
 
 export async function deleteCouncilMember(id: string) {
-  const { supabase } = await requireAdminRole()
+  return guardedMutation(requireAdminRole, async ({ supabase }) => {
+    const { error } = await deleteWithImageCleanup(supabase, {
+      table: 'council_members',
+      id,
+      imageColumns: 'image_url',
+    })
 
-  // 1. Fetch image
-  const { data: member } = await supabase
-      .from('council_members')
-      .select('image_url')
-      .eq('id', id)
-      .single()
+    if (error) {
+      throw new Error(error.message)
+    }
 
-  // 2. Delete image
-  if (member?.image_url) {
-      const { deleteImage } = await import("@/lib/storage-server")
-      await deleteImage(supabase, member.image_url)
-  }
-
-  const { error } = await supabase
-    .from('council_members')
-    .delete()
-    .eq('id', id)
-
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  revalidatePath('/admin/council')
-  return { success: true }
+    revalidate(COUNCIL_SURFACES)
+    return { success: true }
+  })
 }

@@ -1,23 +1,25 @@
 'use server'
 
 import { requireAdmin } from "@/lib/auth/guards";
-import { revalidatePath } from "next/cache";
+import { guardedMutation, revalidate, type RevalidateSet } from "@/lib/admin/mutations";
+
+/** Surfaces a content-block change can affect (home page + admin editor). */
+const CONTENT_SURFACES: RevalidateSet = ['/', '/admin/content'];
 
 export async function updateContentBlock(id: string, content: any) {
-  const { supabase } = await requireAdmin();
+  return guardedMutation(requireAdmin, async ({ supabase }) => {
+    const { error } = await supabase
+      .from('content_blocks')
+      .update({ content, updated_at: new Date().toISOString() })
+      .eq('id', id);
 
-  const { error } = await supabase
-    .from('content_blocks')
-    .update({ content, updated_at: new Date().toISOString() })
-    .eq('id', id);
+    if (error) {
+      throw new Error(`Failed to update content block: ${error.message}`);
+    }
 
-  if (error) {
-    throw new Error(`Failed to update content block: ${error.message}`);
-  }
-
-  revalidatePath('/');
-  revalidatePath('/admin/content');
-  return { success: true };
+    revalidate(CONTENT_SURFACES);
+    return { success: true };
+  });
 }
 
 export async function uploadContentImage(formData: FormData) {

@@ -1,20 +1,23 @@
 'use server'
 
 import { requireAdminRole } from "@/lib/auth/guards"
-import { revalidatePath } from "next/cache"
+import { guardedMutation, revalidate, type RevalidateSet } from "@/lib/admin/mutations"
+
+/** Surfaces a user-role change can affect. */
+const USER_SURFACES: RevalidateSet = ['/admin/users']
 
 export async function updateUserRole(userId: string, role: string) {
-  const { supabase } = await requireAdminRole()
+  return guardedMutation(requireAdminRole, async ({ supabase }) => {
+    // Upsert role
+    const { error } = await supabase
+      .from('user_roles')
+      .upsert({ user_id: userId, role })
 
-  // Upsert role
-  const { error } = await supabase
-    .from('user_roles')
-    .upsert({ user_id: userId, role })
+    if (error) {
+      throw new Error(error.message)
+    }
 
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  revalidatePath('/admin/users')
-  return { success: true }
+    revalidate(USER_SURFACES)
+    return { success: true }
+  })
 }

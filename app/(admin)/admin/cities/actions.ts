@@ -1,36 +1,34 @@
 "use server"
 
 import { requireAdmin } from "@/lib/auth/guards"
-import { revalidatePath } from "next/cache"
+import {
+  guardedMutation,
+  deleteWithImageCleanup,
+  revalidate,
+  type RevalidateSet,
+} from "@/lib/admin/mutations"
+
+/** Surfaces a city change can affect (admin list + public community pages). */
+const CITY_SURFACES: RevalidateSet = [
+  "/admin/cities",
+  "/spolecenstvi",
+  "/spolecenstvi/[slug]",
+]
 
 export async function deleteCity(id: string) {
-  const { supabase } = await requireAdmin()
-  
-  // 1. Fetch images
-  const { data: city } = await supabase
-    .from('cities')
-    .select('image_url, gallery_images')
-    .eq('id', id)
-    .single()
+  return guardedMutation(requireAdmin, async ({ supabase }) => {
+    const { error } = await deleteWithImageCleanup(supabase, {
+      table: "cities",
+      id,
+      imageColumns: "image_url, gallery_images",
+    })
 
-  // 2. Delete images
-  if (city) {
-      const imagesToDelete = [city.image_url]
-      if (city.gallery_images && Array.isArray(city.gallery_images)) {
-          imagesToDelete.push(...city.gallery_images)
-      }
-      
-      const { deleteImages } = await import("@/lib/storage-server")
-      await deleteImages(supabase, imagesToDelete)
-  }
+    if (error) {
+      throw new Error(error.message)
+    }
 
-  const { error } = await supabase.from("cities").delete().eq("id", id)
-
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  revalidatePath("/admin/cities")
+    revalidate(["/admin/cities"])
+  })
 }
 
 export async function searchCityCoordinates(cityName: string) {
@@ -63,18 +61,16 @@ export async function searchCityCoordinates(cityName: string) {
 }
 
 export async function toggleCityVisibility(id: string, isHidden: boolean) {
-    const { supabase } = await requireAdmin()
-    
-    const { error } = await supabase
-        .from('cities')
-        .update({ is_hidden: isHidden })
-        .eq('id', id)
+    return guardedMutation(requireAdmin, async ({ supabase }) => {
+        const { error } = await supabase
+            .from('cities')
+            .update({ is_hidden: isHidden })
+            .eq('id', id)
 
-    if (error) {
-        throw new Error(error.message)
-    }
+        if (error) {
+            throw new Error(error.message)
+        }
 
-    revalidatePath('/admin/cities')
-    revalidatePath('/spolecenstvi')
-    revalidatePath('/spolecenstvi/[slug]')
+        revalidate(CITY_SURFACES)
+    })
 }

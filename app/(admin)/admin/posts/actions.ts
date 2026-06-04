@@ -2,9 +2,21 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { requireAdmin } from '@/lib/auth/guards';
-import { revalidatePath } from 'next/cache';
+import {
+    guardedMutation,
+    deleteWithImageCleanup,
+    revalidate,
+    type RevalidateSet,
+} from '@/lib/admin/mutations';
 import { slugify } from '@/lib/utils';
 import { redirect } from 'next/navigation';
+
+/** Surfaces a post change can affect (admin list + public blog + home feed). */
+const POST_SURFACES: RevalidateSet = [
+    '/admin/posts',
+    '/blog',
+    '/',
+];
 
 export interface Post {
     id: string;
@@ -74,93 +86,74 @@ export async function getPost(id: string): Promise<Post | null> {
 }
 
 export async function createPost(data: PostCreate) {
-    const { supabase, user } = await requireAdmin();
+    return guardedMutation(requireAdmin, async ({ supabase, user }) => {
+        const { error } = await supabase
+            .from('posts')
+            .insert({
+                ...data,
+                slug: data.slug || slugify(data.title),
+                author_id: user.id
+            });
 
-    const { error } = await supabase
-        .from('posts')
-        .insert({
-            ...data,
-            slug: data.slug || slugify(data.title),
-            author_id: user.id
-        });
+        if (error) {
+            console.error('Error creating post:', error);
+            throw new Error('Failed to create post');
+        }
 
-    if (error) {
-        console.error('Error creating post:', error);
-        throw new Error('Failed to create post');
-    }
-
-    revalidatePath('/admin/posts');
-    revalidatePath('/blog');
-    revalidatePath('/');
-    // redirect('/admin/posts'); // Removed to avoid NEXT_REDIRECT error in client try/catch
+        revalidate(POST_SURFACES);
+        // redirect('/admin/posts'); // Removed to avoid NEXT_REDIRECT error in client try/catch
+    });
 }
 
 export async function updatePost(id: string, data: PostUpdate) {
-    const { supabase } = await requireAdmin();
+    return guardedMutation(requireAdmin, async ({ supabase }) => {
+        // Check if updating slug and if it exists
+        if (data.slug) {
+            const { data: existing } = await supabase
+                .from('posts')
+                .select('id')
+                .eq('slug', data.slug)
+                .neq('id', id)
+                .single();
 
-    // Check if updating slug and if it exists
-    if (data.slug) {
-        const { data: existing } = await supabase
-            .from('posts')
-            .select('id')
-            .eq('slug', data.slug)
-            .neq('id', id)
-            .single();
-            
-        if (existing) {
-             throw new Error('Slug already exists');
+            if (existing) {
+                 throw new Error('Slug already exists');
+            }
         }
-    }
 
-    const { error } = await supabase
-        .from('posts')
-        .update({
-            ...data
-        })
-        .eq('id', id);
+        const { error } = await supabase
+            .from('posts')
+            .update({
+                ...data
+            })
+            .eq('id', id);
 
-    if (error) {
-         console.error('Error updating post:', error);
-         throw new Error('Failed to update post');
-    }
+        if (error) {
+             console.error('Error updating post:', error);
+             throw new Error('Failed to update post');
+        }
 
-    revalidatePath('/admin/posts');
-    revalidatePath(`/admin/posts/${id}`);
-    revalidatePath('/blog');
-    revalidatePath('/');
-    // Check if public page needs revalidation based on slug? 
-    // revalidatePath(`/blog/${data.slug}`); 
+        revalidate(['/admin/posts', `/admin/posts/${id}`, '/blog', '/']);
+        // Check if public page needs revalidation based on slug?
+        // revalidatePath(`/blog/${data.slug}`);
+    });
 }
 
 export async function deletePost(id: string) {
-    const { supabase } = await requireAdmin();
+    return guardedMutation(requireAdmin, async ({ supabase }) => {
+        const { error } = await deleteWithImageCleanup(supabase, {
+            table: 'posts',
+            id,
+            imageColumns: 'image_url',
+        });
 
-    // 1. Fetch image to delete
-    const { data: post } = await supabase
-        .from('posts')
-        .select('image_url')
-        .eq('id', id)
-        .single();
-    
-    // 2. Delete image
-    if (post?.image_url) {
-        const { deleteImage } = await import("@/lib/storage-server");
-        await deleteImage(supabase, post.image_url);
-    }
+        if (error) {
+            console.error('Error deleting post:', error);
+            throw new Error('Failed to delete post');
+        }
 
-    const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        console.error('Error deleting post:', error);
-        throw new Error('Failed to delete post');
-    }
-
-    revalidatePath('/admin/posts');
-    revalidatePath('/blog');
-    revalidatePath('/');
+        revalidate(POST_SURFACES);
+    });
 }
 
 export async function uploadBlogImage(formData: FormData) {
@@ -182,19 +175,16 @@ export async function uploadBlogImage(formData: FormData) {
 }
 
 export async function togglePostVisibility(id: string, isHidden: boolean) {
-    const { supabase } = await requireAdmin();
+    return guardedMutation(requireAdmin, async ({ supabase }) => {
+        const { error } = await supabase
+            .from('posts')
+            .update({ is_hidden: isHidden })
+            .eq('id', id)
 
-    const { error } = await supabase
-        .from('posts')
-        .update({ is_hidden: isHidden })
-        .eq('id', id)
+        if (error) {
+            throw new Error('Failed to update post visibility')
+        }
 
-    if (error) {
-        throw new Error('Failed to update post visibility')
-    }
-
-    revalidatePath('/admin/posts')
-    revalidatePath('/blog')
-    revalidatePath('/blog/[slug]')
-    revalidatePath('/')
+        revalidate(['/admin/posts', '/blog', '/blog/[slug]', '/'])
+    });
 }
