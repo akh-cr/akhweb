@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MapPin, ArrowRight } from "lucide-react";
 
-import { EventWithCity } from "@/types/supabase";
+import { Event } from "@/lib/events/types";
 import { getOrganizerTagPresentation } from "@/lib/event-organizer-colors";
 import { shouldShowOrganizerBadge } from "@/lib/events/display";
 
@@ -10,7 +10,7 @@ import { shouldShowOrganizerBadge } from "@/lib/events/display";
  * Shared event card used by both /akce (AKH) and /pozvanky (external invitations).
  * AKH events carry no organizer badge; external invitations show the organizer tag.
  */
-export function EventCard({ event }: { event: EventWithCity }) {
+export function EventCard({ event }: { event: Event }) {
   const showBadge = shouldShowOrganizerBadge(event);
   const organizerTag = getOrganizerTagPresentation(event.event_organizers?.color_hex, false);
   const organizerLabel = event.event_organizers?.name || "Pořadatel";
