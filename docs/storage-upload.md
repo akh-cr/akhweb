@@ -8,7 +8,7 @@ Image uploads use a two-instance Supabase architecture:
 - **Storage instance** — dedicated commercial Supabase for image storage (bucket `akhweb`)
 
 Uploads are secured through a chain:
-1. Next.js **server action** verifies user is admin/editor (via main instance auth)
+1. Next.js **server action** verifies the user is an event manager (admin/editor/organizer, via main instance auth)
 2. Server action forwards the file to a public **Edge Function** on the main AKH Supabase instance with the user's access token
 3. The main Edge Function re-validates the user's JWT and role, then forwards the file to the storage instance using a Supabase-only shared secret
 4. The storage Edge Function uploads via `service_role` key
@@ -24,14 +24,14 @@ Browser (client-side compression)
   ▼
 Next.js Server Action (lib/actions/upload-image.ts)
   │
-  ├─ requireAdmin() — checks auth on main Supabase instance
+  ├─ requireEventAccess() — checks auth on main Supabase instance
   ├─ Authorization: Bearer <user access token>
   │
   ▼
 Main Supabase Edge Function (supabase/functions/upload-image-proxy/index.ts)
   │
   ├─ Validates the JWT against the main AKH Supabase instance
-  ├─ Confirms the user has role admin/editor
+  ├─ Confirms the user is an event manager (admin/editor/organizer)
   ├─ Forwards to storage function with x-upload-secret
   │
   ▼
@@ -67,9 +67,9 @@ Supabase Storage (commercial instance)
 | `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided by Supabase | Automatic |
 | `SUPABASE_URL` | Auto-provided by Supabase | Automatic |
 
-### Netlify (production)
+### Cloudflare (production)
 
-Add these environment variables in Netlify dashboard (Site settings > Environment variables):
+Add any production environment variables in the Cloudflare Pages dashboard (Settings > Environment variables):
 
 No upload-specific variables are required.
 
@@ -118,16 +118,18 @@ akhweb/
 ## Deploying the Edge Function
 
 ```bash
-# Deploy to main AKH instance
-npx supabase functions deploy upload-image-proxy --project-ref <main-project-ref>
+# Deploy proxies to the main AKH instance (project iinvsjtnbyxfrdygsfpo)
+npx supabase functions deploy upload-image-proxy --project-ref iinvsjtnbyxfrdygsfpo
+npx supabase functions deploy delete-image-proxy --project-ref iinvsjtnbyxfrdygsfpo
 
-# Deploy to storage instance
-npx supabase functions deploy upload-image --project-ref <storage-project-ref>
+# Deploy storage-side functions to the storage instance (project lwfpdjxsdmkfyrzqbrlk)
+npx supabase functions deploy upload-image --project-ref lwfpdjxsdmkfyrzqbrlk
+npx supabase functions deploy delete-image --project-ref lwfpdjxsdmkfyrzqbrlk
 ```
 
 ## Security Notes
 
-- Netlify does not need upload or delete storage-specific configuration; it only calls the main AKH Supabase functions
+- Cloudflare does not need upload or delete storage-specific configuration; it only calls the main AKH Supabase functions
 - The main AKH proxy function keeps `verify_jwt = false` and validates the user token explicitly before forwarding
 - The storage Edge Functions accept traffic only from the AKH proxy functions via `UPLOAD_SECRET`
 - The shared secret and `service_role` key never leave Supabase infrastructure
