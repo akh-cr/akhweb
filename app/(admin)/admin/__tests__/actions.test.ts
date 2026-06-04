@@ -92,9 +92,11 @@ describe('Admin Creation Actions', () => {
       await createPost(postData);
 
       expect(mockFrom).toHaveBeenCalledWith('posts');
+      // author_id now comes from the shared requireAdmin guard's user, which the
+      // mock above resolves to 'admin-user-id'.
       expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
         title: 'Test Post',
-        author_id: 'test-user-id'
+        author_id: 'admin-user-id'
       }));
       // Ensure revalidatePath was called
       const { revalidatePath } = await import('next/cache');

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/auth/guards';
 import { revalidatePath } from 'next/cache';
 import { slugify } from '@/lib/utils';
 import { redirect } from 'next/navigation';
@@ -73,19 +74,14 @@ export async function getPost(id: string): Promise<Post | null> {
 }
 
 export async function createPost(data: PostCreate) {
-    const supabase = await createClient();
-    const user = await supabase.auth.getUser();
-
-    if (!user.data.user) {
-        throw new Error('Not authenticated');
-    }
+    const { supabase, user } = await requireAdmin();
 
     const { error } = await supabase
         .from('posts')
         .insert({
             ...data,
             slug: data.slug || slugify(data.title),
-            author_id: user.data.user.id
+            author_id: user.id
         });
 
     if (error) {
@@ -100,8 +96,8 @@ export async function createPost(data: PostCreate) {
 }
 
 export async function updatePost(id: string, data: PostUpdate) {
-    const supabase = await createClient();
-    
+    const { supabase } = await requireAdmin();
+
     // Check if updating slug and if it exists
     if (data.slug) {
         const { data: existing } = await supabase
@@ -137,8 +133,8 @@ export async function updatePost(id: string, data: PostUpdate) {
 }
 
 export async function deletePost(id: string) {
-    const supabase = await createClient();
-    
+    const { supabase } = await requireAdmin();
+
     // 1. Fetch image to delete
     const { data: post } = await supabase
         .from('posts')
@@ -186,13 +182,8 @@ export async function uploadBlogImage(formData: FormData) {
 }
 
 export async function togglePostVisibility(id: string, isHidden: boolean) {
-    const supabase = await createClient();
-    const user = await supabase.auth.getUser();
+    const { supabase } = await requireAdmin();
 
-    if (!user.data.user) {
-        throw new Error('Not authenticated');
-    }
-    
     const { error } = await supabase
         .from('posts')
         .update({ is_hidden: isHidden })

@@ -1,10 +1,10 @@
 'use server'
 
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/guards";
 import { revalidatePath } from "next/cache";
 
 export async function updateContentBlock(id: string, content: any) {
-  const supabase = await createClient();
+  const { supabase } = await requireAdmin();
 
   const { error } = await supabase
     .from('content_blocks')
