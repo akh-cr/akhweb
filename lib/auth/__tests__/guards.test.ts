@@ -14,7 +14,47 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve(mockSupabase)),
 }))
 
-import { requireEventAccess } from '../guards'
+import { requireEventAccess, requireAdminRole } from '../guards'
+
+describe('requireAdminRole', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockEq.mockReturnValue({ single: mockSingle })
+    mockSelect.mockReturnValue({ eq: mockEq })
+    mockFrom.mockReturnValue({ select: mockSelect })
+  })
+
+  it('throws when not authenticated', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+    await expect(requireAdminRole()).rejects.toThrow('Unauthorized')
+  })
+
+  it('throws for a plain user', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+    mockSingle.mockResolvedValue({ data: { role: 'user' } })
+    await expect(requireAdminRole()).rejects.toThrow('Forbidden')
+  })
+
+  it('throws for an editor (admin-only, stricter than staff)', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u2' } } })
+    mockSingle.mockResolvedValue({ data: { role: 'editor' } })
+    await expect(requireAdminRole()).rejects.toThrow('Forbidden')
+  })
+
+  it('throws for an organizer', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u3' } } })
+    mockSingle.mockResolvedValue({ data: { role: 'organizer' } })
+    await expect(requireAdminRole()).rejects.toThrow('Forbidden')
+  })
+
+  it('allows an admin', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u4' } } })
+    mockSingle.mockResolvedValue({ data: { role: 'admin' } })
+    const result = await requireAdminRole()
+    expect(result.user.id).toBe('u4')
+    expect(result.supabase).toBe(mockSupabase)
+  })
+})
 
 describe('requireEventAccess', () => {
   beforeEach(() => {

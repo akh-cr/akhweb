@@ -1,24 +1,10 @@
 'use server'
 
-import { createClient } from "@/lib/supabase/server"
+import { requireAdminRole } from "@/lib/auth/guards"
 import { revalidatePath } from "next/cache"
 
 export async function createCouncilMember(data: any) {
-  const supabase = await createClient()
-
-  // Verify permission
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Unauthorized")
-
-  const { data: currentRole } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', user.id)
-    .single()
-  
-  if (currentRole?.role !== 'admin') {
-    throw new Error("Only admins can create members")
-  }
+  const { supabase } = await requireAdminRole()
 
   const { error } = await supabase
     .from('council_members')
@@ -33,74 +19,46 @@ export async function createCouncilMember(data: any) {
 }
 
 export async function updateCouncilMember(id: string, data: any) {
-    const supabase = await createClient()
-  
-    // Verify permission
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error("Unauthorized")
-  
-    const { data: currentRole } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-    
-    if (currentRole?.role !== 'admin') {
-      throw new Error("Only admins can update members")
-    }
-  
-    const { error } = await supabase
-      .from('council_members')
-      .update(data)
-      .eq('id', id)
-  
-    if (error) {
-      throw new Error(error.message)
-    }
-  
-    revalidatePath('/admin/council')
-    return { success: true }
+  const { supabase } = await requireAdminRole()
+
+  const { error } = await supabase
+    .from('council_members')
+    .update(data)
+    .eq('id', id)
+
+  if (error) {
+    throw new Error(error.message)
   }
 
-  export async function deleteCouncilMember(id: string) {
-    const supabase = await createClient()
-  
-    // Verify permission
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error("Unauthorized")
-  
-    const { data: currentRole } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-    
-    if (currentRole?.role !== 'admin') {
-      throw new Error("Only admins can delete members")
-    }
+  revalidatePath('/admin/council')
+  return { success: true }
+}
 
-    // 1. Fetch image
-    const { data: member } = await supabase
-        .from('council_members')
-        .select('image_url')
-        .eq('id', id)
-        .single()
+export async function deleteCouncilMember(id: string) {
+  const { supabase } = await requireAdminRole()
 
-    // 2. Delete image
-    if (member?.image_url) {
-        const { deleteImage } = await import("@/lib/storage-server")
-        await deleteImage(supabase, member.image_url)
-    }
-  
-    const { error } = await supabase
+  // 1. Fetch image
+  const { data: member } = await supabase
       .from('council_members')
-      .delete()
+      .select('image_url')
       .eq('id', id)
-  
-    if (error) {
-      throw new Error(error.message)
-    }
-  
-    revalidatePath('/admin/council')
-    return { success: true }
+      .single()
+
+  // 2. Delete image
+  if (member?.image_url) {
+      const { deleteImage } = await import("@/lib/storage-server")
+      await deleteImage(supabase, member.image_url)
   }
+
+  const { error } = await supabase
+    .from('council_members')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/admin/council')
+  return { success: true }
+}

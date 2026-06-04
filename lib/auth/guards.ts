@@ -1,20 +1,49 @@
 import { createClient } from "@/lib/supabase/server"
-import { isStaff, isEventManager, type EventManagerRole } from "@/lib/auth/roles"
+import { isAdmin, isStaff, isEventManager, type EventManagerRole } from "@/lib/auth/roles"
 
 
+/**
+ * Guard for staff surfaces (content, posts, cities). Allows admins AND editors.
+ * NOTE: this is mis-named — it is the "staff" tier, not admin-only. For
+ * admin-only surfaces (council, user-role management) use {@link requireAdminRole}.
+ */
 export async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
-  
+
   // Check role
   const { data: role } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
     .single()
-    
+
   if (!isStaff(role?.role)) {
+    throw new Error("Forbidden: Insufficient permissions")
+  }
+
+  return { user, supabase }
+}
+
+
+/**
+ * Guard for admin-only surfaces (council members, user-role management).
+ * Stricter than {@link requireAdmin}: editors and organizers are rejected,
+ * only the 'admin' role passes.
+ */
+export async function requireAdminRole() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  const { data: role } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!isAdmin(role?.role)) {
     throw new Error("Forbidden: Insufficient permissions")
   }
 

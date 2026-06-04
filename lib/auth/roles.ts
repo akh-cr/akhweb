@@ -12,6 +12,9 @@ export type AppRole = 'admin' | 'editor' | 'organizer' | 'user'
 /** Roles allowed to create/edit events and upload images, i.e. the admin area. */
 export type EventManagerRole = 'admin' | 'editor' | 'organizer'
 
+/** May manage the council and assign user roles, i.e. admin-only surfaces. */
+export const ADMIN_ROLES = ['admin'] as const
+
 /** Full content access (everything except organization-scoped users). */
 export const STAFF_ROLES = ['admin', 'editor'] as const
 
@@ -20,6 +23,10 @@ export const EVENT_MANAGER_ROLES = ['admin', 'editor', 'organizer'] as const
 
 /** Roles an admin may assign when inviting or updating a user. */
 export const ASSIGNABLE_ROLES = ['admin', 'editor', 'organizer', 'user'] as const
+
+export function isAdmin(role?: string | null): boolean {
+  return !!role && (ADMIN_ROLES as readonly string[]).includes(role)
+}
 
 export function isStaff(role?: string | null): boolean {
   return !!role && (STAFF_ROLES as readonly string[]).includes(role)

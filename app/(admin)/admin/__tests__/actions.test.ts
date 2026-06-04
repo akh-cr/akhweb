@@ -52,6 +52,10 @@ vi.mock('@/lib/auth/guards', () => ({
       supabase: mockSupabase,
       user: { id: 'admin-user-id' }
   })),
+  requireAdminRole: vi.fn(() => Promise.resolve({
+      supabase: mockSupabase,
+      user: { id: 'admin-user-id' }
+  })),
   requireEventAccess: vi.fn(() => Promise.resolve({
       supabase: mockSupabase,
       user: { id: 'admin-user-id' },
@@ -185,16 +189,9 @@ describe('Admin Creation Actions', () => {
         active: true
       };
 
-      // Ensure mock for role check logic in createCouncilMember
-      // It selects generic 'user_roles' first
+      // The admin-only role check now lives in the mocked requireAdminRole
+      // guard, so the action only touches the council_members table.
       mockFrom.mockImplementation((table) => {
-          if (table === 'user_roles') {
-              return {
-                  select: vi.fn().mockReturnThis(),
-                  eq: vi.fn().mockReturnThis(),
-                  single: vi.fn().mockResolvedValue({ data: { role: 'admin' }, error: null })
-              }
-          }
           if (table === 'council_members') {
               return {
                   insert: mockInsert
