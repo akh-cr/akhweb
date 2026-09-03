@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js"
-import { SUPABASE_URL } from "@/lib/supabase/config"
+
+const IMAGE_API_URL = 'https://image-api.festapp.net'
 
 /**
  * Deletes a single image via the main AKH proxy function.
@@ -27,18 +28,18 @@ export async function deleteImages(supabase: SupabaseClient, urls: (string | nul
             return
         }
 
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-image-proxy`, {
+        const response = await fetch(`${IMAGE_API_URL}/delete`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${session.access_token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ urls: validUrls }),
+            body: JSON.stringify({ projectId: 'akhweb', links: validUrls }),
         })
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({ error: 'Delete failed' }))
-            console.error('Edge Function delete error:', error)
+            console.error('Image API delete error:', error)
         }
     } catch (error) {
         console.error('Error deleting images:', error)

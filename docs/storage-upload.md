@@ -1,135 +1,48 @@
-# Storage Upload Architecture
+# Image storage architecture
 
-## Overview
+AKH public images use the shared Festapp image control plane and a dedicated
+Cloudflare R2 data plane.
 
-Image uploads use a two-instance Supabase architecture:
+| Concern | Canonical owner |
+|---|---|
+| DB, Auth and roles | AKH Supabase project `iinvsjtnbyxfrdygsfpo` |
+| Authenticated upload/delete | `https://image-api.festapp.net` |
+| Public image bytes | `https://akh.img.festapp.net` |
+| Object persistence | R2 bucket `festapp-images-akhweb` |
 
-- **Main instance** — database, auth, user roles
-- **Storage instance** — dedicated commercial Supabase for image storage (bucket `akhweb`)
+## Flow
 
-Uploads are secured through a chain:
-1. Next.js **server action** verifies the user is an event manager (admin/editor/organizer, via main instance auth)
-2. Server action forwards the file to a public **Edge Function** on the main AKH Supabase instance with the user's access token
-3. The main Edge Function re-validates the user's JWT and role, then forwards the file to the storage instance using a Supabase-only shared secret
-4. The storage Edge Function uploads via `service_role` key
-5. The shared secret and `service_role` key never leave the Supabase infrastructure
+1. The Next.js server action obtains the signed-in user's AKH access token.
+2. It calls `/upload` or `/delete` with `projectId=akhweb`.
+3. The image Worker resolves only its server-side AKH project configuration.
+4. The Worker verifies the JWT and event-manager role through authenticated-only
+   RPC `public.get_can_manage_images()`.
+5. The Worker writes or removes the object in the dedicated AKH R2 bucket.
 
-## Architecture Diagram
+The AKH application never receives R2 credentials. The Worker never accepts a
+caller-supplied Supabase origin or key as authority.
 
-```
-Browser (client-side compression)
-  │
-  ├─ browser-image-compression (max 1MB, 1920px)
-  │
-  ▼
-Next.js Server Action (lib/actions/upload-image.ts)
-  │
-  ├─ requireEventAccess() — checks auth on main Supabase instance
-  ├─ Authorization: Bearer <user access token>
-  │
-  ▼
-Main Supabase Edge Function (supabase/functions/upload-image-proxy/index.ts)
-  │
-  ├─ Validates the JWT against the main AKH Supabase instance
-  ├─ Confirms the user is an event manager (admin/editor/organizer)
-  ├─ Forwards to storage function with x-upload-secret
-  │
-  ▼
-Storage Supabase Edge Function (supabase/functions/upload-image/index.ts)
-  │
-  ├─ Verifies x-upload-secret matches UPLOAD_SECRET
-  ├─ Uploads to bucket 'akhweb' via SUPABASE_SERVICE_ROLE_KEY
-  │
-  ▼
-Supabase Storage (commercial instance)
-  └─ Returns public URL
-```
+## Public key contract
 
-## Environment Variables
+The historical top-level prefixes are retained: `images/`, `blog/` and
+`content/`. Object URLs are `https://akh.img.festapp.net/<key>`.
 
-### Next.js Application (`.env.local`)
+## Application entry points
 
-| Variable | Description | Exposed to browser? |
-|---|---|---|
-### Supabase Edge Function (main AKH instance secrets)
+- `lib/actions/upload-image.ts` keeps the `uploadImageAction(FormData)` API and
+  maps the Worker response `url` to `publicUrl` for existing components.
+- `lib/storage-server.ts` keeps `deleteImage` / `deleteImages` and sends one
+  authorized batch to the Worker.
+- `next.config.ts` allows only the canonical AKH image hostname.
 
-| Variable | Description | How to set |
-|---|---|---|
-| `UPLOAD_SECRET` | Shared secret used only for proxying to the storage function | Supabase Dashboard > Edge Functions > Secrets |
-| `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided by Supabase | Automatic |
-| `SUPABASE_URL` | Auto-provided by Supabase | Automatic |
+## Deployment
 
-### Supabase Edge Function (storage instance secrets)
+The Worker registry, R2 binding, hostname, CORS and tests live in
+`festapp/workers/image-worker`. Deploy that Worker before deploying AKH callers.
+Apply `20260903190000_authorize_r2_image_control.sql` before deploying the
+Worker. Apply `20260903193000_move_akhweb_images_to_r2.sql` only after the source
+bucket has been copied, hash-verified and served by the public hostname.
 
-| Variable | Description | How to set |
-|---|---|---|
-| `UPLOAD_SECRET` | Must match the main AKH instance `UPLOAD_SECRET` | Supabase Dashboard > Edge Functions > Secrets |
-| `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided by Supabase | Automatic |
-| `SUPABASE_URL` | Auto-provided by Supabase | Automatic |
-
-### Cloudflare (production)
-
-Add any production environment variables in the Cloudflare Pages dashboard (Settings > Environment variables):
-
-No upload-specific variables are required.
-
-## File Structure
-
-```
-lib/
-  actions/
-    upload-image.ts          # Server action — auth check + forward to main AKH Edge Function
-
-supabase/
-  functions/
-    delete-image/
-      index.ts               # Storage Edge Function — verify shared secret, delete from storage
-    delete-image-proxy/
-      index.ts               # Main AKH Edge Function — verify JWT + role, forward deletes to storage
-    upload-image/
-      index.ts               # Storage Edge Function — verify shared secret, upload via service_role
-    upload-image-proxy/
-      index.ts               # Main AKH Edge Function — verify JWT + role, forward to storage
-      deno.json               # Import map
-  config.toml                # Function config
-```
-
-## Upload Flow by Component
-
-| Component | Compression | Server Action | Edge Function |
-|---|---|---|---|
-| `image-upload.tsx` | Client-side (browser-image-compression) | `uploadImageAction` | `upload-image-proxy` |
-| `gallery-upload.tsx` | Client-side (parallel) | `uploadImageAction` | `upload-image-proxy` |
-| `tiptap.tsx` | Client-side + optimistic UI | `uploadImageAction` | `upload-image-proxy` |
-| `admin/posts/actions.ts` | None (raw file) | `uploadBlogImage` → `uploadImageAction` | `upload-image-proxy` |
-| `admin/content/actions.ts` | None (raw file) | `uploadContentImage` → `uploadImageAction` | `upload-image-proxy` |
-
-## Storage Path Convention
-
-All files are stored in bucket `akhweb` with path structure:
-
-```
-akhweb/
-  images/uploads/   — general image uploads (cities, events, council members)
-  blog/images/      — blog post images
-  content/gallery/  — content block gallery images
-```
-
-## Deploying the Edge Function
-
-```bash
-# Deploy proxies to the main AKH instance (project iinvsjtnbyxfrdygsfpo)
-npx supabase functions deploy upload-image-proxy --project-ref iinvsjtnbyxfrdygsfpo
-npx supabase functions deploy delete-image-proxy --project-ref iinvsjtnbyxfrdygsfpo
-
-# Deploy storage-side functions to the storage instance (project lwfpdjxsdmkfyrzqbrlk)
-npx supabase functions deploy upload-image --project-ref lwfpdjxsdmkfyrzqbrlk
-npx supabase functions deploy delete-image --project-ref lwfpdjxsdmkfyrzqbrlk
-```
-
-## Security Notes
-
-- Cloudflare does not need upload or delete storage-specific configuration; it only calls the main AKH Supabase functions
-- The main AKH proxy function keeps `verify_jwt = false` and validates the user token explicitly before forwarding
-- The storage Edge Functions accept traffic only from the AKH proxy functions via `UPLOAD_SECRET`
-- The shared secret and `service_role` key never leave Supabase infrastructure
+The retired Supabase functions `upload-image-proxy`, `delete-image-proxy`,
+`upload-image` and `delete-image` and secret `UPLOAD_SECRET` are not part of the
+target architecture.

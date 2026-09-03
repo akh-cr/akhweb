@@ -1,7 +1,8 @@
 'use server'
 
 import { requireEventAccess } from '@/lib/auth/guards'
-import { SUPABASE_URL } from '@/lib/supabase/config'
+
+const IMAGE_API_URL = 'https://image-api.festapp.net'
 
 export type UploadImageActionResult =
     | { success: true; publicUrl: string }
@@ -27,13 +28,14 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
 
         const edgeFormData = new FormData()
         edgeFormData.append('file', file)
+        edgeFormData.append('projectId', 'akhweb')
 
         const prefix = formData.get('prefix') as string
         const folder = formData.get('folder') as string
         if (prefix) edgeFormData.append('prefix', prefix)
         if (folder) edgeFormData.append('folder', folder)
 
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/upload-image-proxy`, {
+        const response = await fetch(`${IMAGE_API_URL}/upload`, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${session.access_token}`,
@@ -43,16 +45,16 @@ export async function uploadImageAction(formData: FormData): Promise<UploadImage
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({ error: 'Upload failed' }))
-            console.error('Edge Function upload error:', error)
+            console.error('Image API upload error:', error)
             return { success: false, error: error.error || 'Upload failed' }
         }
 
         const result = await response.json()
-        if (!result?.publicUrl) {
+        if (!result?.url) {
             return { success: false, error: 'Upload succeeded but no public URL was returned.' }
         }
 
-        return { success: true, publicUrl: result.publicUrl }
+        return { success: true, publicUrl: result.url }
     } catch (error) {
         console.error('uploadImageAction failed:', error)
         return {

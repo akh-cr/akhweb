@@ -14,10 +14,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'iinvsjtnbyxfrdygsfpo.supabase.co',
+        hostname: 'akh.img.festapp.net',
         port: '',
-        pathname: '/storage/v1/object/public/**',
+        pathname: '/**',
       },
+      // Transitional read boundary. Remove immediately after the persisted URL
+      // migration confirms zero legacy AKH Storage references.
       {
         protocol: 'https',
         hostname: 'lwfpdjxsdmkfyrzqbrlk.supabase.co',

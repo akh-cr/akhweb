@@ -44,7 +44,7 @@ describe('Storage Server Utils', () => {
             await deleteImage(mockSupabase, url)
             
             expect(mockFetch).toHaveBeenCalledWith(
-                'https://iinvsjtnbyxfrdygsfpo.supabase.co/functions/v1/delete-image-proxy',
+                'https://image-api.festapp.net/delete',
                 expect.objectContaining({
                     method: 'POST',
                     headers: {
@@ -53,7 +53,7 @@ describe('Storage Server Utils', () => {
                     },
                 })
             )
-            expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({ urls: [url] })
+            expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({ projectId: 'akhweb', links: [url] })
         })
 
         it('should ignore null/undefined URLs', async () => {
@@ -74,7 +74,7 @@ describe('Storage Server Utils', () => {
             await deleteImage(mockSupabase, url)
             
             expect(console.error).toHaveBeenCalledWith(
-                'Edge Function delete error:',
+                'Image API delete error:',
                 expect.anything()
             )
         })
@@ -92,7 +92,8 @@ describe('Storage Server Utils', () => {
             
             expect(mockFetch).toHaveBeenCalledTimes(1)
             expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
-                urls: [
+                projectId: 'akhweb',
+                links: [
                     'https://sb.co/storage/v1/object/public/b1/f1.jpg',
                     'https://sb.co/storage/v1/object/public/b2/f2.jpg'
                 ]

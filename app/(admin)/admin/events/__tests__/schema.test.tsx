@@ -22,7 +22,7 @@ describe('Event Form Validation', () => {
     it('accepts valid https URLs', () => {
         const result = formSchema.safeParse({
             title: 'Test Event',
-            image_url: 'https://iinvsjtnbyxfrdygsfpo.supabase.co/storage/v1/object/public/images/uploads/test.jpg'
+            image_url: 'https://akh.img.festapp.net/images/uploads/test.jpg'
         })
         expect(result.success).toBe(true)
     })

@@ -52,8 +52,9 @@ async function main() {
   uploadFormData.append('prefix', 'images')
   uploadFormData.append('folder', 'smoke-tests')
 
-  console.log('Calling upload-image-proxy')
-  const uploadResponse = await fetch(`${DEFAULT_SUPABASE_URL}/functions/v1/upload-image-proxy`, {
+  uploadFormData.append('projectId', 'akhweb')
+  console.log('Calling canonical image upload API')
+  const uploadResponse = await fetch('https://image-api.festapp.net/upload', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -62,22 +63,22 @@ async function main() {
   })
 
   const uploadResult = await parseJsonResponse(uploadResponse)
-  if (!uploadResponse.ok || !uploadResult?.publicUrl) {
+  if (!uploadResponse.ok || !uploadResult?.url) {
     throw new Error(
       `Upload failed: ${JSON.stringify(uploadResult) || `${uploadResponse.status} ${uploadResponse.statusText}`}`
     )
   }
 
-  console.log(`Uploaded: ${uploadResult.publicUrl}`)
-  console.log('Calling delete-image-proxy')
+  console.log(`Uploaded: ${uploadResult.url}`)
+  console.log('Calling canonical image delete API')
 
-  const deleteResponse = await fetch(`${DEFAULT_SUPABASE_URL}/functions/v1/delete-image-proxy`, {
+  const deleteResponse = await fetch('https://image-api.festapp.net/delete', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ urls: [uploadResult.publicUrl] }),
+    body: JSON.stringify({ projectId: 'akhweb', links: [uploadResult.url] }),
   })
 
   const deleteResult = await parseJsonResponse(deleteResponse)

@@ -32,10 +32,10 @@ describe('uploadImageAction', () => {
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test.supabase.co');
   });
 
-  it('should forward file to Edge Function with correct headers', async () => {
+  it('should forward file to the image API with correct headers', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ publicUrl: 'https://test.supabase.co/storage/v1/object/public/akhweb/images/uploads/test.jpg' }),
+      json: () => Promise.resolve({ url: 'https://akh.img.festapp.net/images/uploads/test.jpg' }),
     });
 
     // Dynamic import to pick up env stubs
@@ -47,7 +47,7 @@ describe('uploadImageAction', () => {
     const result = await uploadImageAction(formData);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://test.supabase.co/functions/v1/upload-image-proxy',
+      'https://image-api.festapp.net/upload',
       expect.objectContaining({
         method: 'POST',
         headers: { Authorization: 'Bearer test-access-token' },
@@ -57,7 +57,7 @@ describe('uploadImageAction', () => {
     if (!result.success) {
       throw new Error('Expected successful upload result');
     }
-    expect(result.publicUrl).toContain('test.supabase.co');
+    expect(result.publicUrl).toContain('akh.img.festapp.net');
   });
 
   it('should return an error on missing file', async () => {
@@ -68,7 +68,7 @@ describe('uploadImageAction', () => {
     await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'No file provided' });
   });
 
-  it('should return an error on Edge Function error', async () => {
+  it('should return an error on image API failure', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       json: () => Promise.resolve({ error: 'Unauthorized: Invalid upload secret' }),
@@ -82,10 +82,10 @@ describe('uploadImageAction', () => {
     await expect(uploadImageAction(formData)).resolves.toEqual({ success: false, error: 'Unauthorized: Invalid upload secret' });
   });
 
-  it('should pass prefix and folder to Edge Function', async () => {
+  it('should pass the AKH project, prefix and folder to the image API', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ publicUrl: 'https://test.supabase.co/image.jpg' }),
+      json: () => Promise.resolve({ url: 'https://akh.img.festapp.net/blog/images/image.jpg' }),
     });
 
     const { uploadImageAction } = await import('../actions/upload-image');
@@ -100,16 +100,17 @@ describe('uploadImageAction', () => {
     const sentFormData = mockFetch.mock.calls[0][1].body as FormData;
     expect(sentFormData.get('prefix')).toBe('blog');
     expect(sentFormData.get('folder')).toBe('images');
+    expect(sentFormData.get('projectId')).toBe('akhweb');
   });
 
-  it('should use the main Supabase function URL for uploads', async () => {
+  it('should always use the canonical image API for uploads', async () => {
     vi.unstubAllEnvs();
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://main.supabase.co');
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key');
 
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ publicUrl: 'https://main.supabase.co/image.jpg' }),
+      json: () => Promise.resolve({ url: 'https://akh.img.festapp.net/images/uploads/image.jpg' }),
     });
 
     const { uploadImageAction } = await import('../actions/upload-image');
@@ -120,7 +121,7 @@ describe('uploadImageAction', () => {
     const result = await uploadImageAction(formData);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://main.supabase.co/functions/v1/upload-image-proxy',
+      'https://image-api.festapp.net/upload',
       expect.objectContaining({
         method: 'POST',
         headers: { Authorization: 'Bearer test-access-token' },
