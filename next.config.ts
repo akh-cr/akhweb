@@ -18,14 +18,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Transitional read boundary. Remove immediately after the persisted URL
-      // migration confirms zero legacy AKH Storage references.
-      {
-        protocol: 'https',
-        hostname: 'lwfpdjxsdmkfyrzqbrlk.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
-      },
     ],
   },
 };
