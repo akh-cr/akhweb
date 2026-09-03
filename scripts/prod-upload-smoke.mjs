@@ -34,6 +34,16 @@ async function parseJsonResponse(response) {
   }
 }
 
+async function waitUntilDeleted(url) {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const response = await fetch(url, { cache: 'no-store' })
+    if (response.status === 404) return
+    await new Promise((resolve) => setTimeout(resolve, 500))
+  }
+
+  throw new Error('Deleted image remained publicly readable after 5 seconds')
+}
+
 async function main() {
   console.log(`Signing in to ${DEFAULT_SUPABASE_URL} as ${email}`)
 
@@ -47,49 +57,71 @@ async function main() {
   }
 
   const token = signInData.session.access_token
-  const uploadFormData = new FormData()
-  uploadFormData.append('file', new File([tinyPng], 'prod-smoke.png', { type: 'image/png' }))
-  uploadFormData.append('prefix', 'images')
-  uploadFormData.append('folder', 'smoke-tests')
+  let uploadedUrl = null
 
-  uploadFormData.append('projectId', 'akhweb')
-  console.log('Calling canonical image upload API')
-  const uploadResponse = await fetch('https://image-api.festapp.net/upload', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: uploadFormData,
-  })
+  try {
+    const uploadFormData = new FormData()
+    uploadFormData.append('file', new File([tinyPng], 'prod-smoke.png', { type: 'image/png' }))
+    uploadFormData.append('prefix', 'images')
+    uploadFormData.append('folder', 'smoke-tests')
+    uploadFormData.append('projectId', 'akhweb')
 
-  const uploadResult = await parseJsonResponse(uploadResponse)
-  if (!uploadResponse.ok || !uploadResult?.url) {
-    throw new Error(
-      `Upload failed: ${JSON.stringify(uploadResult) || `${uploadResponse.status} ${uploadResponse.statusText}`}`
-    )
+    console.log('Calling canonical image upload API')
+    const uploadResponse = await fetch('https://image-api.festapp.net/upload', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: uploadFormData,
+    })
+
+    const uploadResult = await parseJsonResponse(uploadResponse)
+    if (!uploadResponse.ok || !uploadResult?.url) {
+      throw new Error(
+        `Upload failed: ${JSON.stringify(uploadResult) || `${uploadResponse.status} ${uploadResponse.statusText}`}`
+      )
+    }
+
+    const parsedUrl = new URL(uploadResult.url)
+    if (parsedUrl.protocol === 'https:' && parsedUrl.hostname === 'akh.img.festapp.net') {
+      uploadedUrl = uploadResult.url
+    }
+    if (!uploadedUrl || uploadResult.projectId !== 'akhweb' ||
+        !parsedUrl.pathname.startsWith('/images/smoke-tests/')) {
+      throw new Error(`Upload returned a non-canonical URL: ${uploadResult.url}`)
+    }
+
+    const publicResponse = await fetch(uploadedUrl, { cache: 'no-store' })
+    const publicBytes = Buffer.from(await publicResponse.arrayBuffer())
+    if (!publicResponse.ok || !publicBytes.equals(tinyPng)) {
+      throw new Error(`Public read did not return the uploaded bytes: HTTP ${publicResponse.status}`)
+    }
+
+    console.log('Canonical upload and byte-identical public read passed')
+  } finally {
+    try {
+      if (uploadedUrl) {
+        console.log('Calling canonical image delete API')
+        const deleteResponse = await fetch('https://image-api.festapp.net/delete', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ projectId: 'akhweb', links: [uploadedUrl] }),
+        })
+        const deleteResult = await parseJsonResponse(deleteResponse)
+        if (!deleteResponse.ok || deleteResult?.complete !== true) {
+          throw new Error(
+            `Delete failed: ${JSON.stringify(deleteResult) || `${deleteResponse.status} ${deleteResponse.statusText}`}`
+          )
+        }
+        await waitUntilDeleted(uploadedUrl)
+      }
+    } finally {
+      await supabase.auth.signOut()
+    }
   }
 
-  console.log(`Uploaded: ${uploadResult.url}`)
-  console.log('Calling canonical image delete API')
-
-  const deleteResponse = await fetch('https://image-api.festapp.net/delete', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ projectId: 'akhweb', links: [uploadResult.url] }),
-  })
-
-  const deleteResult = await parseJsonResponse(deleteResponse)
-  if (!deleteResponse.ok) {
-    throw new Error(
-      `Delete failed: ${JSON.stringify(deleteResult) || `${deleteResponse.status} ${deleteResponse.statusText}`}`
-    )
-  }
-
-  await supabase.auth.signOut()
-  console.log('Production upload smoke test passed')
+  console.log('Production upload/read/delete smoke test passed')
 }
 
 main().catch((error) => {
