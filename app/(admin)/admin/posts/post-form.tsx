@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { useState } from "react"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import {
@@ -50,6 +51,7 @@ interface PostFormProps {
 
 export function PostForm({ initialData }: PostFormProps) {
   const router = useRouter()
+  const [isContentUploading, setIsContentUploading] = useState(false)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -119,7 +121,7 @@ export function PostForm({ initialData }: PostFormProps) {
                 isDirty={form.formState.isDirty}
                 onCancel={() => router.back()}
                 onSave={form.handleSubmit(onSubmit)}
-                isSubmitting={form.formState.isSubmitting}
+                isSubmitting={form.formState.isSubmitting || isContentUploading}
                 saveLabel={initialData ? "Uložit změny" : "Vytvořit aktualitu"}
             />
 
@@ -256,7 +258,7 @@ export function PostForm({ initialData }: PostFormProps) {
                         <FormLabel>Obsah</FormLabel>
                         <FormControl>
                             <div className="min-h-[300px] border rounded-md">
-                                <Tiptap content={field.value || ""} onChange={field.onChange} />
+                                <Tiptap content={field.value || ""} onChange={field.onChange} onUploadingChange={setIsContentUploading} />
                             </div>
                         </FormControl>
                         <FormMessage />

@@ -60,4 +60,19 @@ describe('Tiptap Editor Image Upload', () => {
       expect(lastCall).toContain('src="https://fake.supabase/test.jpg"')
     })
   })
+
+  it('reports upload progress so the parent form can block saving', async () => {
+    const handleUploadingChange = vi.fn()
+    const { container } = render(
+      <Tiptap content="" onChange={vi.fn()} onUploadingChange={handleUploadingChange} />,
+    )
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
+
+    fireEvent.change(fileInput, {
+      target: { files: [new File(['image'], 'image.png', { type: 'image/png' })] },
+    })
+
+    await waitFor(() => expect(handleUploadingChange).toHaveBeenCalledWith(true))
+    await waitFor(() => expect(handleUploadingChange).toHaveBeenLastCalledWith(false))
+  })
 })

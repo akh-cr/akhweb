@@ -10,6 +10,7 @@ import {
 } from '@/lib/admin/mutations';
 import { slugify } from '@/lib/utils';
 import { redirect } from 'next/navigation';
+import { assertNoTransientImageSource } from '@/lib/rich-text-images';
 
 /** Surfaces a post change can affect (admin list + public blog + home feed). */
 const POST_SURFACES: RevalidateSet = [
@@ -87,6 +88,8 @@ export async function getPost(id: string): Promise<Post | null> {
 
 export async function createPost(data: PostCreate) {
     return guardedMutation(requireAdmin, async ({ supabase, user }) => {
+        assertNoTransientImageSource(data.content);
+
         const { error } = await supabase
             .from('posts')
             .insert({
@@ -107,6 +110,8 @@ export async function createPost(data: PostCreate) {
 
 export async function updatePost(id: string, data: PostUpdate) {
     return guardedMutation(requireAdmin, async ({ supabase }) => {
+        assertNoTransientImageSource(data.content);
+
         // Check if updating slug and if it exists
         if (data.slug) {
             const { data: existing } = await supabase

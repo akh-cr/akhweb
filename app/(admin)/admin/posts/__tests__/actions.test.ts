@@ -104,6 +104,14 @@ describe('Posts Actions authorization', () => {
       )
       expect(mockInsert).not.toHaveBeenCalled()
     })
+
+    it('rejects browser-local image URLs before writing content', async () => {
+      await expect(createPost({
+        ...postData,
+        content: '<img src="blob:https://akhcr.cz/transient">',
+      })).rejects.toThrow('Nahrávání obrázku ještě není dokončeno')
+      expect(mockInsert).not.toHaveBeenCalled()
+    })
   })
 
   describe('updatePost', () => {

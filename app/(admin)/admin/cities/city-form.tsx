@@ -30,6 +30,7 @@ import { FormActions } from "@/components/admin/form-actions"
 
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { assertNoTransientImageSource } from "@/lib/rich-text-images"
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -75,6 +76,7 @@ export function CityForm({ initialData }: CityFormProps) {
   const router = useRouter()
   const [showManualCoordinates, setShowManualCoordinates] = useState(!!initialData?.metadata?.map?.lat || !!initialData?.latitude)
   const [isLoading, setIsLoading] = useState(false)
+  const [isContentUploading, setIsContentUploading] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -131,6 +133,13 @@ export function CityForm({ initialData }: CityFormProps) {
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+        assertNoTransientImageSource(values.content)
+    } catch (error) {
+        toast.error((error as Error).message)
+        return
+    }
+
     const supabase = createClient()
     
     // Auto-generate slug if empty
@@ -198,7 +207,7 @@ export function CityForm({ initialData }: CityFormProps) {
                 isDirty={form.formState.isDirty}
                 onCancel={() => router.back()}
                 onSave={form.handleSubmit(onSubmit)}
-                isSubmitting={form.formState.isSubmitting}
+                isSubmitting={form.formState.isSubmitting || isContentUploading}
                 saveLabel={initialData ? "Uložit změny" : "Vytvořit město"}
             />
             
@@ -489,7 +498,7 @@ export function CityForm({ initialData }: CityFormProps) {
                         <FormLabel>Obsah stránky</FormLabel>
                         <FormControl>
                             <div className="min-h-[300px] border rounded-md overflow-hidden max-w-full">
-                                <Tiptap content={field.value || ""} onChange={field.onChange} />
+                                <Tiptap content={field.value || ""} onChange={field.onChange} onUploadingChange={setIsContentUploading} />
                             </div>
                         </FormControl>
                         <FormDescription>Text, nadpisy a další informace.</FormDescription>

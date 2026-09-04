@@ -27,7 +27,13 @@ import { toast } from "sonner"
 import { uploadImageAction } from '@/lib/actions/upload-image'
 import imageCompression from 'browser-image-compression'
 
-export default function Tiptap({ content, onChange }: { content: string, onChange: (html: string) => void }) {
+interface TiptapProps {
+  content: string
+  onChange: (html: string) => void
+  onUploadingChange?: (isUploading: boolean) => void
+}
+
+export default function Tiptap({ content, onChange, onUploadingChange }: TiptapProps) {
   const [isSourceMode, setIsSourceMode] = useState(false)
   const [sourceCode, setSourceCode] = useState(content)
   const [isUploading, setIsUploading] = useState(false)
@@ -181,6 +187,10 @@ export default function Tiptap({ content, onChange }: { content: string, onChang
   useEffect(() => {
      editorRef.current = editor
   }, [editor])
+
+  useEffect(() => {
+    onUploadingChange?.(isUploading)
+  }, [isUploading, onUploadingChange])
 
   // Sync source code changes back to editor when switching modes
   useEffect(() => {

@@ -111,6 +111,7 @@ export function EventForm({
   const [newOrganizerColor, setNewOrganizerColor] = useState<OrganizerColorHex>(DEFAULT_EXTERNAL_ORGANIZER_COLOR_HEX)
   const [akhColor, setAkhColor] = useState<OrganizerColorHex>(akhOrganizerColor)
   const [isOrganizerSubmitting, setIsOrganizerSubmitting] = useState(false)
+  const [isContentUploading, setIsContentUploading] = useState(false)
   const [showOrganizerManager, setShowOrganizerManager] = useState(false)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -205,7 +206,7 @@ export function EventForm({
                 isDirty={form.formState.isDirty}
                 onCancel={() => router.back()}
                 onSave={form.handleSubmit(onSubmit)}
-                isSubmitting={form.formState.isSubmitting}
+                isSubmitting={form.formState.isSubmitting || isContentUploading}
                 saveLabel={initialData ? "Uložit změny" : "Vytvořit akci"}
             />
             
@@ -672,7 +673,7 @@ export function EventForm({
                         <FormLabel>Detailní obsah</FormLabel>
                         <FormControl>
                             <div className="min-h-[300px] border rounded-md overflow-hidden max-w-full">
-                                <Tiptap content={field.value || ""} onChange={field.onChange} />
+                                <Tiptap content={field.value || ""} onChange={field.onChange} onUploadingChange={setIsContentUploading} />
                             </div>
                         </FormControl>
                         <FormMessage />

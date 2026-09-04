@@ -14,6 +14,7 @@ import {
   isOrganizerColorHex,
   type OrganizerColorHex,
 } from "@/lib/event-organizer-colors"
+import { assertNoTransientImageSource } from "@/lib/rich-text-images"
 
 /** Every surface an event change can affect (AKH + external, public + admin). */
 const EVENT_SURFACES: RevalidateSet = [
@@ -58,6 +59,8 @@ export type CreateEventOrganizerResult =
 
 export async function createEvent(data: EventCreate) {
   return guardedMutation(requireEventAccess, async ({ supabase, role, organizerId }) => {
+    assertNoTransientImageSource(data.content)
+
     // Ensure we have a slug
     if (!data.slug) {
         const { slugify } = await import("@/lib/utils")
@@ -81,6 +84,8 @@ export async function createEvent(data: EventCreate) {
 
 export async function updateEvent(id: string, data: EventUpdate) {
   return guardedMutation(requireEventAccess, async ({ supabase, role, organizerId }) => {
+    assertNoTransientImageSource(data.content)
+
     const payload = { ...data }
     // Route through the single scoping seam so update applies the SAME pin as create.
     // Only touch organizer_id when the rule actually constrains it (organizer pin) or

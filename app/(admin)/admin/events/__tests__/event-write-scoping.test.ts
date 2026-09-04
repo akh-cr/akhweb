@@ -90,4 +90,14 @@ describe('event write scoping — delegates to scopeOrganizerId', () => {
     expect(mockScopeOrganizerId).toHaveBeenNthCalledWith(2, 'organizer', 'org-1', 'org-2')
     expect(mockInsert.mock.calls[0][0].organizer_id).toBe(mockUpdate.mock.calls[0][0].organizer_id)
   })
+
+  it('rejects browser-local image URLs before writing rich-text content', async () => {
+    mockAccess = { user: { id: 'u' }, supabase: mockSupabase, role: 'admin', organizerId: null }
+
+    await expect(createEvent(buildEvent({
+      content: '<p>Text</p><img src="blob:https://akhcr.cz/transient">',
+    }))).rejects.toThrow('Nahrávání obrázku ještě není dokončeno')
+
+    expect(mockInsert).not.toHaveBeenCalled()
+  })
 })

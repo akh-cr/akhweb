@@ -14,12 +14,14 @@ import Link from "next/link"
 import { FormActions } from "@/components/admin/form-actions"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import { assertNoTransientImageSource } from "@/lib/rich-text-images"
 
 export default function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [isContentUploading, setIsContentUploading] = useState(false)
   
   // Form State
   const [title, setTitle] = useState("")
@@ -108,6 +110,14 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         return
     }
 
+    try {
+      assertNoTransientImageSource(content)
+    } catch (error) {
+      toast.error((error as Error).message)
+      setSaving(false)
+      return
+    }
+
     const postData = {
         title,
         slug,
@@ -163,7 +173,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
             isDirty={isDirty}
             onCancel={() => router.back()}
             onSave={handleSave}
-            isSubmitting={saving}
+            isSubmitting={saving || isContentUploading}
             saveLabel={isNew ? "Vytvořit článek" : "Uložit změny"}
         />
 
@@ -248,7 +258,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
             <div className="grid gap-2">
                 <Label>Obsah</Label>
                 <div className="min-h-[400px] border rounded-md overflow-hidden max-w-full bg-background">
-                    <Tiptap content={content} onChange={setContent} />
+                    <Tiptap content={content} onChange={setContent} onUploadingChange={setIsContentUploading} />
                 </div>
             </div>
        </div>
